@@ -1,0 +1,49 @@
+PREVENTIVI IECI - APP PER ANDROID, PC E TABLET (PWA)
+
+1) METTERE L'APP ONLINE (una volta sola)
+   ATTENZIONE: va caricata la CARTELLA che contiene index.html, manifest.webmanifest, sw.js e le icone (.png).
+   Non il file HTML singolo e non il pacchetto Windows: senza manifest Chrome scrive "This app cannot be installed".
+   Per controllare: apri nel browser  tuoindirizzo.netlify.app/manifest.webmanifest  - deve comparire del testo che inizia con {"name":"Preventivi IECI"...
+   Carica questa cartella su un hosting https gratuito, ad esempio:
+   - Netlify Drop (app.netlify.com/drop): trascina la cartella e ottieni un indirizzo https
+   - GitHub Pages o Cloudflare Pages
+   Segna l'indirizzo: e' lo stesso per telefono, tablet e PC e NON deve cambiare mai (i dati sono legati a lui).
+
+2) INSTALLARE
+   - Android (Chrome): apri l'indirizzo, menu - "Installa app" / "Aggiungi a schermata Home"
+   - PC (Edge/Chrome): apri l'indirizzo, icona "Installa" nella barra dell'indirizzo
+   Poi, nell'app: Archivio - "Aggiornare la versione senza perdere nulla" - "Proteggi i dati".
+
+3) AGGIORNARE ALLA NUOVA VERSIONE (un minuto, senza reinstallare)
+   - Scompatta il nuovo zip e carica la cartella SULLO STESSO SITO:
+     Netlify: apri il tuo sito - scheda "Deploys" - trascina la nuova cartella nel riquadro (l'indirizzo resta identico).
+     GitHub/Cloudflare Pages: sostituisci i file nel repository.
+   - Apri l'app sul telefono o sul PC (anche senza fare nulla, basta averla aperta): compare
+     "Nuova versione pronta - Ricarica ora". Tocca e basta: nessuna reinstallazione, i dati restano.
+   - Non si aggiorna? Archivio - "Controlla aggiornamenti" oppure "Ricarica l'ultima versione".
+   Prima di aggiornare i dati il programma salva da solo una copia interna (Archivio - "Copie prima di ogni aggiornamento").
+
+4) SINCRONIZZARE CON GOOGLE DRIVE
+   Nell'app: Archivio - "Sincronizza con Google Drive". Segui le istruzioni per creare il Client ID Google
+   (una volta sola) e inserisci come origine autorizzata l'indirizzo https del punto 1. Poi su ogni dispositivo:
+   incolla lo stesso Client ID e premi "Collega Google Drive".
+
+5) SE CAMBI INDIRIZZO O DISPOSITIVO
+   Archivio - "Salva copia di sicurezza", poi sull'altro "Ripristina da file" (Sostituisci tutto).
+   Su PC puoi anche usare la "Copia automatica su file" (cartella dati) come rete di sicurezza.
+
+ICONA E NOME
+L'app si chiama "Preventivi IECI" e ha l'icona con il logo a tutto campo. Su un'app gia' installata Chrome aggiorna
+icona e nome da solo entro uno-tre giorni dopo l'aggiornamento; se vuoi vederli subito, disinstalla l'app e reinstallala
+(i dati restano: sono legati all'indirizzo, non all'icona).
+
+SE NETLIFY NON PERMETTE L'INSTALLAZIONE (errore 401 / "This app cannot be installed")
+Usa GitHub Pages, gratuito e pubblico (circa 5 minuti, tutto da browser):
+ 1. Su github.com crea un account e poi "New repository": nome "preventivi", Public, "Create repository".
+ 2. Nel repository: "uploading an existing file" - trascina TUTTI i file della cartella (index.html, manifest.webmanifest,
+    sw.js, le icone .png) - "Commit changes".
+ 3. Settings - Pages - Branch: main, cartella /(root) - Save. Dopo un minuto ottieni l'indirizzo
+    https://TUONOME.github.io/preventivi/
+ 4. Aprilo con Chrome sul telefono: menu - "Installa app".
+Attenzione: cambiando indirizzo i dati dell'app NON si spostano da soli: fai prima "Salva copia di sicurezza"
+nel vecchio indirizzo e poi "Ripristina da file" nel nuovo.

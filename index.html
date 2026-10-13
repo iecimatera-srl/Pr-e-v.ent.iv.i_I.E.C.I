@@ -400,7 +400,24 @@ details.sv summary{cursor:pointer;font-weight:600}
         <div class="row"><button class="btn sm" id="l-saveall" type="button">Salva i prodotti di questo preventivo</button></div>
         <input type="search" id="l-search" placeholder="Cerca prodotto">
         <div class="lines" id="l-list"></div>
-        <h3>Sincronizza con Google Drive</h3>
+        <h3>Sincronizza tra i dispositivi (GitHub privato)</h3>
+        <p class="hint">Gratis. Archivio, listino, dati ditta e stile restano uguali su telefono e computer. I dati stanno in un archivio <b>privato</b> del tuo account GitHub.</p>
+        <details class="sv"><summary>Prima volta? Guida passo passo (circa 5 minuti)</summary>
+          <ol class="hint" style="margin:8px 0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
+            <li><b>Crea l'archivio dei dati.</b> Su github.com tocca «+» in alto → «New repository». Nome: <b>preventivi-ieci-dati</b>. Scegli <b>Private</b> (importante). Spunta «Add a README file». Poi «Create repository».</li>
+            <li><b>Crea il codice di accesso.</b> Tocca la tua foto → Settings → in fondo «Developer settings» → Personal access tokens → <b>Fine-grained tokens</b> → «Generate new token».</li>
+            <li>Nome: <b>Preventivi IECI</b>. Scadenza: la più lunga disponibile. «Repository access»: <b>Only select repositories</b> e scegli <b>preventivi-ieci-dati</b>.</li>
+            <li>«Permissions» → «Repository permissions» → <b>Contents</b> → <b>Read and write</b>. Poi «Generate token» e <b>copia il codice</b> (inizia con github_pat_). Si vede una volta sola.</li>
+            <li><b>Qui sotto</b> scrivi <b>iltuoutente/preventivi-ieci-dati</b>, incolla il codice e premi «Collega e sincronizza».</li>
+            <li><b>Sugli altri dispositivi</b> ripeti solo il passo 5: stesso archivio, stesso codice (conservalo in un posto sicuro).</li>
+          </ol>
+        </details>
+        <label class="f">Archivio (utente/nome)<input type="text" id="gh-repo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="iltuoutente/preventivi-ieci-dati"></label>
+        <label class="f">Codice di accesso<input type="password" id="gh-token" autocomplete="off" placeholder="github_pat_…"></label>
+        <div class="row"><button class="btn" id="gh-on" type="button">Collega e sincronizza</button><button class="btn ghost" id="gh-sync" type="button">Sincronizza ora</button><button class="btn ghost" id="gh-off" type="button">Scollega</button></div>
+        <label class="chk"><input type="checkbox" id="gh-auto">Sincronizza da solo (all'apertura e dopo le modifiche)</label>
+        <p class="res" id="gh-state"></p>
+        <h3>Alternativa avanzata: Google Drive</h3>
         <p class="hint">Archivio, listino, dati ditta e stile vengono salvati in una cartella riservata all'app nel tuo Drive e uniti su tutti i dispositivi. L'app non vede gli altri tuoi file.</p>
         <details class="sv"><summary>Come ottenere il Client ID (una volta sola)</summary>
           <ol class="hint" style="margin:8px 0;padding-left:18px;display:flex;flex-direction:column;gap:4px">
@@ -831,7 +848,7 @@ details.sv summary{cursor:pointer;font-weight:600}
 </script>
 <script>
 var CAN_PRINT = true;
-var APP_VER = '2026.10.13.4';
+var APP_VER = '2026.10.14.1';
 (function(){
 'use strict';
 
@@ -1884,7 +1901,7 @@ function syncFields(){
   renderLogoPrev(); syncB();
 }
 function renderLogoPrev(){ var u=S.style.logo; $('logo-prev').innerHTML=u?'<div class="lp"><small>Pagine interne</small><div class="lpb" style="background:#fff"><img src="'+logoSrcPage()+'" alt=""></div></div><div class="lp"><small>Copertina</small><div class="lpb" id="lp2" style="background:'+S.style.b1+'"><img src="'+logoSrcCover()+'" alt=""></div></div>':'<span>Nessun logo caricato</span>'; $('logo-rm').disabled=!S.style.logo; $('logo-pal').disabled=!S.style.logo; }
-function renderAll(){ if(S.products[0]&&openP[S.products[0].id]===undefined) openP[S.products[0].id]=true; renderTabs(); renderCat(); renderLines(); renderProducts(); renderContent(); renderOrder(); renderCustom(); renderEcon(); renderTiers(); renderTrust(); renderIcons(); renderTpl(); syncFields(); sigDraw('cli'); sigDraw('dit'); renderStamp(); renderPlan(); renderFvRes(); renderInvio(); renderArchivio(); renderGd(); renderAiSet(); renderImp(); renderArts(); renderAq(); renderDoc(); refreshVariants(); }
+function renderAll(){ if(S.products[0]&&openP[S.products[0].id]===undefined) openP[S.products[0].id]=true; renderTabs(); renderCat(); renderLines(); renderProducts(); renderContent(); renderOrder(); renderCustom(); renderEcon(); renderTiers(); renderTrust(); renderIcons(); renderTpl(); syncFields(); sigDraw('cli'); sigDraw('dit'); renderStamp(); renderPlan(); renderFvRes(); renderInvio(); renderArchivio(); renderGd(); renderGh(); renderAiSet(); renderImp(); renderArts(); renderAq(); renderDoc(); refreshVariants(); }
 function touch(){ save(); schedule(); }
 
 $('tabs').addEventListener('click',function(e){
@@ -2402,7 +2419,7 @@ if(!CAN_PRINT){ $('pdf-box').innerHTML='<p class="hint">L\'unione dei PDF funzio
 /* ---------- archivio: clienti, libreria prodotti, preventivi salvati ---------- */
 var pendDel=null, pendT=0;
 function dbSave(ns){
-  if(!dbReady) return; mirSoon(); if(!ns){ DB.lastChange=Date.now(); gdPushSoon(); } clearTimeout(dbT);
+  if(!dbReady) return; mirSoon(); if(!ns){ DB.lastChange=Date.now(); gdPushSoon(); if(typeof ghPushSoon==='function') ghPushSoon(); } clearTimeout(dbT);
   dbT=setTimeout(function(){
     if(IDB){ try{ var tx=IDB.transaction('kv','readwrite'); tx.objectStore('kv').put(DB,DBKEY); tx.onerror=tx.onabort=function(){ warnStore(); }; }catch(e){ warnStore(); } }
     else { try{ localStorage.setItem(DBKEY,JSON.stringify(DB)); }catch(e){ warnStore(); } }
@@ -2458,6 +2475,7 @@ function saveQuote(silent){
   }
   var meta={id:S.qid,num:S.meta.num,name:quoteName(),title:docTitle(),client:S.client.name,tot:acceptedCalc().tot,upd:Date.now(),model:S.model};
   var e=DB.quotes.filter(function(q){ return q.id===S.qid; })[0];
+  if(e&&!isNew&&e.data){ var d0=JSON.parse(JSON.stringify(S)); delete d0.cat; if(JSON.stringify(e.data)===JSON.stringify(d0)&&e.name===meta.name&&e.title===meta.title&&e.tot===meta.tot&&e.client===meta.client){ if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }
   if(!e){ e=meta; DB.quotes.push(e); } else { Object.keys(meta).forEach(function(k){ e[k]=meta[k]; }); }
   var d=JSON.parse(JSON.stringify(S)); delete d.cat; e.data=d;
   dbSave(); renderArchivio(); if(isNew) save();
@@ -2646,6 +2664,85 @@ function gdPushSoon(){
   if(!GD.on||!GD.auto||!tokOk()) return;
   clearTimeout(gdT); gdT=setTimeout(function(){ gdSync(false); },20000);
 }
+/* ---------- GitHub (archivio privato, file JSON) ---------- */
+var GH={repo:'',token:'',on:false,auto:true,last:0}, ghBusy=false, ghT=0, GHFILE='archivio-preventivi-ieci.json';
+function ghLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-gh')||'{}'); GH.repo=o.repo||''; GH.token=o.token||''; GH.on=!!o.on; GH.auto=o.auto!==false; GH.last=o.last||0; }catch(e){} }
+function ghStore(){ try{ localStorage.setItem('ieci-gh',JSON.stringify(GH)); }catch(e){} }
+function ghStatus(t){ var el=$('gh-state'); if(el) el.textContent=t; }
+function ghClean(v){ return String(v||'').trim().replace(/^https?:\/\/github\.com\//i,'').replace(/\.git$/i,'').replace(/^\/+|\/+$/g,''); }
+function renderGh(){
+  if(!$('gh-repo')) return;
+  $('gh-repo').value=GH.repo; $('gh-token').value=GH.token; $('gh-auto').checked=GH.auto;
+  $('gh-sync').disabled=!GH.on; $('gh-off').disabled=!GH.on;
+  $('gh-on').textContent=GH.on?'Salva e sincronizza':'Collega e sincronizza';
+  if(!$('gh-state').textContent) ghStatus(GH.on?('Collegato a '+GH.repo+(GH.last?'. Ultima sincronizzazione: '+new Date(GH.last).toLocaleString('it-IT'):'')+'.'):'Non collegato.');
+}
+function ghApi(path,opt,raw,noRepo){
+  opt=opt||{};
+  opt.headers=Object.assign({Authorization:'Bearer '+GH.token,Accept:raw?'application/vnd.github.raw+json':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'},opt.headers||{});
+  opt.cache='no-store';
+  return fetch('https://api.github.com/repos/'+GH.repo+path,opt).then(function(r){
+    if(!r.ok){ var e=new Error(String(r.status)); e.status=r.status; throw e; }
+    return r;
+  });
+}
+function b64utf8(str){ var u=new TextEncoder().encode(str), bin='', i, n=0x8000; for(i=0;i<u.length;i+=n) bin+=String.fromCharCode.apply(null,u.subarray(i,i+n)); return btoa(bin); }
+function ghErr(e){
+  var c=e&&e.status;
+  if(c===401) return 'Codice di accesso non valido o scaduto: creane uno nuovo su GitHub e incollalo qui.';
+  if(c===403) return 'Accesso negato: il codice deve avere il permesso «Contents: Read and write» su questo archivio (o hai fatto troppe richieste: riprova tra poco).';
+  if(c===404) return 'Archivio non trovato: controlla il nome (utente/archivio) e che il codice sia stato creato proprio per quell\'archivio.';
+  if(c===409||c===422) return 'Conflitto di salvataggio: riprova.';
+  if(e&&/Failed to fetch|NetworkError|Load failed/i.test(String(e.message))) return 'Nessuna connessione a GitHub: riprova quando sei online.';
+  return 'Errore: '+((e&&e.message)||e);
+}
+function ghFetchFile(){
+  return ghApi('/contents/'+GHFILE).then(function(r){ return r.json(); }).then(function(m){
+    return ghApi('/contents/'+GHFILE,{},true).then(function(r){ return r.json(); }).then(function(o){ return {sha:m.sha,o:o}; });
+  },function(e){ if(e.status===404) return null; throw e; });
+}
+function ghPut(sha,text){
+  var body={message:'Sincronizzazione '+new Date().toISOString(),content:b64utf8(text)}; if(sha) body.sha=sha;
+  return ghApi('/contents/'+GHFILE,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+}
+function ghSync(interactive,retry){
+  if(ghBusy||!GH.on||!GH.token||!GH.repo) return;
+  ghBusy=true; ghStatus('Sincronizzazione in corso…');
+  if(S.qid&&dbReady) saveQuote(true);
+  clearTimeout(ghT);
+  var again=false;
+  ghFetchFile().then(function(res){
+    if(res&&res.o) gdMerge(res.o);
+    settingsStamp(); renderArchivio();
+    return ghPut(res&&res.sha,JSON.stringify(buildPayload()));
+  }).then(function(){
+    GH.last=Date.now(); ghStore(); dbSave(true); clearTimeout(ghT);
+    ghStatus('Sincronizzato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'. Archivio, listino, dati ditta e stile sono aggiornati su GitHub.');
+  }).catch(function(e){
+    if((e.status===409||e.status===422)&&!retry){ again=true; return; }
+    ghStatus(ghErr(e));
+  }).then(function(){ ghBusy=false; if(again) ghSync(interactive,true); });
+}
+function ghPushSoon(){
+  if(!GH.on||!GH.auto||!GH.token) return;
+  clearTimeout(ghT); ghT=setTimeout(function(){ ghSync(false); },15000);
+}
+$('gh-auto').addEventListener('change',function(e){ GH.auto=e.target.checked; ghStore(); });
+$('gh-on').addEventListener('click',function(){
+  var repo=ghClean($('gh-repo').value), tok=$('gh-token').value.trim();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){ ghStatus('Scrivi il nome dell\'archivio come utente/nome, ad esempio mario/preventivi-ieci-dati.'); return; }
+  if(!tok){ ghStatus('Incolla il codice di accesso (inizia con github_pat_).'); return; }
+  GH.repo=repo; GH.token=tok; ghStatus('Controllo l\'archivio…');
+  ghApi('').then(function(r){ return r.json(); }).then(function(j){
+    if(j&&j.private===false){ ghStatus('Questo archivio è PUBBLICO: i tuoi clienti e prezzi sarebbero visibili a tutti. Su GitHub: Settings → Danger Zone → «Change visibility» → Private, poi riprova.'); return; }
+    GH.on=true; ghStore(); renderGh(); ghSync(true);
+  }).catch(function(e){ ghStatus(ghErr(e)); });
+});
+$('gh-sync').addEventListener('click',function(){ ghSync(true); });
+$('gh-off').addEventListener('click',function(){ GH.on=false; GH.token=''; ghStore(); ghStatus('Scollegato. I dati restano su questo dispositivo e su GitHub.'); renderGh(); });
+document.addEventListener('visibilitychange',function(){ if(!document.hidden&&GH.on&&GH.auto&&Date.now()-GH.last>60000) ghSync(false); });
+ghLoad();
+(function(){ var n=0, iv=setInterval(function(){ n++; if(dbReady){ clearInterval(iv); if(GH.on&&GH.auto) ghSync(false); } else if(n>40) clearInterval(iv); },500); })();
 $('gd-cid').addEventListener('input',function(e){ GD.cid=e.target.value.trim(); gdStore(); });
 $('gd-auto').addEventListener('change',function(e){ GD.auto=e.target.checked; gdStore(); });
 $('gd-on').addEventListener('click',function(){

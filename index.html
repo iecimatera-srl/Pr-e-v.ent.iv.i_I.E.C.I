@@ -1057,7 +1057,7 @@ input[type=range]{width:100%}
 </script>
 <script>
 var CAN_PRINT = true;
-var APP_VER = '2026.10.14.12';
+var APP_VER = '2026.10.14.13';
 (function(){
 'use strict';
 
@@ -3106,7 +3106,7 @@ function renderArchivio(){
   var dl=$('cl-dl'); if(dl) dl.innerHTML=DB.clients.map(function(c){ return '<option value="'+esc(c.name)+'">'; }).join('');
   var lp=$('lib-pick'); if(lp) lp.innerHTML='<option value="">+ Aggiungi dalla libreria prodotti…</option>'+DB.prods.map(function(p){ return '<option value="'+p.id+'">'+esc(p.name+(p.brand?' · '+p.brand:''))+'</option>'; }).join('');
 }
-$('arch').addEventListener('click',function(e){
+function archClick(e){
   var t=e.target, b;
   if((b=t.closest('[data-qo]'))) return openQuote(b.getAttribute('data-qo'));
   if((b=t.closest('[data-qc]'))) return openQuote(b.getAttribute('data-qc'),true);
@@ -3115,7 +3115,9 @@ $('arch').addEventListener('click',function(e){
   if((b=t.closest('[data-cx]'))){ var cid=b.getAttribute('data-cx'); return delTwice('c'+cid,function(){ DB.del[cid]=Date.now(); DB.clients=DB.clients.filter(function(c){ return c.id!==cid; }); dbSave(); renderArchivio(); },b); }
   if((b=t.closest('[data-lu]'))) return useProd(b.getAttribute('data-lu'));
   if((b=t.closest('[data-lx]'))){ var lid=b.getAttribute('data-lx'); return delTwice('l'+lid,function(){ DB.del[lid]=Date.now(); DB.prods=DB.prods.filter(function(p){ return p.id!==lid; }); dbSave(); renderArchivio(); },b); }
-});
+}
+$('arch').addEventListener('click',archClick);
+$('acc-save').addEventListener('click',archClick);
 ['q-search','c-search','l-search'].forEach(function(id){ $(id).addEventListener('input',renderArchivio); });
 $('q-save').addEventListener('click',function(){ saveQuote(false); });
 $('q-new').addEventListener('click',newQuote);

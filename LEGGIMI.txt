@@ -1,9 +1,9 @@
-PREVENTIVI IECI - APP PER ANDROID, PC E TABLET (PWA)
+IECI PREVENTIVI - APP PER ANDROID, PC E TABLET (PWA)
 
 1) METTERE L'APP ONLINE (una volta sola)
    ATTENZIONE: va caricata la CARTELLA che contiene index.html, manifest.webmanifest, sw.js e le icone (.png).
    Non il file HTML singolo e non il pacchetto Windows: senza manifest Chrome scrive "This app cannot be installed".
-   Per controllare: apri nel browser  tuoindirizzo.netlify.app/manifest.webmanifest  - deve comparire del testo che inizia con {"name":"Preventivi IECI"...
+   Per controllare: apri nel browser  tuoindirizzo.netlify.app/manifest.webmanifest  - deve comparire del testo che inizia con {"name":"IECI preventivi"...
    Carica questa cartella su un hosting https gratuito, ad esempio:
    - Netlify Drop (app.netlify.com/drop): trascina la cartella e ottieni un indirizzo https
    - GitHub Pages o Cloudflare Pages
@@ -33,7 +33,7 @@ PREVENTIVI IECI - APP PER ANDROID, PC E TABLET (PWA)
    Su PC puoi anche usare la "Copia automatica su file" (cartella dati) come rete di sicurezza.
 
 ICONA E NOME
-L'app si chiama "Preventivi IECI" e ha l'icona con il logo a tutto campo. Su un'app gia' installata Chrome aggiorna
+L'app si chiama "IECI preventivi" e ha l'icona con il logo a tutto campo. Su un'app gia' installata Chrome aggiorna
 icona e nome da solo entro uno-tre giorni dopo l'aggiornamento; se vuoi vederli subito, disinstalla l'app e reinstallala
 (i dati restano: sono legati all'indirizzo, non all'icona).
 

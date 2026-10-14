@@ -459,6 +459,13 @@ header.top h1 .an2{font-weight:700}
 }
 
 .dens-c .card{padding:12px;gap:9px}.dens-c .col{gap:9px}.dens-c .wrap{gap:12px}
+
+.svd{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}
+.svd .t{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--field);display:flex;flex-direction:column;gap:2px;min-width:0}
+.svd .t small{font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.svd .t b{font-size:1.05rem;line-height:1.2;overflow-wrap:anywhere}
+.svd .t.ok{border-color:#2e9d62}.svd .t.warn{border-color:#d9822b;background:rgba(217,130,43,.1)}
+.svd .t.wide{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 body{font-size:calc(15px*var(--fz,1))}
 .wm{position:absolute;left:0;top:0;right:0;bottom:0;z-index:0;pointer-events:none;background-image:var(--wm);-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .wm.tile{background-repeat:repeat;background-position:0 0}.wm.one{background-repeat:no-repeat;background-position:center 52%}
@@ -500,7 +507,33 @@ input[type=range]{width:100%}
         <div class="row"><button class="btn sm" id="l-saveall" type="button">Salva i prodotti di questo preventivo</button></div>
         <input type="search" id="l-search" placeholder="Cerca prodotto">
         <div class="lines" id="l-list"></div>
-        <details class="acc" id="acc-sync"><summary><span>Sincronizza tra i dispositivi</span></summary><div class="accb">
+      </section>
+
+      <section class="card" data-panel="salva" id="salva">
+        <h2>Salvataggi e aggiornamenti</h2>
+        <div class="svd" id="sv-dash"></div>
+        <details class="acc" id="acc-bkf" open><summary><span>Copia di sicurezza su file</span></summary><div class="accb">
+        
+        <p class="res" id="bk-state"></p>
+        <div class="row"><button class="btn" id="db-exp" type="button">Salva copia di sicurezza</button><label class="btn ghost">Ripristina da file<input id="db-imp" type="file" accept="application/json,.json,.txt,text/plain" hidden></label></div>
+        <p class="hint">La copia è un solo file con tutto: clienti, prodotti, preventivi, listino, dati ditta e stile. Su telefono si apre il menu di condivisione (Drive, WhatsApp, email); su PC viene scaricata. Per passare da una versione all'altra, da PC ad Android o a un altro PC: salva la copia, apri l'altra versione e premi «Ripristina da file».</p>
+        <div class="subs" style="padding-left:0"><label class="chk"><input type="radio" name="imp-mode" value="merge" checked>Unisci a ciò che c'è già</label><label class="chk"><input type="radio" name="imp-mode" value="replace">Sostituisci tutto (ripristino completo)</label></div>
+        <details class="sv"><summary>Ripristina da testo copiato</summary><textarea id="db-txt" style="min-height:70px;font-size:.75rem;margin-top:8px"></textarea><div class="row" style="margin-top:8px"><button class="btn ghost sm" id="db-imp-txt" type="button">Ripristina</button>
+        </div></details>
+        <details class="acc" id="acc-auto"><summary><span>Salvataggi automatici di sicurezza</span></summary><div class="accb">
+        <p class="hint">Reti di sicurezza che lavorano da sole: una cartella dove il programma scrive ogni modifica, le copie fatte prima di ogni aggiornamento e la protezione dei dati del browser.</p>
+        <div class="row"><b>1. Copia automatica su file</b></div>
+        <p class="hint" id="mi-state"></p>
+        <div class="row"><button class="btn" id="mi-pick" type="button">Scegli la cartella dati</button><button class="btn ghost" id="mi-rest" type="button">Recupera i dati dalla cartella</button><button class="btn ghost" id="mi-on" type="button" hidden>Riattiva</button><button class="btn ghost" id="mi-off" type="button" hidden>Scollega</button></div>
+        <p class="hint">Scegli una cartella (ad esempio Documenti › Preventivi IECI dati). Da quel momento ogni modifica viene scritta in un file lì dentro, fuori dal programma: cambiando versione, browser o cartella basta indicare la stessa cartella e ritrovi tutto.</p>
+        <div class="row"><b>2. Copie prima di ogni aggiornamento</b></div>
+        <div class="lines" id="sn-list"></div>
+        <div class="row"><b>3. Protezione dei dati del browser</b></div>
+        <p class="hint" id="pe-state"></p>
+        <div class="row"><button class="btn ghost" id="pe-btn" type="button">Proteggi i dati</button></div>
+        
+        </div></details>
+        <details class="acc" id="acc-sync"><summary><span>Sincronizza telefono e computer</span></summary><div class="accb">
         <h3>GitHub privato (consigliato)</h3>
         <p class="hint">Gratis. Archivio, listino, dati ditta e stile restano uguali su telefono e computer. I dati stanno in un archivio <b>privato</b> del tuo account GitHub.</p>
         <details class="sv"><summary>Prima volta? Guida passo passo (circa 5 minuti)</summary>
@@ -536,30 +569,16 @@ input[type=range]{width:100%}
         <p class="res" id="gd-state"></p>
           </div></details>
         </div></details>
-        <details class="acc" id="acc-bk"><summary><span>Copie di sicurezza e aggiornamenti</span></summary><div class="accb">
-
-        <h3>Aggiornare la versione senza perdere nulla</h3>
+        <details class="acc" id="acc-upd"><summary><span>Aggiornamenti e installazione</span></summary><div class="accb">
+        
         <p class="res" id="up-ver"></p>
         <p class="hint">Quando ricevi una nuova versione, la installi sopra a quella vecchia: i dati restano. In più, qui sotto hai tre reti di sicurezza che non richiedono di fare nulla a mano.</p>
-        <div class="row"><b>1. Copia automatica su file</b></div>
-        <p class="hint" id="mi-state"></p>
-        <div class="row"><button class="btn" id="mi-pick" type="button">Scegli la cartella dati</button><button class="btn ghost" id="mi-rest" type="button">Recupera i dati dalla cartella</button><button class="btn ghost" id="mi-on" type="button" hidden>Riattiva</button><button class="btn ghost" id="mi-off" type="button" hidden>Scollega</button></div>
-        <p class="hint">Scegli una cartella (ad esempio Documenti › Preventivi IECI dati). Da quel momento ogni modifica viene scritta in un file lì dentro, fuori dal programma: cambiando versione, browser o cartella basta indicare la stessa cartella e ritrovi tutto.</p>
-        <div class="row"><b>2. Copie prima di ogni aggiornamento</b></div>
-        <div class="lines" id="sn-list"></div>
-        <div class="row"><b>3. Protezione dei dati del browser</b></div>
-        <p class="hint" id="pe-state"></p>
-        <div class="row"><button class="btn ghost" id="pe-btn" type="button">Proteggi i dati</button><button class="btn ghost" id="up-chk" type="button" hidden>Controlla aggiornamenti</button><button class="btn ghost" id="up-rl" type="button" hidden>Ricarica l'ultima versione</button></div>
+        
+        <div class="row"><button class="btn ghost" id="up-chk" type="button" hidden>Controlla aggiornamenti</button><button class="btn ghost" id="up-rl" type="button" hidden>Ricarica l'ultima versione</button></div>
         <h3>Installare l'app sul telefono o sul PC</h3>
         <p class="res" id="in-state"></p>
         <div class="row"><button class="btn" id="in-btn" type="button" hidden>Installa IECI preventivi</button><button class="btn ghost" id="in-diag" type="button">Controlla l'installazione</button></div>
         <pre class="res" id="in-out" hidden style="white-space:pre-wrap;font-size:.8rem;margin:0"></pre>
-        <h3>Copia di sicurezza</h3>
-        <p class="res" id="bk-state"></p>
-        <div class="row"><button class="btn" id="db-exp" type="button">Salva copia di sicurezza</button><label class="btn ghost">Ripristina da file<input id="db-imp" type="file" accept="application/json,.json,.txt,text/plain" hidden></label></div>
-        <p class="hint">La copia è un solo file con tutto: clienti, prodotti, preventivi, listino, dati ditta e stile. Su telefono si apre il menu di condivisione (Drive, WhatsApp, email); su PC viene scaricata. Per passare da una versione all'altra, da PC ad Android o a un altro PC: salva la copia, apri l'altra versione e premi «Ripristina da file».</p>
-        <div class="subs" style="padding-left:0"><label class="chk"><input type="radio" name="imp-mode" value="merge" checked>Unisci a ciò che c'è già</label><label class="chk"><input type="radio" name="imp-mode" value="replace">Sostituisci tutto (ripristino completo)</label></div>
-        <details class="sv"><summary>Ripristina da testo copiato</summary><textarea id="db-txt" style="min-height:70px;font-size:.75rem;margin-top:8px"></textarea><div class="row" style="margin-top:8px"><button class="btn ghost sm" id="db-imp-txt" type="button">Ripristina</button></div></details>
         
         </div></details>
       </section>
@@ -1057,7 +1076,7 @@ input[type=range]{width:100%}
 </script>
 <script>
 var CAN_PRINT = true;
-var APP_VER = '2026.10.14.13';
+var APP_VER = '2026.10.14.14';
 (function(){
 'use strict';
 
@@ -1947,7 +1966,7 @@ function fit(){
 window.addEventListener('resize',fit);
 
 /* ---------- editor ---------- */
-var SEC=[{p:'dati',l:'Dati'},{p:'prev',l:'Preventivo'},{p:'contenuto',l:'Contenuto'},{p:'pagine',l:'Pagine'},{p:'prodotti',l:'Prodotti'},{p:'piante',l:'Piante'},{p:'stime',l:'Stime'},{p:'fiducia',l:'Fiducia'},{p:'cond',l:'Condizioni e firma'},{p:'documenti',l:'Documenti'},{p:'invio',l:'Invio'},{p:'archivio',l:'Archivio'},{p:'fornitori',l:'Fornitori'},{p:'azienda',l:'Azienda'},{p:'stile',l:'Stile e logo'},{p:'app',l:'Personalizza app'},{p:'menu',l:'Personalizza menu'}];
+var SEC=[{p:'dati',l:'Dati'},{p:'prev',l:'Preventivo'},{p:'contenuto',l:'Contenuto'},{p:'pagine',l:'Pagine'},{p:'prodotti',l:'Prodotti'},{p:'piante',l:'Piante'},{p:'stime',l:'Stime'},{p:'fiducia',l:'Fiducia'},{p:'cond',l:'Condizioni e firma'},{p:'documenti',l:'Documenti'},{p:'invio',l:'Invio'},{p:'archivio',l:'Archivio'},{p:'fornitori',l:'Fornitori'},{p:'azienda',l:'Azienda'},{p:'stile',l:'Stile e logo'},{p:'salva',l:'Salvataggi e aggiornamenti'},{p:'app',l:'Personalizza app'},{p:'menu',l:'Personalizza menu'}];
 function secDef(p){ for(var i=0;i<SEC.length;i++) if(SEC[i].p===p) return SEC[i].l; return p; }
 function secLabel(p){ var n=MENU&&MENU.names&&MENU.names[p]; return n?n:secDef(p); }
 function applyNames(){
@@ -1957,9 +1976,9 @@ function applyNames(){
   });
 }
 function menuDefault(){
-  var g={g1:['dati','prev','contenuto','pagine','prodotti','piante','stime','fiducia','cond','documenti','invio'],g2:['archivio','fornitori'],g3:['azienda','stile'],g4:['app','menu']}, it=[];
+  var g={g1:['dati','prev','prodotti','contenuto','pagine'],g5:['piante','stime','fiducia','cond','documenti','invio'],g2:['archivio','fornitori'],g3:['azienda','stile'],g4:['salva','app','menu']}, it=[];
   Object.keys(g).forEach(function(k){ g[k].forEach(function(p){ it.push({p:p,g:k,on:true}); }); });
-  return {mode:'menu',names:{},groups:[{id:'g1',n:'Preventivo'},{id:'g2',n:'Catalogo e archivio'},{id:'g3',n:'Azienda e stile'},{id:'g4',n:'Impostazioni'}],items:it};
+  return {v:2,mode:'menu',names:{},groups:[{id:'g1',n:'Preventivo'},{id:'g5',n:'Allegati e invio'},{id:'g2',n:'Catalogo e archivio'},{id:'g3',n:'Azienda e stile'},{id:'g4',n:'Gestione app'}],items:it};
 }
 var MENU=menuDefault();
 function menuFix(){
@@ -1971,7 +1990,7 @@ function menuFix(){
   MENU.items.forEach(function(i){ if(!gid[i.g]) i.g=MENU.groups[0].id; if(i.p==='menu') i.on=true; });
   d.items.forEach(function(i){ if(!seen[i.p]){ var dg=d.groups.filter(function(x){ return x.id===i.g; })[0], ex=MENU.groups.filter(function(x){ return x.id===i.g; })[0]; MENU.items.push({p:i.p,g:ex?i.g:MENU.groups[0].id,on:true}); } });
 }
-function menuLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-menu')||'null'); if(o) MENU=o; }catch(e){} menuFix(); }
+function menuLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-menu')||'null'); if(o){ if((o.v||0)<2){ var nm=o.names&&typeof o.names==='object'?o.names:{}, md=o.mode==='tabs'?'tabs':'menu'; o=menuDefault(); o.names=nm; o.mode=md; } MENU=o; } }catch(e){} menuFix(); }
 function menuSave(){ try{ localStorage.setItem('ieci-menu',JSON.stringify(MENU)); }catch(e){} }
 function menuFlat(){ var o=[]; MENU.groups.forEach(function(g){ MENU.items.forEach(function(i){ if(i.g===g.id&&i.on) o.push(i.p); }); }); return o; }
 var panel='stile', mnOpen=false;
@@ -2119,7 +2138,7 @@ $('qb-view').addEventListener('click',function(){
   else { var w=$('paperWrap'); if(w) w.scrollIntoView({behavior:'smooth',block:'start'}); }
 });
 window.addEventListener('scroll',updView,{passive:true}); window.addEventListener('resize',updView);
-var NAVIC={app:'<path d="M12 3l1.9 4.6 4.9.4-3.7 3.2 1.1 4.8L12 13.6 7.8 16l1.1-4.8L5.2 8l4.9-.4z"/><path d="M4 20h16"/>',
+var NAVIC={salva:'<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/>',app:'<path d="M12 3l1.9 4.6 4.9.4-3.7 3.2 1.1 4.8L12 13.6 7.8 16l1.1-4.8L5.2 8l4.9-.4z"/><path d="M4 20h16"/>',
   dati:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   prev:'<path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M8 13h8M8 17h5"/>',
   contenuto:'<path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/>',
@@ -2141,7 +2160,7 @@ function navIc(p){ return '<svg class="ni" viewBox="0 0 24 24" width="18" height
 function showPanel(p){
   panel=p; mnOpen=false;
   Array.prototype.forEach.call(document.querySelectorAll('[data-panel]'),function(s){ s.hidden=(s.getAttribute('data-panel')!==p); });
-  renderNav(); if(p==='menu') renderMenuEd(); if(p==='app') apUI(); renderQbar();
+  renderNav(); if(p==='menu') renderMenuEd(); if(p==='app') apUI(); if(p==='salva') svDash(); renderQbar();
 }
 $('ptabs').addEventListener('click',function(e){
   e.stopPropagation();
@@ -2221,8 +2240,8 @@ $('mn-add').addEventListener('click',function(){ MENU.groups.push({id:'g'+Date.n
 $('mn-reset').addEventListener('click',function(){ if(!confirm('Ripristinare ordine, gruppi e nomi originali?')) return; MENU=menuDefault(); menuChanged(true); toast('Menu ripristinato'); });
 $('mn-presets').addEventListener('click',function(e){
   var b=e.target.closest('[data-preset]'); if(!b) return; var k=b.getAttribute('data-preset'), keep=MENU.names, mode=MENU.mode; MENU=menuDefault(); MENU.names=keep; MENU.mode=mode;
-  if(k==='ess'){ var vis={dati:1,prev:1,prodotti:1,fornitori:1,archivio:1,cond:1,invio:1,menu:1}; MENU.items.forEach(function(i){ i.on=!!vis[i.p]; }); }
-  if(k==='uno'){ MENU.groups=[{id:'g1',n:'Menu'}]; MENU.items.forEach(function(i){ i.g='g1'; }); var o=['dati','prev','contenuto','pagine','prodotti','fornitori','archivio','piante','stime','fiducia','cond','documenti','invio','azienda','stile','menu'], by={}; MENU.items.forEach(function(i){ by[i.p]=i; }); MENU.items=o.map(function(p){ return by[p]; }); }
+  if(k==='ess'){ var vis={dati:1,prev:1,prodotti:1,fornitori:1,archivio:1,cond:1,invio:1,salva:1,menu:1}; MENU.items.forEach(function(i){ i.on=!!vis[i.p]; }); }
+  if(k==='uno'){ MENU.groups=[{id:'g1',n:'Menu'}]; MENU.items.forEach(function(i){ i.g='g1'; }); var o=['dati','prev','contenuto','pagine','prodotti','fornitori','archivio','piante','stime','fiducia','cond','documenti','invio','azienda','stile','salva','app','menu'], by={}; MENU.items.forEach(function(i){ by[i.p]=i; }); MENU.items=o.map(function(p){ return by[p]; }); }
   menuChanged(true); toast(k==='ess'?'Solo le sezioni essenziali (le altre sono nascoste, le riattivi con l\'interruttore)':k==='uno'?'Un solo elenco':'Menu standard');
 });
 
@@ -3944,7 +3963,7 @@ function mirRestore(){
 }
 $('mi-rest').addEventListener('click',mirRestore);
 $('nw-dir').addEventListener('click',mirRestore);
-$('nw-file').addEventListener('click',function(){ $('nw-banner').hidden=true; showPanel('archivio'); toast('Premi «Ripristina da file» e scegli la tua copia di sicurezza'); });
+$('nw-file').addEventListener('click',function(){ $('nw-banner').hidden=true; showPanel('salva'); toast('Premi «Ripristina da file» e scegli la tua copia di sicurezza'); });
 $('nw-x').addEventListener('click',function(){ $('nw-banner').hidden=true; });
 function newBanner(){ $('nw-dir').hidden=!FS_OK; $('nw-banner').hidden=!dbEmpty()||!!lsGet('ieci-nwx'); }
 $('nw-x').addEventListener('click',function(){ lsSet('ieci-nwx','1'); });
@@ -4039,13 +4058,27 @@ function importAll(o){
 }
 $('db-exp').addEventListener('click',exportAll);
 $('bk-now').addEventListener('click',exportAll);
-$('bk-banner').addEventListener('click',function(e){ if(e.target.id!=='bk-now') showPanel('archivio'); });
+$('bk-banner').addEventListener('click',function(e){ if(e.target.id!=='bk-now') showPanel('salva'); });
 $('db-imp').addEventListener('change',function(e){
   var f=e.target.files&&e.target.files[0]; e.target.value=''; if(!f) return;
   var fr=new FileReader(); fr.onload=function(){ try{ importAll(JSON.parse(String(fr.result))); }catch(x){ toast('File non valido: scegli una copia creata da questo programma'); } }; fr.readAsText(f);
 });
 $('db-imp-txt').addEventListener('click',function(){ var t=$('db-txt').value; try{ importAll(JSON.parse(t)); $('db-txt').value=''; }catch(x){ toast('Testo non valido'); } });
+
+function svAgo(t){ if(!t) return 'mai'; var d=Math.floor((Date.now()-t)/86400000), h=new Date(t).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}); return d<1?('oggi '+h):d===1?('ieri '+h):(d+' giorni fa'); }
+function svDash(){
+  var el=$('sv-dash'); if(!el) return;
+  var lb=DB.lastBackup||0, ch=DB.lastChange||0, old=!lb||ch>lb&&Date.now()-lb>86400000*3, gh=!!(GH&&GH.on), gd=!!(GD&&GD.on);
+  var sy=gh?('GitHub attivo'+(GH.last?' · '+svAgo(GH.last):'')):gd?('Google Drive attivo'+(GD.last?' · '+svAgo(GD.last):'')):'Non attiva';
+  el.innerHTML='<div class="t"><small>Preventivi</small><b>'+DB.quotes.length+'</b></div><div class="t"><small>Clienti</small><b>'+DB.clients.length+'</b></div><div class="t"><small>Prodotti</small><b>'+DB.prods.length+'</b></div>'+
+    '<div class="t '+(old?'warn':'ok')+'"><small>Ultima copia</small><b>'+svAgo(lb)+'</b></div>'+
+    '<div class="t '+((gh||gd)?'ok':'')+'"><small>Sincronizzazione</small><b>'+esc(sy)+'</b></div>'+
+    '<div class="t"><small>Versione app</small><b>'+esc(APP_VER)+'</b></div>'+
+    '<div class="t wide"><span>'+(old?'Conviene fare una copia di sicurezza adesso.':'Tutto in ordine: i tuoi dati sono al sicuro.')+'</span><button class="btn sm" id="sv-now" type="button">Salva copia ora</button></div>';
+}
+document.addEventListener('click',function(e){ if(e.target.id==='sv-now'){ var b=$('db-exp'); if(b) b.click(); setTimeout(svDash,600); } });
 function renderBackupInfo(){
+  svDash();
   var lb=DB.lastBackup||0, ch=DB.lastChange||0, has=DB.quotes.length+DB.clients.length+DB.prods.length>0;
   var days=lb?Math.floor((Date.now()-lb)/86400000):-1;
   $('bk-state').textContent=lb?('Ultima copia di sicurezza: '+new Date(lb).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'})+(ch>lb?' · ci sono modifiche successive.':' · tutto è salvato nella copia.')):'Non hai ancora fatto nessuna copia di sicurezza.';

@@ -624,12 +624,27 @@ input[type=range]{width:100%}
         <p class="res" id="gd-state"></p>
           </div></details>
         </div></details>
+        <details class="acc" id="acc-pub"><summary><span>Pubblica una versione nuova su GitHub</span></summary><div class="accb">
+        <p class="hint">Niente più «Upload files»: scegli lo zip <b>IECI-preventivi-Android-PWA.zip</b>, il programma lo apre, lo carica sul tuo GitHub in un solo passaggio e tutti i dispositivi si aggiornano da soli. Funziona anche dal telefono. È gratis.</p>
+        <div class="grid2"><label class="f">Repository (utente/nome)<input type="text" id="pb-repo" placeholder="tuonome/preventivi" autocomplete="off" autocapitalize="off"></label><label class="f">Ramo<input type="text" id="pb-br" placeholder="main" autocomplete="off" autocapitalize="off"></label></div>
+        <label class="f">Token GitHub (resta solo su questo dispositivo)<input type="password" id="pb-tok" placeholder="github_pat_…" autocomplete="off"></label>
+        <details class="sv"><summary>Come creo il token (1 minuto, gratis)</summary><ol class="hint" style="margin:8px 0 0 18px;padding:0;line-height:1.5">
+          <li>Su github.com apri: Settings → Developer settings → Personal access tokens → <b>Fine-grained tokens</b> → Generate new token.</li>
+          <li>Nome a piacere, scadenza «No expiration» (o la più lunga), <b>Repository access → Only select repositories</b> e scegli il repository dell'app.</li>
+          <li>In «Repository permissions» imposta <b>Contents: Read and write</b>. Nient'altro.</li>
+          <li>Premi Generate token, copia il codice che inizia con <b>github_pat_</b> e incollalo qui sopra.</li>
+        </ol></details>
+        <div class="row"><label class="btn" id="pb-pick">Scegli lo zip e pubblica<input type="file" id="pb-file" accept=".zip,application/zip" hidden></label><button class="btn ghost sm" id="pb-clr" type="button">Dimentica il token</button></div>
+        <p class="res" id="pb-out" role="status"></p>
+        </div></details>
         <details class="acc" id="acc-upd"><summary><span>Aggiornamenti e installazione</span></summary><div class="accb">
         
         <p class="res" id="up-ver"></p>
-        <p class="hint">Quando ricevi una nuova versione, la installi sopra a quella vecchia: i dati restano. In più, qui sotto hai tre reti di sicurezza che non richiedono di fare nulla a mano.</p>
+        <label class="chk"><input type="checkbox" id="up-auto">Aggiorna da solo quando su GitHub c'è una versione nuova</label>
+        <p class="hint" id="up-stat"></p>
+        <p class="hint">Con l'app installata da GitHub Pages il controllo è automatico: all'apertura, quando torni sull'app e ogni 15 minuti. Se stai scrivendo aspetta che ti fermi, salva i dati e si ricarica da sola. Quando ricevi una nuova versione, la installi sopra a quella vecchia: i dati restano. In più, qui sotto hai tre reti di sicurezza che non richiedono di fare nulla a mano.</p>
         
-        <div class="row"><button class="btn ghost" id="up-chk" type="button" hidden>Controlla aggiornamenti</button><button class="btn ghost" id="up-rl" type="button" hidden>Ricarica l'ultima versione</button></div>
+        <div class="row"><button class="btn ghost" id="up-chk" type="button" hidden>Controlla aggiornamenti ora</button><button class="btn ghost" id="up-rl" type="button" hidden>Ricarica l'ultima versione</button></div>
         <h3>Installare l'app sul telefono o sul PC</h3>
         <p class="res" id="in-state"></p>
         <div class="row"><button class="btn" id="in-btn" type="button" hidden>Installa IECI preventivi</button><button class="btn ghost" id="in-diag" type="button">Controlla l'installazione</button></div>
@@ -1051,8 +1066,10 @@ input[type=range]{width:100%}
         <div class="apg"><b>Foto dei prodotti</b>
           <label class="chk"><input type="checkbox" id="ap-cut">Togli sempre lo sfondo alle foto che carico</label>
           <label class="f">Forza della rimozione<select id="ap-cutt"><option value="22">Delicata (sfondo uniforme)</option><option value="38">Normale</option><option value="60">Forte (sfondi con sfumature)</option></select></label>
+          <label class="f">Alone attorno alle foto senza sfondo<select id="ap-halo"><option value="none">Nessuno</option><option value="soft">Discreto (consigliato)</option><option value="mid">Più marcato</option></select></label>
           <div class="row"><button class="btn ghost sm" id="ap-cutall" type="button">Togli lo sfondo alle foto già caricate</button></div>
-          <p class="hint">Vale per le foto nuove dei prodotti, anche quelle prese dalle schede dei fornitori. Se lo sfondo è troppo complicato la foto resta com'è.</p>
+          <p class="hint">Vale per le foto nuove dei prodotti, anche quelle prese dalle schede dei fornitori. Per ogni prodotto puoi scegliere se tenere o togliere lo sfondo. Se lo sfondo è troppo complicato la foto resta com'è.</p>
+          <label class="chk"><input type="checkbox" id="ap-autop">Crea la scheda in «Prodotti» quando aggiungo un articolo al preventivo</label>
         </div>
         <div class="apg"><b>Menu</b><p class="hint" style="margin:0">Cambia i nomi delle sezioni, il loro ordine, i gruppi e cosa mostrare.</p><div class="row"><button class="btn" id="ap-gomenu" type="button">Modifica nomi e ordine del menu</button></div></div>
         <div class="row"><button class="btn ghost" id="ap-reset" type="button">Ripristina l'aspetto originale</button></div>
@@ -1155,7 +1172,7 @@ input[type=range]{width:100%}
 </script>
 <script>
 var CAN_PRINT = true;
-var APP_VER = '2026.10.15.2';
+var APP_VER = '2026.10.16.3';
 (function(){
 'use strict';
 
@@ -2512,18 +2529,40 @@ function cutout(url,cb,tol){
   im.src=url;
 }
 window.IECI_T={cutout:cutout,normalize:normalize,fresh:fresh};
-function readProdImg(file,max,cb){
+function haloize(url,cb){
+  var lv=APP.halo||'soft'; if(lv==='none') return cb(url);
+  var passes=lv==='mid'?[[1.2,.95],[2.2,.7],[6,.45]]:[[1.2,.8],[4.5,.3]];
+  var im=new Image(); im.onload=function(){ try{
+    var u=Math.max(1,Math.max(im.naturalWidth,im.naturalHeight)/450), pad=Math.ceil(16*u), w=im.naturalWidth+pad*2, h=im.naturalHeight+pad*2, c=document.createElement('canvas'); c.width=w; c.height=h;
+    var x=c.getContext('2d'), OFF=w+80;
+    passes.forEach(function(p){ x.save(); x.shadowColor='rgba(0,0,0,'+p[1]+')'; x.shadowBlur=p[0]*u; x.shadowOffsetX=OFF; x.shadowOffsetY=0; x.drawImage(im,pad-OFF,pad); x.restore(); });
+    x.drawImage(im,pad,pad);
+    var out=c.toDataURL('image/webp',0.9); if(out.indexOf('data:image/webp')!==0) out=c.toDataURL('image/png');
+    cb(out);
+  }catch(e){ cb(url); } };
+  im.onerror=function(){ cb(url); }; im.src=url;
+}
+function cutHalo(url,cb,tol){ cutout(url,function(r,ok){ if(!ok||r===url) return cb(r,ok); haloize(r,function(h){ cb(h,true); }); },tol); }
+function readProdImg(file,max,cb,mode){
   readImage(file,max,false,function(u){
-    if(!u||!cutOn()||u.indexOf('data:image/svg')===0) return cb(u);
-    cutout(u,function(r,ok){ if(ok) return cb(r); cutout(u,function(r2,ok2){ if(!ok2) toast('Sfondo complesso: foto lasciata com\'è. Usa «Togli lo sfondo alle foto» o una foto su sfondo uniforme'); cb(ok2?r2:u); },Math.min(95,cutTol()+25)); });
+    if(!u||mode==='keep'||(mode!=='cut'&&!cutOn())||u.indexOf('data:image/svg')===0) return cb(u,u);
+    cutHalo(u,function(r,ok){ if(ok) return cb(r,u); cutHalo(u,function(r2,ok2){ if(!ok2) toast('Sfondo complesso: foto lasciata com\'è. Usa «Senza sfondo» nel prodotto o una foto su sfondo uniforme'); cb(ok2?r2:u,u); },Math.min(95,cutTol()+25)); });
   });
 }
-function cutProd(i){
-  var p=S.products[i]; if(!p||!(p.photos||[]).length){ toast('Nessuna foto da elaborare'); return; }
+function setBg(i,mode){
+  var p=S.products[i]; if(!p) return; p.bg=mode;
+  if(!(p.photos||[]).length){ renderProducts(); touch(); toast(mode==='keep'?'Le prossime foto restano con lo sfondo originale':'Le prossime foto saranno senza sfondo'); return; }
+  if(!p.po) p.po=[]; while(p.po.length<p.photos.length) p.po.push('');
   var jobs=[]; p.photos.forEach(function(u,j){ if(u.indexOf('data:image/svg')!==0) jobs.push(j); });
-  var okn=0; toast('Tolgo lo sfondo…');
-  (function next(){ var j=jobs.shift(); if(j==null){ openP[p.id]=true; renderProducts(); touch(); toast(okn?'Sfondo tolto a '+okn+' foto':'Sfondo complesso: nessuna foto modificata. Prova con una foto su sfondo più uniforme'); return; }
-    var u=p.photos[j]; cutout(u,function(r,ok){ if(!ok) cutout(u,function(r2,ok2){ if(ok2){ p.photos[j]=r2; okn++; } setTimeout(next,0); },Math.min(95,cutTol()+25)); else { p.photos[j]=r; okn++; setTimeout(next,0); } }); })();
+  var okn=0, miss=0; if(mode==='cut') toast('Tolgo lo sfondo…');
+  (function next(){
+    var j=jobs.shift();
+    if(j==null){ openP[p.id]=true; renderProducts(); touch();
+      toast(mode==='keep'?(okn?'Sfondo originale ripristinato su '+okn+' foto':'Originale non disponibile per queste foto')+(miss&&okn?' ('+miss+' senza originale)':''):(okn?'Sfondo tolto a '+okn+' foto':'Sfondo complesso: nessuna foto modificata. Prova con una foto su sfondo più uniforme')); return; }
+    if(mode==='keep'){ if(p.po[j]){ p.photos[j]=p.po[j]; okn++; } else miss++; return next(); }
+    var src=p.po[j]||p.photos[j]; if(!p.po[j]) p.po[j]=p.photos[j];
+    cutHalo(src,function(r,ok){ if(ok){ p.photos[j]=r; okn++; setTimeout(next,0); } else cutHalo(src,function(r2,ok2){ if(ok2){ p.photos[j]=r2; okn++; } setTimeout(next,0); },Math.min(95,cutTol()+25)); });
+  })();
 }
 function cutAll(){
   var jobs=[]; (S.products||[]).forEach(function(p){ (p.photos||[]).forEach(function(u,j){ jobs.push([p.photos,j]); }); }); (S.custom||[]).forEach(function(c){ (c.photos||[]).forEach(function(u,j){ jobs.push([c.photos,j]); }); });
@@ -2531,10 +2570,10 @@ function cutAll(){
   if(!jobs.length){ toast('Nessuna foto da elaborare'); return; }
   var done=0, okn=0; toast('Tolgo lo sfondo a '+jobs.length+' foto…');
   (function next(){ var a=jobs.shift(); if(!a){ renderProducts(); try{ renderCustom(); }catch(e){} touch(); toast('Sfondo tolto a '+okn+' foto'); return; }
-    cutout(a[0][a[1]],function(r,ok){ if(ok){ a[0][a[1]]=r; okn++; } setTimeout(next,0); }); })();
+    cutHalo(a[0][a[1]],function(r,ok){ if(ok){ a[0][a[1]]=r; okn++; } setTimeout(next,0); }); })();
 }
 /* ---------- personalizza app ---------- */
-var APP={cut:'on',cutt:38,name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''};
+var APP={cut:'on',cutt:38,halo:'soft',autop:'on',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''};
 function apLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-app')||'null'); if(o) Object.keys(o).forEach(function(k){ if(k in APP) APP[k]=o[k]; }); }catch(e){} }
 function apStore(){ try{ var o={}; Object.keys(APP).forEach(function(k){ if(k!=='view') o[k]=APP[k]; }); localStorage.setItem('ieci-app',JSON.stringify(o)); }catch(e){ toast('Memoria piena: logo non salvato'); } }
 function procLogo(url,mode,cb){
@@ -2579,7 +2618,7 @@ function apUI(){
   var th=$('ap-themes'); if(th) th.innerHTML=AP_TH.map(function(t,i){ return '<button type="button" class="btn ghost sm" data-th="'+i+'"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:'+(t.col||S.style.b1)+'"></span>'+t.n+'</button>'; }).join('');
   $('ap-name').value=APP.name; $('ap-suf').value=APP.suf; $('ap-lmode').value=APP.lm; $('ap-lbg').value=APP.bg;
   $('ap-lsize').value=APP.ls; $('ap-lsv').textContent=APP.ls+' px'; $('ap-theme').value=APP.theme; $('ap-fz').value=String(APP.fz);
-  $('ap-dens').value=APP.dens; $('ap-sub').checked=!!APP.sub; $('ap-cut').checked=APP.cut!=='off'; $('ap-cutt').value=String(APP.cutt||38); $('ap-greet').value=APP.greet; $('ap-col').value=APP.col||S.style.b1;
+  $('ap-dens').value=APP.dens; $('ap-sub').checked=!!APP.sub; $('ap-cut').checked=APP.cut!=='off'; $('ap-cutt').value=String(APP.cutt||38); $('ap-halo').value=APP.halo||'soft'; $('ap-autop').checked=APP.autop!=='off'; $('ap-greet').value=APP.greet; $('ap-col').value=APP.col||S.style.b1;
   $('ap-sw').innerHTML=AP_COLS.map(function(c){ return '<button type="button" data-c="'+c+'" style="background:'+c+'" aria-label="Colore '+c+'" aria-pressed="'+(APP.col.toLowerCase()===c.toLowerCase())+'"></button>'; }).join('');
 }
 function apSet(k,v,refresh){ APP[k]=v; apStore(); if(refresh) apRefresh(); else brandUI(); }
@@ -2590,6 +2629,8 @@ function apInit(){
   $('ap-sub').addEventListener('change',function(e){ apSet('sub',e.target.checked); });
   $('ap-cut').addEventListener('change',function(e){ apSet('cut',e.target.checked?'on':'off'); });
   $('ap-cutt').addEventListener('change',function(e){ apSet('cutt',+e.target.value); });
+  $('ap-halo').addEventListener('change',function(e){ apSet('halo',e.target.value); });
+  $('ap-autop').addEventListener('change',function(e){ apSet('autop',e.target.checked?'on':'off'); });
   $('ap-cutall').addEventListener('click',cutAll);
   $('ap-gomenu').addEventListener('click',function(){ showPanel('menu'); window.scrollTo(0,0); });
   $('ap-themes').addEventListener('click',function(e){ var b=e.target.closest('[data-th]'); if(!b) return; var t=AP_TH[+b.getAttribute('data-th')]; APP.col=t.col; APP.theme=t.theme; APP.dens=t.dens||APP.dens; apStore(); apUI(); apApply(); toast('Tema «'+t.n+'»'); });
@@ -2609,7 +2650,7 @@ function apInit(){
   });
   $('ap-orig').addEventListener('click',function(){ APP.logo=LOGO0; APP.lm='own'; APP.bg='keep'; apStore(); apUI(); apRefresh(); toast('Logo IECI originale ripristinato'); });
   $('ap-toq').addEventListener('click',function(){ var u=APP.lm==='own'&&APP.logo?APP.logo:LOGO0; S.style.logo=u; V={t:'',w:'',src:''}; refreshVariants(); touch(); toast('Logo usato anche nei preventivi'); });
-  $('ap-reset').addEventListener('click',function(){ if(!confirm('Ripristinare nome, logo e aspetto originali dell\'app?')) return; APP={cut:'on',cutt:38,name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''}; apStore(); apUI(); apApply(); apRefresh(); });
+  $('ap-reset').addEventListener('click',function(){ if(!confirm('Ripristinare nome, logo e aspetto originali dell\'app?')) return; APP={cut:'on',cutt:38,halo:'soft',autop:'on',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''}; apStore(); apUI(); apApply(); apRefresh(); });
 }
 apLoad();
 
@@ -2686,7 +2727,7 @@ function renderProducts(){
       '<div class="row"><label class="btn ghost sm">'+(p.pdf?'Sostituisci scheda PDF':'Allega scheda tecnica PDF')+'<input type="file" accept="application/pdf,.pdf" hidden data-ppdf="'+i+'"></label>'+(p.pdf?'<span class="hint">'+esc(p.pdf.name)+'</span><button type="button" class="btn x" data-rpdf="'+i+'" aria-label="Rimuovi PDF">×</button>':'')+'</div>'+
       '<div class="row"><button type="button" class="btn ghost sm" data-act="lib" data-pi="'+i+'">Salva in libreria</button></div>'+
       '<label class="f">Grandezza della foto nel documento: <b class="psv">'+Math.max(15,Math.min(100,num(p.ps)||45))+'%</b><input type="range" min="15" max="100" step="5" value="'+Math.max(15,Math.min(100,num(p.ps)||45))+'" data-pf="ps" data-pi="'+i+'"></label>'+
-      '<div class="row"><button type="button" class="btn ghost sm" data-act="cut" data-pi="'+i+'">Togli lo sfondo alle foto</button><span class="hint">La foto va sotto titolo e descrizione.</span></div>'+
+      (function(){ var bm=p.bg||(cutOn()?'cut':'keep'); return '<div class="row" style="align-items:center"><span class="hint">Sfondo delle foto:</span><button type="button" class="tab" data-act="bgcut" data-pi="'+i+'" aria-pressed="'+(bm==='cut')+'">Senza sfondo, con alone</button><button type="button" class="tab" data-act="bgkeep" data-pi="'+i+'" aria-pressed="'+(bm==='keep')+'">Con sfondo originale</button></div>'; })()+
       '<div class="thumbs">'+th+'</div>'+
       ((p.photos||[]).length<MAXPH?'<label class="drop" data-drop="'+i+'">Trascina qui le foto oppure tocca per caricarle ('+(p.photos||[]).length+'/'+MAXPH+')<input type="file" accept="image/*" multiple hidden data-pphoto="'+i+'"></label>':'<p class="hint">Massimo '+MAXPH+' foto per prodotto.</p>')+
       '</div></details>';
@@ -2707,7 +2748,8 @@ function syncFields(){
 function renderLogoPrev(){ var u=S.style.logo; $('logo-prev').innerHTML=u?'<div class="lp"><small>Pagine interne</small><div class="lpb" style="background:#fff"><img src="'+logoSrcPage()+'" alt=""></div></div><div class="lp"><small>Copertina</small><div class="lpb" id="lp2" style="background:'+S.style.b1+'"><img src="'+logoSrcCover()+'" alt=""></div></div>':'<span>Nessun logo caricato</span>'; $('logo-rm').disabled=!S.style.logo; $('logo-pal').disabled=!S.style.logo; }
 function renderAll(){ if(S.products[0]&&openP[S.products[0].id]===undefined) openP[S.products[0].id]=true; renderTabs(); renderRooms(); renderCat(); renderLines(); renderProducts(); renderContent(); renderOrder(); renderCustom(); renderEcon(); renderTiers(); renderTrust(); renderIcons(); renderTpl(); syncFields(); sigDraw('cli'); sigDraw('dit'); renderStamp(); renderPlan(); renderFvRes(); renderInvio(); renderArchivio(); renderGd(); renderGh(); renderQbar(); renderAiSet(); renderImp(); renderArts(); renderAq(); renderDoc(); refreshVariants(); }
 var docVer=0;
-function touch(){ docVer++; save(); schedule(); }
+var lastEdit=0;
+function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); }
 
 $('tabs').addEventListener('click',function(e){
   var b=e.target.closest('[data-m]'); if(!b) return;
@@ -2748,8 +2790,8 @@ $('cat').addEventListener('click',function(e){
   var a=e.target.closest('[data-add]'), d=e.target.closest('[data-del]');
   if(a){
     var it=S.cat[S.model][+a.getAttribute('data-add')];
-    addToRoom(it,1);
-    renderLines(); renderRooms(); touch(); toast('Aggiunto: '+it[0]+(S.model==='app'?' → '+curRoomName():''));
+    addToRoom(it,1); var np=autoProd(it[0],it[1]);
+    renderLines(); renderRooms(); touch(); toast('Aggiunto: '+it[0]+(S.model==='app'?' → '+curRoomName():'')+(np?' · scheda creata in Prodotti':''));
   } else if(d){ S.cat[S.model].splice(+d.getAttribute('data-del'),1); renderCat(); save(); }
 });
 $('cat-q').addEventListener('input',renderCat);
@@ -2979,26 +3021,28 @@ $('plist').addEventListener('click',function(e){
   var rp=e.target.closest('[data-rpdf]');
   if(rp){ delete S.products[+rp.getAttribute('data-rpdf')].pdf; renderProducts(); renderInvio(); touch(); return; }
   var mp=e.target.closest('[data-mph]');
-  if(mp){ var m=mp.getAttribute('data-mph').split(':'); var arr=S.products[+m[0]].photos; arr.unshift(arr.splice(+m[1],1)[0]); renderProducts(); touch(); return; }
+  if(mp){ var m=mp.getAttribute('data-mph').split(':'); var pm=S.products[+m[0]], arr=pm.photos; if(pm.po){ while(pm.po.length<arr.length) pm.po.push(''); pm.po.unshift(pm.po.splice(+m[1],1)[0]); } arr.unshift(arr.splice(+m[1],1)[0]); renderProducts(); touch(); return; }
   var r=e.target.closest('[data-rph]');
-  if(r){ var a=r.getAttribute('data-rph').split(':'); S.products[+a[0]].photos.splice(+a[1],1); renderProducts(); touch(); return; }
+  if(r){ var a=r.getAttribute('data-rph').split(':'); S.products[+a[0]].photos.splice(+a[1],1); if(S.products[+a[0]].po) S.products[+a[0]].po.splice(+a[1],1); renderProducts(); touch(); return; }
   var b=e.target.closest('[data-act]'); if(!b) return;
   e.preventDefault();
   var i=+b.getAttribute('data-pi'), act=b.getAttribute('data-act');
   if(act==='lib'){ saveProd(i); return; }
-  if(act==='cut'){ cutProd(i); return; }
+  if(act==='bgcut'||act==='bgkeep'){ setBg(i,act==='bgcut'?'cut':'keep'); return; }
   if(act==='rm'){ S.products.splice(i,1); }
   else if(act==='up'&&i>0){ var t=S.products[i]; S.products[i]=S.products[i-1]; S.products[i-1]=t; }
   else if(act==='down'&&i<S.products.length-1){ var u=S.products[i]; S.products[i]=S.products[i+1]; S.products[i+1]=u; }
   renderProducts(); touch();
 });
-function addPhotos(arr,max,files,done){
+function addPhotos(arr,max,files,done,orig,mode){
   files=Array.prototype.slice.call(files||[]).filter(function(f){ return /^image\//.test(f.type)||/\.(jpe?g|png|webp|gif|svg)$/i.test(f.name); }).slice(0,Math.max(0,max-arr.length));
   var left=files.length, slots=new Array(left);
   if(!left){ toast(arr.length>=max?'Massimo '+max+' foto':'Nessuna immagine valida'); return; }
-  files.forEach(function(f,k){ readProdImg(f,1000,function(url){ slots[k]=url; left--; if(left===0){ slots.forEach(function(u){ if(u) arr.push(u); }); done(); } }); });
+  files.forEach(function(f,k){ readProdImg(f,1000,function(url,o){ slots[k]=[url,o]; left--; if(left===0){
+    if(orig) while(orig.length<arr.length) orig.push('');
+    slots.forEach(function(u){ if(u&&u[0]){ arr.push(u[0]); if(orig) orig.push(u[1]&&u[1]!==u[0]?u[1]:''); } }); done(); } },mode); });
 }
-function prodPhotos(i,files){ var p=S.products[i]; if(!p) return; if(!p.photos) p.photos=[]; addPhotos(p.photos,MAXPH,files,function(){ openP[p.id]=true; renderProducts(); touch(); }); }
+function prodPhotos(i,files){ var p=S.products[i]; if(!p) return; if(!p.photos) p.photos=[]; if(!p.po) p.po=[]; addPhotos(p.photos,MAXPH,files,function(){ openP[p.id]=true; renderProducts(); touch(); },p.po,p.bg); }
 function custPhotos(i,files){ var c=S.custom[i]; if(!c) return; if(!c.photos) c.photos=[]; addPhotos(c.photos,MAXCP,files,function(){ renderCustom(); touch(); }); }
 function dropHandlers(list,attr,fn){
   list.addEventListener('dragover',function(e){ var d=e.target.closest('.drop'); if(d){ e.preventDefault(); d.classList.add('over'); } });
@@ -3020,12 +3064,12 @@ dropHandlers($('plist'),'data-drop',prodPhotos);
 $('p-bulk').addEventListener('change',function(e){
   var files=Array.prototype.slice.call(e.target.files||[]); e.target.value='';
   var left=files.length; if(!left) return; var out=new Array(left);
-  files.forEach(function(f,k){ readProdImg(f,1000,function(url){
-    out[k]={f:f,u:url}; left--;
+  files.forEach(function(f,k){ readProdImg(f,1000,function(url,orig){
+    out[k]={f:f,u:url,o:orig}; left--;
     if(left===0){
       var n=0;
       out.forEach(function(o){ if(!o||!o.u) return; var nm=o.f.name.replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').trim();
-        var p={id:uid(),name:nm,brand:'',code:'',desc:'',specs:'',link:'',tags:'',photos:[o.u]}; S.products.push(p); openP[p.id]=true; n++; });
+        var p={id:uid(),name:nm,brand:'',code:'',desc:'',specs:'',link:'',tags:'',photos:[o.u],po:[o.o&&o.o!==o.u?o.o:'']}; S.products.push(p); openP[p.id]=true; n++; });
       renderProducts(); touch(); toast(n?('Create '+n+' schede dalle foto'):'Nessuna immagine valida');
     }
   }); });
@@ -3107,6 +3151,19 @@ $('c-add').addEventListener('click',function(){
 $('p-add').addEventListener('click',function(){
   var p={id:uid(),name:'',brand:'',code:'',desc:'',specs:'',link:'',tags:'',photos:[]}; S.products.push(p); openP[p.id]=true;
   renderProducts(); touch();
+});
+var SERVICE_U=/^(h|ore?|giornat[ae]|a corpo|corpo|pt|m|ml|mq|m2|forfait)$/i, SKIP_P=/manodopera|diritto di chiamata|dichiarazione|collaudo|pratiche|progett|verific|installazione|configurazione|programmazione|formazione|assistenza|documentazione|sintonizzazione|analisi|montaggio|manutenzione|ponteggio|tracce|smantellamento|sopralluogo/i;
+function autoProd(name,unit,extra){
+  if(APP.autop==='off') return false;
+  var nm=String(name||'').trim(); if(!nm||SERVICE_U.test(String(unit||'').trim())||SKIP_P.test(nm)) return false;
+  var low=nm.toLowerCase(); if(S.products.some(function(p){ return String(p.name||'').trim().toLowerCase()===low; })) return false;
+  extra=extra||{};
+  S.products.push({id:uid(),name:nm,brand:extra.brand||'',code:extra.code||'',desc:'',specs:'',link:'',tags:'',photos:[]});
+  renderProducts(); return true;
+}
+$('lines').addEventListener('change',function(e){
+  if(e.target.getAttribute('data-f')!=='d') return; var row=e.target.closest('.line'); if(!row) return;
+  var L=S.lines[+row.getAttribute('data-i')]; if(L&&autoProd(L.d,L.u)){ touch(); toast('Scheda creata in Prodotti: '+String(L.d).trim()); }
 });
 $('p-import').addEventListener('click',function(){
   var skip=/manodopera|diritto di chiamata|dichiarazione|collaudo|pratiche|progett|verific|installazione|configurazione|programmazione|formazione|assistenza|documentazione|sintonizzazione|analisi|montaggio|manutenzione|ponteggio/i;
@@ -4111,7 +4168,7 @@ function saveImport(){
 function addArtToQuote(id){
   var a=DB.arts.filter(function(x){ return x.id===id; })[0]; if(!a) return;
   var ex=S.lines.filter(function(l){ return l.art===id; })[0];
-  if(ex) ex.q=num(ex.q)+1; else { var nl2={d:a.name+(a.code?' ('+a.code+')':''),u:a.um||'cad',q:1,p:num(a.price)||artPrice(a),s:0,art:id}; if(S.model==='app'&&curKey()) nl2.r=curKey(); S.lines.push(nl2); }
+  if(ex) ex.q=num(ex.q)+1; else { var nl2={d:a.name+(a.code?' ('+a.code+')':''),u:a.um||'cad',q:1,p:num(a.price)||artPrice(a),s:0,art:id}; if(S.model==='app'&&curKey()) nl2.r=curKey(); S.lines.push(nl2); autoProd(a.name||nl2.d,nl2.u,{brand:a.brand,code:a.code}); }
   if($('art-card').checked&&!S.products.some(function(p){ return p.artId===id; })){
     var p={id:uid(),artId:id,name:a.name,brand:a.brand||'',code:a.code||'',desc:a.desc||'',specs:a.specs||'',link:a.link||'',tags:'',photos:(a.photos||[]).slice(),on:true};
     S.products.push(p); openP[p.id]=true; renderProducts();
@@ -4370,25 +4427,153 @@ $('nw-x').addEventListener('click',function(){ lsSet('ieci-nwx','1'); });
 function renderPersist(){
   var st=$('pe-state'); if(!st) return;
   var sw=('serviceWorker' in navigator)&&!!navigator.serviceWorker.controller;
-  $('up-chk').hidden=!sw; $('up-rl').hidden=!sw;
+  $('up-chk').hidden=!(sw||HTTP); $('up-rl').hidden=!sw; $('up-auto').checked=autoUpdOn(); updStat();
   if(!(navigator.storage&&navigator.storage.persisted)){ st.textContent='Questo browser non offre la protezione avanzata: tieni attiva la copia automatica o fai la copia di sicurezza.'; $('pe-btn').hidden=true; return; }
   navigator.storage.persisted().then(function(p){ st.textContent=p?'Protezione attiva: il browser non cancellerà i dati da solo per fare spazio.':'Non ancora garantita: il browser potrebbe cancellare i dati se il telefono resta senza spazio. Premi «Proteggi i dati».'; $('pe-btn').hidden=!!p; });
 }
 $('pe-btn').addEventListener('click',function(){ navigator.storage.persist().then(function(ok){ renderPersist(); toast(ok?'Dati protetti':'Il browser non l\'ha concesso: installa l\'app dalla schermata Home e riprova'); }); });
-$('up-chk').addEventListener('click',function(){ navigator.serviceWorker.getRegistration().then(function(r){ if(!r) return toast('Nessun aggiornamento da controllare'); return r.update().then(function(){ toast('Controllo fatto: se c\'è una novità comparirà un avviso'); }); }); });
+$('up-chk').addEventListener('click',function(){ checkRemote(true); if(navigator.serviceWorker) navigator.serviceWorker.getRegistration().then(function(r){ if(r) r.update(); }); });
+$('up-auto').addEventListener('change',function(e){ lsSet('ieci-autoupd',e.target.checked?'on':'off'); toast(e.target.checked?'Aggiornamento automatico attivo':'Ti avviso io quando c\'è una versione nuova'); });
 $('up-rl').addEventListener('click',function(){
   var go=function(){ location.reload(); };
   (window.caches?caches.keys().then(function(k){ return Promise.all(k.map(function(x){ return caches.delete(x); })); }):Promise.resolve()).then(function(){ return navigator.serviceWorker.getRegistration(); }).then(function(r){ return r?r.unregister():0; }).then(go,go);
 });
-window.ieciUpdated=function(){
+function showUpdBar(ver){
   if($('upd-bar')) return;
   var d=document.createElement('div'); d.id='upd-bar'; d.className='noprint';
   d.style.cssText='position:fixed;left:12px;right:12px;bottom:12px;z-index:60;background:var(--brand);color:var(--on-brand);border-radius:8px;padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;box-shadow:0 8px 28px rgba(0,0,0,.35)';
-  d.innerHTML='<span style="flex:1;min-width:180px"><b>Nuova versione pronta.</b> I tuoi dati sono al sicuro.</span><button type="button" class="btn sm" style="background:#fff;color:#111" id="upd-go">Ricarica ora</button><button type="button" class="btn sm ghost" style="color:inherit;border-color:currentColor" id="upd-x">Più tardi</button>';
+  d.innerHTML='<span style="flex:1;min-width:180px"><b>Nuova versione '+(ver&&ver!=='nuova'?esc(ver)+' ':'')+'pronta.</b> I tuoi dati sono al sicuro.</span><button type="button" class="btn sm" style="background:#fff;color:#111" id="upd-go">Ricarica ora</button><button type="button" class="btn sm ghost" style="color:inherit;border-color:currentColor" id="upd-x">Più tardi</button>';
   document.body.appendChild(d);
   $('upd-go').onclick=function(){ doSave(); dbSave(true); setTimeout(function(){ location.reload(); },500); };
   $('upd-x').onclick=function(){ d.remove(); };
 };
+var HTTP=/^https?:$/.test(location.protocol), updBusy=false;
+function vnum(v){ return String(v).split('.').map(function(x){ return parseInt(x,10)||0; }); }
+function vnewer(a,b){ var x=vnum(a), y=vnum(b), i; for(i=0;i<Math.max(x.length,y.length);i++){ var d=(x[i]||0)-(y[i]||0); if(d) return d>0; } return false; }
+function autoUpdOn(){ return lsGet('ieci-autoupd')!=='off'; }
+function updStat(){ var el=$('up-stat'); if(!el) return; var t=+lsGet('ieci-chk')||0; el.textContent=HTTP?(t?'Ultimo controllo: '+stamp(t)+'.':'Non ancora controllato.'):'Questo è il file locale: il controllo automatico funziona con l\'app installata da GitHub Pages.'; }
+function applyUpdate(){
+  if(updBusy) return; updBusy=true;
+  try{ doSave(); dbSave(true); }catch(e){}
+  var go=function(){ try{ sessionStorage.setItem('ieci-rl',String(Date.now())); }catch(e){} location.reload(); };
+  setTimeout(function(){
+    (window.caches?caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); }):Promise.resolve())
+      .then(function(){ return navigator.serviceWorker?navigator.serviceWorker.getRegistration():null; }).then(function(r){ return r?r.update().catch(function(){}):0; }).then(go,go);
+  },700);
+}
+function updateReady(ver){
+  if(updBusy) return;
+  var rl=0; try{ rl=+sessionStorage.getItem('ieci-rl')||0; }catch(e){}
+  if(autoUpdOn()&&Date.now()-rl>90000){
+    if(Date.now()-lastEdit<10000){ setTimeout(function(){ updateReady(ver); },5000); return; }
+    toast('Aggiorno alla versione '+(ver||'nuova')+'…'); applyUpdate(); return;
+  }
+  showUpdBar(ver);
+}
+window.ieciUpdated=function(ver){ updateReady(ver||'nuova'); };
+function checkRemote(manual){
+  if(!HTTP){ if(manual) toast('Il controllo online funziona con l\'app installata da GitHub Pages'); return; }
+  fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(j){
+    lsSet('ieci-chk',String(Date.now())); updStat();
+    var v=j&&j.v;
+    if(v&&vnewer(v,APP_VER)) updateReady(v); else if(manual) toast('Hai già l\'ultima versione ('+APP_VER+')');
+  }).catch(function(){ if(manual) toast('Controllo non riuscito: sei online? Il file version.json è stato caricato su GitHub?'); });
+}
+if(HTTP){
+  setTimeout(function(){ checkRemote(false); },2500);
+  setInterval(function(){ if(!document.hidden) checkRemote(false); },15*60*1000);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) setTimeout(function(){ checkRemote(false); },800); });
+  window.addEventListener('online',function(){ checkRemote(false); });
+}
+
+/* ---------- pubblicazione su GitHub (un solo tocco) ---------- */
+function zipRead(buf){
+  var u=new Uint8Array(buf), dv=new DataView(buf), i, eocd=-1;
+  for(i=u.length-22;i>=Math.max(0,u.length-65557);i--){ if(dv.getUint32(i,true)===0x06054b50){ eocd=i; break; } }
+  if(eocd<0) return Promise.reject(new Error('Questo non sembra un file zip.'));
+  var n=dv.getUint16(eocd+10,true), p=dv.getUint32(eocd+16,true), ents=[], k;
+  for(k=0;k<n;k++){
+    if(dv.getUint32(p,true)!==0x02014b50) break;
+    var meth=dv.getUint16(p+10,true), csz=dv.getUint32(p+20,true), nl=dv.getUint16(p+28,true), el=dv.getUint16(p+30,true), cl=dv.getUint16(p+32,true), lo=dv.getUint32(p+42,true);
+    ents.push({name:new TextDecoder('utf-8').decode(u.subarray(p+46,p+46+nl)),meth:meth,csz:csz,lo:lo}); p+=46+nl+el+cl;
+  }
+  ents=ents.filter(function(e){ return !/\/$/.test(e.name)&&!/^__MACOSX\//.test(e.name)&&!/(^|\/)\.DS_Store$/.test(e.name); });
+  return Promise.all(ents.map(function(e){
+    var ln=dv.getUint16(e.lo+26,true), le=dv.getUint16(e.lo+28,true), st=e.lo+30+ln+le, raw=u.subarray(st,st+e.csz);
+    if(e.meth===0) return {name:e.name,data:raw};
+    if(e.meth!==8||typeof DecompressionStream==='undefined') throw new Error('Zip non leggibile da questo browser: aggiornalo o usa Chrome.');
+    var ds=new DecompressionStream('deflate-raw'), w=ds.writable.getWriter(); w.write(raw); w.close();
+    return new Response(ds.readable).arrayBuffer().then(function(ab){ return {name:e.name,data:new Uint8Array(ab)}; });
+  }));
+}
+function pbB64(u){ var s='', i, CH=0x8000; for(i=0;i<u.length;i+=CH) s+=String.fromCharCode.apply(null,u.subarray(i,i+CH)); return btoa(s); }
+function pbApi(method,path,body,tok){
+  return fetch('https://api.github.com'+path,{method:method,headers:{'Authorization':'Bearer '+tok,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined})
+    .then(function(r){ return r.json().catch(function(){ return {}; }).then(function(j){ if(!r.ok){ var e=new Error(j.message||('Errore '+r.status)); e.status=r.status; throw e; } return j; }); });
+}
+function pbCfg(){ try{ return JSON.parse(lsGet('ieci-pub')||'{}'); }catch(e){ return {}; } }
+function pbLoad(){
+  var c=pbCfg(), h=location.hostname, guess='';
+  if(/\.github\.io$/.test(h)){ var ow=h.split('.')[0], rp=location.pathname.split('/')[1]; guess=ow+'/'+(rp||(ow+'.github.io')); }
+  $('pb-repo').value=c.repo||guess; $('pb-br').value=c.br||''; $('pb-tok').value=c.tok||'';
+}
+function pbStore(){ lsSet('ieci-pub',JSON.stringify({repo:$('pb-repo').value.trim(),br:$('pb-br').value.trim(),tok:$('pb-tok').value.trim()})); }
+['pb-repo','pb-br','pb-tok'].forEach(function(id){ $(id).addEventListener('input',pbStore); });
+$('pb-clr').addEventListener('click',function(){ $('pb-tok').value=''; pbStore(); toast('Token dimenticato su questo dispositivo'); });
+function pbSay(t,bad){ var o=$('pb-out'); o.textContent=t; o.style.color=bad?'var(--danger,#b3261e)':''; }
+function pbErr(e,repo){
+  if(e.status===401) return 'Token non valido o scaduto. Creane uno nuovo (vedi «Come creo il token»).';
+  if(e.status===403) return 'GitHub rifiuta l\'operazione: il token deve avere «Contents: Read and write» su questo repository ('+e.message+').';
+  if(e.status===404) return 'Repository o ramo non trovato: controlla «'+repo+'», il nome del ramo e che il token sia stato creato per questo repository.';
+  if(e.status===409) return 'Il repository è vuoto: crea prima un file qualsiasi da GitHub (Add file → Create new file, ad esempio LEGGIMI.md), poi riprova.';
+  return e.message||'Errore sconosciuto';
+}
+function pbRun(file){
+  var repo=$('pb-repo').value.trim().replace(/^https?:\/\/github\.com\//,'').replace(/\.git$/,'').replace(/\/+$/,''), br=$('pb-br').value.trim(), tok=$('pb-tok').value.trim();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){ pbSay('Scrivi il repository nel formato utente/nome.',true); return; }
+  if(!tok){ pbSay('Incolla il token GitHub (vedi «Come creo il token»).',true); return; }
+  $('pb-repo').value=repo; pbStore(); pbSay('Leggo lo zip…');
+  file.arrayBuffer().then(zipRead).then(function(files){
+    var tops={}; files.forEach(function(f){ var a=f.name.split('/'); tops[a.length>1?a[0]:'']=1; });
+    var keys=Object.keys(tops), pre=(keys.length===1&&keys[0])?keys[0]+'/':'';
+    files=files.map(function(f){ return {name:f.name.slice(pre.length),data:f.data}; }).filter(function(f){ return f.name; });
+    var names=files.map(function(f){ return f.name; });
+    if(names.indexOf('index.html')<0) throw new Error('Nello zip manca index.html.');
+    if(names.indexOf('sw.js')<0||names.indexOf('manifest.webmanifest')<0) throw new Error('Questo è lo zip sbagliato (probabilmente quello Windows). Serve «IECI-preventivi-Android-PWA.zip».');
+    var ver='', vf=files.filter(function(f){ return f.name==='version.json'; })[0];
+    if(vf){ try{ ver=JSON.parse(new TextDecoder().decode(vf.data)).v||''; }catch(e){} }
+    if(!window.confirm('Pubblicare '+(ver?'la versione '+ver+' ':'')+'('+files.length+' file) su '+repo+'?\nTutti i dispositivi si aggiorneranno da soli in 1-2 minuti.')) { pbSay('Annullato.'); return; }
+    var br0=br, sha, tree;
+    return (br0?Promise.resolve(br0):pbApi('GET','/repos/'+repo,null,tok).then(function(r){ return r.default_branch||'main'; })).then(function(b){
+      br=b; pbSay('Collego «'+repo+'» (ramo '+b+')…');
+      return pbApi('GET','/repos/'+repo+'/git/ref/heads/'+encodeURIComponent(b).replace(/%2F/g,'/'),null,tok);
+    }).then(function(ref){
+      sha=ref.object.sha; return pbApi('GET','/repos/'+repo+'/git/commits/'+sha,null,tok);
+    }).then(function(cm){
+      tree=cm.tree.sha; var out=[], i=0;
+      function next(){
+        if(i>=files.length) return Promise.resolve(out);
+        var f=files[i++]; pbSay('Carico i file… '+i+'/'+files.length+' ('+f.name+')');
+        return pbApi('POST','/repos/'+repo+'/git/blobs',{content:pbB64(f.data),encoding:'base64'},tok).then(function(b){ out.push({path:f.name,mode:'100644',type:'blob',sha:b.sha}); return next(); });
+      }
+      return next();
+    }).then(function(entries){
+      pbSay('Creo la versione…');
+      return pbApi('POST','/repos/'+repo+'/git/trees',{base_tree:tree,tree:entries},tok);
+    }).then(function(t){
+      return pbApi('POST','/repos/'+repo+'/git/commits',{message:'Aggiornamento IECI preventivi'+(ver?' '+ver:''),tree:t.sha,parents:[sha]},tok);
+    }).then(function(c){
+      return pbApi('PATCH','/repos/'+repo+'/git/refs/heads/'+encodeURIComponent(br).replace(/%2F/g,'/'),{sha:c.sha},tok).then(function(){ return c; });
+    }).then(function(c){
+      pbSay('✓ Pubblicata'+(ver?' la versione '+ver:'')+' (commit '+c.sha.slice(0,7)+'). GitHub Pages la mette online in 1-2 minuti: poi telefono e PC si aggiornano da soli.');
+      toast('Versione pubblicata su GitHub');
+      if(HTTP&&ver&&/\.github\.io$/.test(location.hostname)){ var tries=0; (function poll(){ if(++tries>24) return; setTimeout(function(){
+        fetch('version.json?t='+Date.now(),{cache:'no-store'}).then(function(r){ return r.json(); }).then(function(j){ if(j&&j.v===ver) pbSay('✓ Online la versione '+ver+': i dispositivi si stanno aggiornando.'); else poll(); }).catch(poll); },15000); })(); }
+    });
+  }).catch(function(e){ pbSay('✗ '+pbErr(e,repo),true); });
+}
+$('pb-file').addEventListener('change',function(e){ var f=e.target.files&&e.target.files[0]; e.target.value=''; if(f) pbRun(f); });
+pbLoad();
 /* installazione come app (diagnosi) */
 var DEFER=null;
 window.addEventListener('beforeinstallprompt',function(e){ e.preventDefault(); DEFER=e; renderInstall(); });

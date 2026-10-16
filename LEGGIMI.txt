@@ -1,7 +1,7 @@
 IECI PREVENTIVI - APP PER ANDROID, PC E TABLET (PWA)
 
 1) METTERE L'APP ONLINE (una volta sola)
-   ATTENZIONE: va caricata la CARTELLA che contiene index.html, manifest.webmanifest, sw.js e le icone (.png).
+   ATTENZIONE: va caricata la CARTELLA che contiene index.html, manifest.webmanifest, sw.js, version.json e le icone (.png).
    Non il file HTML singolo e non il pacchetto Windows: senza manifest Chrome scrive "This app cannot be installed".
    Per controllare: apri nel browser  tuoindirizzo.netlify.app/manifest.webmanifest  - deve comparire del testo che inizia con {"name":"IECI preventivi"...
    Carica questa cartella su un hosting https gratuito, ad esempio:
@@ -14,13 +14,20 @@ IECI PREVENTIVI - APP PER ANDROID, PC E TABLET (PWA)
    - PC (Edge/Chrome): apri l'indirizzo, icona "Installa" nella barra dell'indirizzo
    Poi, nell'app: Archivio - "Aggiornare la versione senza perdere nulla" - "Proteggi i dati".
 
-3) AGGIORNARE ALLA NUOVA VERSIONE (un minuto, senza reinstallare)
-   - Scompatta il nuovo zip e carica la cartella SULLO STESSO SITO:
-     Netlify: apri il tuo sito - scheda "Deploys" - trascina la nuova cartella nel riquadro (l'indirizzo resta identico).
-     GitHub/Cloudflare Pages: sostituisci i file nel repository.
-   - Apri l'app sul telefono o sul PC (anche senza fare nulla, basta averla aperta): compare
-     "Nuova versione pronta - Ricarica ora". Tocca e basta: nessuna reinstallazione, i dati restano.
-   - Non si aggiorna? Archivio - "Controlla aggiornamenti" oppure "Ricarica l'ultima versione".
+3) AGGIORNARE ALLA NUOVA VERSIONE (automatico, senza reinstallare)
+   - MODO RAPIDO (consigliato): nell'app apri Salvataggi e aggiornamenti - "Pubblica una versione nuova su GitHub",
+     scegli lo zip "IECI-preventivi-Android-PWA.zip" appena scaricato e conferma. Il programma lo carica da solo sul tuo
+     GitHub (un solo passaggio, funziona anche dal telefono). La prima volta inserisci repository (utente/nome) e un
+     token GitHub: la guida "Come creo il token" e' nella stessa schermata (1 minuto, gratis).
+   - Modo manuale (alternativa): scompatta lo zip e carica TUTTI i file SULLO STESSO SITO (compreso version.json):
+     GitHub Pages: nel repository "Add file" - "Upload files", trascina i file e "Commit changes".
+     Netlify: scheda "Deploys", trascina la nuova cartella (l'indirizzo resta identico).
+   - Dopo 1-2 minuti l'app installata se ne accorge da sola: controlla quando la apri, quando ci torni
+     sopra e ogni 15 minuti. Se non stai scrivendo salva i dati e si ricarica da sola alla nuova versione;
+     se stai lavorando aspetta che ti fermi per qualche secondo.
+   - Se preferisci confermare tu: nell'app, Salvataggi e aggiornamenti - togli la spunta
+     "Aggiorna da solo quando su GitHub c'e' una versione nuova": comparira' l'avviso "Ricarica ora".
+   - Subito, a mano: Salvataggi e aggiornamenti - "Controlla aggiornamenti ora".
    Prima di aggiornare i dati il programma salva da solo una copia interna (Archivio - "Copie prima di ogni aggiornamento").
 
 4) SINCRONIZZARE CON GOOGLE DRIVE
@@ -41,7 +48,7 @@ SE NETLIFY NON PERMETTE L'INSTALLAZIONE (errore 401 / "This app cannot be instal
 Usa GitHub Pages, gratuito e pubblico (circa 5 minuti, tutto da browser):
  1. Su github.com crea un account e poi "New repository": nome "preventivi", Public, "Create repository".
  2. Nel repository: "uploading an existing file" - trascina TUTTI i file della cartella (index.html, manifest.webmanifest,
-    sw.js, le icone .png) - "Commit changes".
+    sw.js, version.json, le icone .png) - "Commit changes".
  3. Settings - Pages - Branch: main, cartella /(root) - Save. Dopo un minuto ottieni l'indirizzo
     https://TUONOME.github.io/preventivi/
  4. Aprilo con Chrome sul telefono: menu - "Installa app".

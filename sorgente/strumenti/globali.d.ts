@@ -9,5 +9,7 @@ interface Window {
   ieciUpdated: any;               // richiamato dal service worker dopo un aggiornamento
   showDirectoryPicker: any;       // scelta cartella (Chrome/Edge)
   msCrypto: any;                  // vecchi browser
+  SpeechRecognition: any;         // dettato (Chrome, Edge, Safari)
+  webkitSpeechRecognition: any;
 }
 interface Navigator { standalone?: boolean; }  // iPhone: app aggiunta alla schermata Home

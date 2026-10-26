@@ -7,6 +7,7 @@ css/04-azienda.css
 css/05-preventivo.css
 css/06-condizioni.css
 css/07-documento-nuove-sezioni.css
+css/08-assistente.css
 html/01-inizio.html
 html/02-archivio.html
 html/03-salva.html
@@ -59,5 +60,6 @@ app/21-archivio.js
 app/22-sincronizzazione-drive-github.js
 app/23-fornitori-e-lettura-pdf.js
 app/24-salvataggi-e-recupero.js
-app/25-pubblicazione-installazione-avvio.js
+app/25-assistente.js
+app/26-pubblicazione-installazione-avvio.js
 html/99-fine.html

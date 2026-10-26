@@ -1,5 +1,12 @@
       <section class="card" data-panel="prev">
         <h2>Preventivo</h2>
+        <details class="acc as" id="acc-as" open><summary><span>Assistente: descrivi il preventivo</span></summary><div class="accb">
+          <p class="hint">Scrivi o detta cosa ti serve, come lo diresti a un collega: tipo di lavoro, cliente, stanze, quantità, marca. L'assistente prepara le voci con i prezzi del <b>tuo listino</b> e ti mostra un'anteprima prima di applicare. Gratis, funziona anche senza internet e non invia i dati a nessuno.</p>
+          <textarea id="as-txt" rows="4" placeholder="es. Rifacimento appartamento 95 mq per Rossi Mario, via Roma 3, Matera: 2 camere, 2 bagni, cucina, soggiorno, Bticino"></textarea>
+          <div class="row"><button class="btn" id="as-go" type="button">Prepara il preventivo</button><button class="btn ghost" id="as-mic" type="button">Detta</button></div>
+          <details class="sv"><summary>Esempi di richieste</summary><div class="as-ex" id="as-ex"></div></details>
+          <div id="as-out"></div>
+        </div></details>
         <details class="acc" id="acc-save" open><summary><span>Salvataggi e preventivi salvati</span><em id="acc-save-n"></em></summary><div class="accb">
         <div class="row"><button class="btn" id="q-save" type="button">Salva preventivo</button><button class="btn ghost" id="q-new" type="button">+ Nuovo preventivo</button></div>
         <p class="hint" id="q-state"></p>

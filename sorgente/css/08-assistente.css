@@ -1,0 +1,11 @@
+/* assistente */
+#as-txt{width:100%;box-sizing:border-box;min-height:96px;font:inherit;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);resize:vertical}
+#as-mic.on{background:#C0392B;color:#fff;border-color:#C0392B}
+.as-ex{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.as-ex .chip{text-align:left;white-space:normal}
+#as-out{display:grid;gap:8px;margin-top:6px}#as-out:empty{display:none}
+.as-sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.as-sum div{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:color-mix(in srgb,var(--brand) 6%,var(--surface))}.as-sum small{display:block;color:var(--muted);font-size:.72rem}.as-sum b{font-size:1rem}
+.as-cli{font-size:.9rem}.as-note{font-size:.85rem;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,#E67E22 13%,var(--surface))}
+.as-righe{border:1px solid var(--line);border-radius:12px;overflow:hidden}.as-gd+.as-gd{border-top:1px solid var(--line)}.as-g{display:flex;justify-content:space-between;gap:8px;cursor:pointer;list-style:none;font-size:.74rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--brand);padding:10px;background:color-mix(in srgb,var(--brand) 5%,var(--surface))}.as-g::-webkit-details-marker{display:none}.as-g span:last-child{color:var(--ink);font-weight:700;text-transform:none;letter-spacing:0;white-space:nowrap}.as-gd:not([open]) .as-g span:first-child::before{content:'▸ '}.as-gd[open] .as-g span:first-child::before{content:'▾ '}
+.as-r{display:grid;grid-template-columns:auto 1fr 64px 44px auto;gap:8px;align-items:center;padding:6px 10px;border-top:1px solid var(--line);font-size:.86rem}.as-r.off{opacity:.45}.as-r .as-q{width:100%;min-width:0;padding:4px 6px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--surface);color:var(--ink)}.as-u{color:var(--muted);font-size:.78rem}.as-e{font-weight:700;white-space:nowrap}
+.as-p{display:inline-block;margin-left:6px;font-size:.66rem;font-weight:800;text-transform:uppercase;letter-spacing:.04em;border-radius:99px;padding:1px 6px;background:#E5E7EB;color:#374151}.as-p.richiesta{background:#DCFCE7;color:#166534}.as-p.stima{background:#FFEDD5;color:#9A3412}
+@media (max-width:420px){.as-r{grid-template-columns:auto 1fr 56px auto}.as-u{display:none}}

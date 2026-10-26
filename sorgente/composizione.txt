@@ -8,6 +8,7 @@ css/05-preventivo.css
 css/06-condizioni.css
 css/07-documento-nuove-sezioni.css
 css/08-assistente.css
+css/09-immagini-e-controllo.css
 html/01-inizio.html
 html/02-archivio.html
 html/03-salva.html
@@ -29,6 +30,7 @@ html/18-app.html
 html/19-menu.html
 html/20-messaggi.html
 html/21-invio.html
+html/22-trova-immagini.html
 html/90-apertura-html-to-image.html
 librerie/html-to-image.min.js
 html/91-apertura-pdfjs.html
@@ -61,5 +63,7 @@ app/22-sincronizzazione-drive-github.js
 app/23-fornitori-e-lettura-pdf.js
 app/24-salvataggi-e-recupero.js
 app/25-assistente.js
-app/26-pubblicazione-installazione-avvio.js
+app/26-immagini-dal-web.js
+app/27-controllo-invio.js
+app/28-pubblicazione-installazione-avvio.js
 html/99-fine.html

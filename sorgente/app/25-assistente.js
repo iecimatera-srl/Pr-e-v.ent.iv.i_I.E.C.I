@@ -1,21 +1,83 @@
-/* ===== Assistente: dal testo (scritto o dettato) al preventivo. Gratis, senza internet, nessun dato inviato ===== */
-var AS={res:null, rec:null, ascolto:false, aperti:{}};
+/* ===== Assistente: dal testo (scritto o dettato) al preventivo. Gratis, senza internet, nessun dato inviato =====
+   Capisce anche richieste brevi («fv 6», «citofono 10», «8 cam»), errori di battitura, serie delle marche (Living Now, Plana…),
+   comandi sul preventivo aperto («togli il quadro», «porta le prese a 20», «sconto 10%») e impara le parole che usi tu. */
+var AS={res:null, rec:null, ascolto:false, aperti:{}, lt:0, diz:null, dizK:'', fix:{}, tk:{}};
 var AS_NUM={un:1,uno:1,una:1,due:2,tre:3,quattro:4,cinque:5,sei:6,sette:7,otto:8,nove:9,dieci:10,undici:11,dodici:12,tredici:13,quattordici:14,quindici:15,sedici:16,diciassette:17,diciotto:18,diciannove:19,venti:20,ventiquattro:24,trenta:30,quaranta:40,cinquanta:50,sessanta:60,settanta:70,ottanta:80,novanta:90,cento:100,mezzo:0.5,mezza:0.5};
-var AS_STOP=' di da del dello della dei degli delle con per il lo la i gli le un una uno e ed a ad in su tipo nuovo nuova nuovi nuove anche circa tutto tutta tutti tutte al alla alle ai agli nel nella nei nelle sul sulla sui ogni mio mia vorrei voglio serve servono fare metti mettere aggiungi preventivo impianto installazione fornitura posa ';
+var AS_STOP=' di da del dello della dei degli delle con per il lo la i gli le un una uno e ed a ad in su tipo nuovo nuova nuovi nuove anche circa tutto tutta tutti tutte al alla alle ai agli nel nella nei nelle sul sulla sui ogni mio mia vorrei voglio serve servono fare metti mettere mettimi aggiungi aggiungere inserisci ancora altri altre altro altra preventivo impianto installazione fornitura posa ';
+// abbreviazioni e parole tronche di chi scrive di fretta
+var AS_ABBR=[[/\bftv\b|\bfv\b|\bpv\b|\bfotovolt(?!aic)[a-z]*/g,'fotovoltaico'],[/\bvideocit(?!ofon)[a-z]*|\bvc\b|\bvdc\b/g,'videocitofono'],[/\bcitof(?!on)[a-z]*/g,'citofono'],[/\bwb\b|\bwall box\b/g,'wallbox'],[/\bcctv\b|\bvideosorv(?!eglianz)[a-z]*/g,'videosorveglianza'],
+  [/\bq\.?e\.?(?=\s|$)/g,'quadro elettrico'],[/\bp\.? ?luce\b|\bpl\b/g,'punti luce'],[/\bdiff\.?(?=\s|$)/g,'differenziale'],[/\bmagnetot\.?(?=\s|$)/g,'magnetotermico'],[/\bappart\.?(?=\s|$)|\bapp\.to\b|\bapt\b/g,'appartamento'],[/\bcanc\.?(?=\s|$)/g,'cancello'],
+  [/\bn(?:r|°|\.)\.?\s*(?=\d)/g,''],[/(\d)\s*x\s+(?=[a-z])/g,'$1 '],[/\bpz\.?\s+/g,' '],[/\bcad\.?\s+/g,' ']];
+// «citofono 10», «fv 6», «wallbox 22», «cam 8», «tv 5», «prese 15»: il numero dopo la parola
+var AS_SWAP=[[/\b(videocitofono|citofono|videocitofoni|citofoni|condominio|palazzina|palazzo|stabile)\s+(?:da\s+|per\s+|con\s+|di\s+)?(\d+)\b(?!\s*(?:mq|kw|m\b|metri|mt|mp|tb|pollici|"|condomin|utenz|famigli|appartament|interni|campanell|piani|unita))/g,'$1 $2 condomini'],
+  [/\bfotovoltaico\s+(?:da\s+|di\s+)?(\d+(?:\.\d+)?)\b(?!\s*(?:kw|mq|m\b|metri|moduli|pannelli))/g,'fotovoltaico $1 kw'],
+  [/\bwallbox\s+(?:da\s+)?(3\.7|7\.4|7|11|22)\b(?!\s*kw)/g,'wallbox $1 kw'],
+  [/\b(batteria|batterie|accumulo)\s+(?:da\s+|di\s+)?(\d+(?:\.\d+)?)\b(?!\s*(?:kw|anni))/g,'$1 $2 kwh'],
+  [/\b(?:telecamere|telecamera|cam)\s+(\d+)\b(?!\s*(?:mp|tb|canali|megapixel))/g,'$1 telecamere'],
+  [/\b(tv|antenna)\s+(\d+)\b(?!\s*(?:prese|punti))/g,'$1 $2 prese tv'],
+  [/\b(prese|punti presa|punti luce|luci|faretti|punti rete|sensori|contatti|telecomandi|radiocomandi)\s+(\d+)\b(?!\s*(?:mp|kw|tb|\.\d))/g,'$2 $1']];
 var AS_SIN=[[/\bluci\b/g,'punti luce'],[/\bspot\b/g,'faretti'],[/\btvcc\b|\bcam\b/g,'telecamere'],[/\bpir\b/g,'sensori volumetrici'],[/\btelecomand[io]\b/g,'radiocomandi'],[/\bsalvavita\b/g,'magnetotermico differenziale'],[/\bpunti rete\b|\bprese rete\b|\bprese dati\b/g,'punto presa dati rj45'],[/\bprese tv\b/g,'presa tv sat'],[/\bcitofoni\b/g,'posto interno citofono'],[/\bmonitor\b/g,'monitor interno'],[/\bprese\b(?! (?:tv|bipasso|schuko|usb|dati|rete|cee|esterne|ip))/g,'punti presa']];
-var AS_TIPI=[['vcit',/videocitofon|citofon|posto esterno|pulsantier|condomin/g],['vid',/telecamer|videosorveglian|\bnvr\b|\bdvr\b/g],['all',/allarm|antifurt|antintrusion|volumetric|contatt[io] magnetic/g],['aut',/cancell|automazion|sbarr|basculant|sezional|dissuasor/g],['fv',/fotovoltaic|pannell[io] solar|\bkwp\b|accumul|inverter/g],['wb',/wallbox|colonnin[ae] di ricarica|ricarica (auto|veicol|dell)|auto elettric/g],['tv',/antenn|parabol|digitale terrestre|centralino tv|\bsat\b/g],['ind',/capannon|industrial|officin|stabiliment|blindosbarr|\bcee\b/g],['sw',/\bplc\b|scada|\bhmi\b|\bknx\b|programmazion|firmware/g],['rip',/riparaz|guast|non funzion|salta|cortocircuit|scatta|emergenz|intervento/g],['app',/appartament|\bcamer[ae]\b|\bbagn[io]\b|\bcucin|soggiorn|ingress|corridoi|camerett/g],['dom',/impianto elettrico|\bcasa\b|villett|abitazion|punti? luce|\bprese\b/g]];
-var AS_STANZE=[[/camerett[ae]/,'cm'],[/camer[ae](?: da letto| matrimonial[ei])?\b/,'ca'],[/bagn[io]|servizi igienici/,'ba'],[/cucin[ae]|angolo cottura/,'cu'],[/soggiorn[oi]|salon[ei]|salott[oi]|living/,'so'],[/ingress[oi]/,'in'],[/corridoi?o?|disimpegn[oi]/,'co'],[/studi[oi]/,'st'],[/lavanderi[ae]/,'la'],[/balcon[ei]|terrazz[oi]|giardin[oi]/,'bl'],[/\bbox\b|garage|cantin[ae]|autorimess[ae]/,'bx'],[/ripostigli[oi]/,'ri']];
+var AS_TIPI=[['vcit',/videocitofon|citofon|posto esterno|pulsantier|condomin/g],['vid',/telecamer|videosorveglian|\bnvr\b|\bdvr\b/g],['all',/allarm|antifurt|antintrusion|volumetric|contatt[io] magnetic/g],['aut',/cancell|automazion|sbarr|basculant|sezional|dissuasor/g],['fv',/fotovoltaic|pannell[io] solar|\bkwp\b|accumul|inverter/g],['wb',/wallbox|colonnin[ae] di ricarica|ricarica (auto|veicol|dell)|auto elettric/g],['tv',/antenn|parabol|digitale terrestre|centralino tv|\bsat\b|^ tv\b|impianto tv/g],['ind',/capannon|industrial|officin|stabiliment|blindosbarr|\bcee\b/g],['sw',/\bplc\b|scada|\bhmi\b|\bknx\b|programmazion|firmware/g],['rip',/riparaz|guast|non funzion|salta|cortocircuit|scatta|emergenz|intervento/g],['app',/appartament|\bcamer[ae]\b|\bbagn[io]\b|\bcucin|soggiorn|ingress|corridoi|camerett|monolocal|bilocal|trilocal|quadrilocal|pentalocal|\bvilla\b|attico|mansard/g],['dom',/impianto elettrico|\bcasa\b|villett|abitazion|punti? luce|\bprese\b/g]];
+var AS_STANZE=[[/camerett[ae]/,'cm'],[/camer[ae](?: da letto| matrimonial[ei])?\b/,'ca'],[/bagn[io]|servizi igienici/,'ba'],[/cucin[ae]|angolo cottura/,'cu'],[/soggiorn[oi]|salon[ei]|salott[oi]|living(?! ?(?:now|light))/,'so'],[/ingress[oi]/,'in'],[/corridoi?o?|disimpegn[oi]/,'co'],[/studi[oi]/,'st'],[/lavanderi[ae]/,'la'],[/balcon[ei]|terrazz[oi]|giardin[oi]/,'bl'],[/\bbox\b|garage|cantin[ae]|autorimess[ae]/,'bx'],[/ripostigli[oi]/,'ri']];
+var AS_TAGLI={mono:[['so',1],['cu',1],['ba',1]],bi:[['in',1],['cu',1],['so',1],['ca',1],['ba',1]],tri:[['in',1],['cu',1],['so',1],['ca',2],['ba',1],['co',1]],quadri:[['in',1],['cu',1],['so',1],['ca',2],['cm',1],['ba',2],['co',1]],penta:[['in',1],['cu',1],['so',1],['ca',3],['cm',1],['ba',2],['co',1]]};
 var AS_MARCHE=['Bticino','Vimar','AVE','Gewiss','Schneider','Legrand','ABB','Hager','Siemens','Urmet','Comelit','Elvox','Fermax','Came','Nice','FAAC','BFT','Beninca','Fadini','RIB','Hikvision','Dahua','Uniview','Axis','Hanwha','Ajax','Tecnoalarm','EL.MO','Bentel','Inim','Huawei','SMA','Fronius','SolarEdge','SAJ','Sungrow','Zucchetti','Aiko','SunPower','Fibaro','Shelly','Fracarro','Emme Esse','Fte'];
+// serie commerciali: riconosco la marca e, se serve, il tipo di lavoro
+var AS_SERIE=[[/\bliving ?now\b/,'Bticino','Living Now',''],[/\bliving ?light\b/,'Bticino','LivingLight',''],[/\baxolute\b/,'Bticino','Axolute',''],[/\bmatix\b/,'Bticino','Matix',''],[/\bmy ?home\b/,'Bticino','MyHOME',''],[/\bclasse ?100\b/,'Bticino','Classe 100','vcit'],[/\bclasse ?300\w*/,'Bticino','Classe 300','vcit'],[/\bclasse ?500\b/,'Bticino','Classe 500','vcit'],[/\blinea ?3000\b/,'Bticino','Linea 3000','vcit'],
+  [/\bplana\b/,'Vimar','Plana',''],[/\beikon\b/,'Vimar','Eikon',''],[/\barke\b/,'Vimar','Arké',''],[/\bneve ?up\b/,'Vimar','Neve Up',''],[/\bk40\b/,'Vimar','K40','vcit'],[/\btab ?[57] ?s?\b/,'Vimar','Tab','vcit'],
+  [/\bzenit\b/,'AVE','Zenit',''],[/\bchorus\w*/,'Gewiss','Chorus',''],[/\bvalena\b/,'Legrand','Valena',''],[/\barteor\b/,'Legrand','Arteor',''],[/\bmini ?note\b|\bnote ?2\b/,'Urmet','Note','vcit'],[/\bsimplebus\b/,'Comelit','Simplebus','vcit'],
+  [/\brobus\b/,'Nice','Robus','aut'],[/\btoona\b/,'Nice','Toona','aut'],[/\bwingo\b/,'Nice','Wingo','aut'],[/\bkrono\b/,'Came','Krono','aut'],[/\bbxv?[ -]?\d{2,}/,'Came','BX','aut'],[/\bdeimos\b/,'BFT','Deimos','aut'],[/\bphobos\b/,'BFT','Phobos','aut'],
+  [/\bsun ?2000\b/,'Huawei','SUN2000','fv'],[/\bluna ?2000\b/,'Huawei','LUNA2000','fv'],[/\bsunny ?(?:boy|tripower)\b/,'SMA','Sunny','fv'],[/\bsymo\b|\bgen ?24\b/,'Fronius','Symo','fv'],[/\bax ?pro\b/,'Hikvision','AX PRO','all']];
+var AS_LESSICO='appartamento villetta villa casa abitazione ufficio negozio capannone magazzino officina laboratorio cucina soggiorno salone salotto ingresso corridoio camera camere cameretta camerette bagno bagni studio lavanderia balcone terrazzo terrazza giardino garage cantina ripostiglio taverna mansarda attico veranda portico monolocale bilocale trilocale quadrilocale pentalocale '+
+  'videocitofono videocitofoni citofono citofoni condominio condomini condomino famiglie famiglia palazzina palazzo stabile edificio pulsantiera monitor interno esterno telecamera telecamere videosorveglianza allarme antifurto sensore sensori volumetrico volumetrici contatto contatti magnetico magnetici sirena tastiera '+
+  'cancello cancelli scorrevole battente automazione motore motori basculante sezionale sbarra telecomando telecomandi radiocomando radiocomandi fotocellule lampeggiante fotovoltaico pannelli moduli inverter batteria batterie accumulo trifase monofase ibrido wallbox ricarica colonnina antenna parabola satellitare centralino '+
+  'prese presa punti punto luce luci faretti faretto interruttore interruttori deviatore deviatori pulsante pulsanti quadro quadri elettrico elettrica differenziale magnetotermico salvavita messa terra rifacimento rifare impianto installazione manodopera metri tetto falda piano piani scala '+
+  'sostituzione sostituire riparazione guasto cortocircuito domotica tapparelle tapparella termostato cronotermostato rilevatore fumo dati rete smartphone applicazione completo completa cavi cavo tubazione canalina linea dedicata condizionatore climatizzatore lampade lampadario plafoniera striscia strisce '+
+  'irrigazione pompa caldaia forno cottura lavatrice lavastoviglie frigorifero cliente signor signora ditta sopra sotto dentro fuori porta porte cambia togli toglimi elimina rimuovi cancella aggiungi sconto acconto validita giorni prezzo prezzi totale marca marche modello serie colore bianco nero grigio argento '+
+  'oppure confronto alternativa proposta proposte soluzione soluzioni entrambe almeno massimo primo secondo terzo telefono cellulare email indirizzo contatore potenza kilowatt urgente festivo domenica sabato notte sopralluogo verifica controllo certificazione dichiarazione conformita progetto pratica detrazione bonus '+
+  'ancora altri altre senza niente tranne escluso esclusa metti mettere porta portare imposta modifica aumenta diminuisci riduci raddoppia stanza stanze ambiente ambienti generale comuni wireless radio filare smart remoto vista cablaggio scavo interrato interrata ponteggio vita';
 
+function asDiz(){
+  var key=ORDER.map(function(m){ return (S.cat[m]||[]).length; }).join(',')+'|'+((DB.parole||[]).length);
+  if(AS.diz&&AS.dizK===key) return AS.diz;
+  var d={}; function w(s){ String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(/[^a-z]+/).forEach(function(x){ if(x.length>=4) d[x]=1; }); }
+  w(AS_LESSICO); w(AS_STOP); Object.keys(AS_NUM).forEach(w); AS_MARCHE.forEach(w); AS_SERIE.forEach(function(s){ w(s[2]); });
+  ORDER.forEach(function(m){ (S.cat[m]||[]).forEach(function(c){ w(c[0]); }); ((MODELS[m]&&MODELS[m].items)||[]).forEach(function(c){ w(c[0]); }); });
+  Object.keys(ROOMNAME).forEach(function(k){ w(ROOMNAME[k]); }); (DB.parole||[]).forEach(function(p){ w(p.k); });
+  var byL={}; Object.keys(d).forEach(function(x){ var c=x.charAt(0); (byL[c]=byL[c]||[]).push(x); });
+  AS.diz={has:d,byL:byL}; AS.dizK=key; AS.fix={}; AS.tk={}; return AS.diz;
+}
+// distanza tra parole (con lettere scambiate): «fotovoltacio» -> «fotovoltaico»
+function asDist(a,b,max){
+  var la=a.length, lb=b.length, i, j; if(Math.abs(la-lb)>max) return max+1;
+  var p2=null, p1=[], cur; for(j=0;j<=lb;j++) p1[j]=j;
+  for(i=1;i<=la;i++){ cur=[i]; var mn=i;
+    for(j=1;j<=lb;j++){ var v=Math.min(p1[j]+1,cur[j-1]+1,p1[j-1]+(a.charAt(i-1)===b.charAt(j-1)?0:1)); if(p2&&i>1&&j>1&&a.charAt(i-1)===b.charAt(j-2)&&a.charAt(i-2)===b.charAt(j-1)) v=Math.min(v,p2[j-2]+1); cur[j]=v; if(v<mn) mn=v; }
+    if(mn>max) return max+1; p2=p1; p1=cur; }
+  return p1[lb];
+}
+function asCorreggi(t){
+  var D=asDiz();
+  return t.replace(/[a-z]{5,}/g,function(w){
+    if(D.has[w]) return w; if(AS.fix[w]!=null) return AS.fix[w];
+    var max=w.length>=8?2:1, best=w, bd=max+1;
+    (D.byL[w.charAt(0)]||[]).forEach(function(x){ if(Math.abs(x.length-w.length)>max) return; var d=asDist(w,x,max); if(d<bd){ bd=d; best=x; } });
+    AS.fix[w]=bd<=max?best:w; return AS.fix[w];
+  });
+}
 function asNorm(t){
   t=' '+String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[’`]/g,"'")+' ';
-  t=t.replace(/\b(\d+),(\d+)\b/g,'$1.$2').replace(/\bmetri quadr[ia]\b|\bm2\b|\bm²/g,' mq ').replace(/(\d)\s*(mq|kwp|kwh|kw|mp|tb|mm|m|metri|mt|ml)\b/g,'$1 $2');
+  t=t.replace(/\b(\d+),(\d+)\b/g,'$1.$2').replace(/\bmetri quadr[ia]\b|\bm2\b|\bm²/g,' mq ').replace(/(\d)\s*(mq|kwp|kwh|kw|mp|tb|mm|m|metri|mt|ml|x|pz)\b/g,'$1 $2');
+  t=asCorreggi(t);
   Object.keys(AS_NUM).forEach(function(w){ t=t.replace(new RegExp('\\b'+w+'\\b','g'),String(AS_NUM[w])); });
+  AS_ABBR.forEach(function(s){ t=t.replace(s[0],s[1]); });
+  // il numero dopo la parola, ma solo se prima non c'e' gia' un numero («10 luci 15 prese» resta com'e')
+  AS_SWAP.forEach(function(s){ var uno=new RegExp(s[0].source); t=t.replace(s[0],function(){ var a=arguments, all=a[0], off=a[a.length-2], str=a[a.length-1]; return /\d\s*$/.test(str.slice(0,off))?all:all.replace(uno,s[1]); }); });
   AS_SIN.forEach(function(s){ t=t.replace(s[0],s[1]); });
   return t.replace(/\s+/g,' ');
 }
 function asStem(w){ w=w.replace(/[^a-z0-9"]/g,''); if(/^\d/.test(w)) return w; w=w.replace(/[aeiou]+$/,''); return w.slice(0,6); }
 function asToks(t){ return asNorm(t).replace(/(\d+(?:\.\d+)?)\s+(mp|tb|kw|kwp|kwh|mm|canali|porte|cm)\b/g,'$1$2').split(/[^a-z0-9."]+/).filter(function(w){ return w&&w.length>1&&AS_STOP.indexOf(' '+w+' ')<0; }).map(asStem).filter(Boolean); }
+function asToksC(s){ asDiz(); if(!AS.tk[s]) AS.tk[s]=asToks(s); return AS.tk[s]; }
 function asItem(model,name){
   var r=null; (S.cat[model]||[]).forEach(function(c){ if(!r&&c[0]===name) r=c; });
   if(!r) (MODELS[model]?MODELS[model].items:[]).forEach(function(c){ if(!r&&c[0]===name) r=c; });
@@ -26,7 +88,7 @@ function asMatch(model,frase,min){
   var ft=asToks(frase); if(!ft.length) return null;
   var best=null, bs=0;
   (S.cat[model]||[]).forEach(function(c){
-    var it=asToks(c[0]), m=0; ft.forEach(function(w){ if(it.indexOf(w)>-1) m+=(/\d/.test(w)?1.5:1); });
+    var it=asToksC(c[0]), m=0; ft.forEach(function(w){ if(it.indexOf(w)>-1) m+=(/\d/.test(w)?1.5:1); });
     if(!m) return;
     var sc=m*2-0.08*it.length+(it[0]===ft[0]?0.5:0);
     if(sc>bs){ bs=sc; best={it:c,m:m,ft:ft.length}; }
@@ -35,24 +97,43 @@ function asMatch(model,frase,min){
   if(best.m<(min||1)||best.m<Math.min(2,best.ft)*0.5) return null;
   return best.it;
 }
-function asTipo(n,attuale){
+// parole che hai insegnato tu: «faretti incasso» = «Faretto LED da incasso…»
+function asChiave(f){ return asNorm(f).replace(/^\s*\d+(?:\.\d+)?\s+/,'').replace(/\b(il|lo|la|i|gli|le|un|una|uno|di|del|della|dei|delle)\b/g,' ').replace(/\s+/g,' ').trim(); }
+function asImparata(model,frase){
+  var f=' '+asChiave(frase)+' ', r=null, lung=0;
+  (DB.parole||[]).forEach(function(p){ if(p.m!==model||!p.k||p.k.length<=lung) return; if(f.indexOf(' '+p.k+' ')>-1){ var it=asItem(model,p.d); if(it){ r=it; lung=p.k.length; } } });
+  return r;
+}
+function asTipo(n,hint){
   var sc={}; AS_TIPI.forEach(function(x){ var m=n.match(x[1]); sc[x[0]]=m?m.length:0; });
   if(sc.vcit&&/\btelecamer/.test(n)===false) sc.vcit+=1;
+  (hint||[]).forEach(function(t){ if(t&&sc[t]!=null) sc[t]+=2; });
   var best=null, bv=0; AS_TIPI.forEach(function(x){ if(sc[x[0]]>bv){ bv=sc[x[0]]; best=x[0]; } });
   if(best==='dom'&&sc.app) best='app';
   return best;
 }
+// la voce «normale» quando dici solo la parola generica («5 telecamere», «4 sensori»)
+var AS_BASE={vid:[[/^telecamer\w*$/,'Telecamera IP 4 MP bullet PoE']],all:[[/^sensor\w*( volumetric\w*)?$/,'Sensore volumetrico PIR'],[/^contatt\w*( magnetic\w*)?$/,'Contatto magnetico porta / finestra']],aut:[[/^(radiocomandi|telecomandi)$/,'Radiocomando 4 canali']],tv:[[/^(punti presa|prese|presa tv sat)$/,'Presa TV / SAT']],
+  app:[[/^punti presa$/,'Punto presa 10/16 A'],[/^punti luce$/,'Punto luce semplice']],dom:[[/^punti presa$/,'Punto presa 10/16 A'],[/^punti luce$/,'Punto luce semplice']]};
+function asBase(model,r){ var it=null; (AS_BASE[model]||[]).forEach(function(x){ if(!it&&x[0].test(String(r||'').trim())) it=asItem(model,x[1]); }); return it; }
 function asCliente(t){
   var o={}, m;
   m=t.match(/(?:\bper\s+(?:il\s+|la\s+)?(?:sig(?:\.|nor)?(?:ra|a)?\.?\s+|dott(?:\.|or)?(?:ssa)?\.?\s+|famiglia\s+|ditta\s+|cliente\s+)?|\bcliente[:\s]+)((?:[A-Z][\wàèéìòù']+)(?:\s+(?:[A-Z][\wàèéìòù']+|di|de|del|della|d'))*)/);
-  if(m&&!/^(Via|Viale|Piazza|Corso|Il|La|Un|Una)$/.test(m[1].split(' ')[0])&&!AS_MARCHE.some(function(b){ return b.toLowerCase()===m[1].split(' ')[0].toLowerCase(); })) o.name=m[1].trim();
+  if(m&&!/^(Via|Viale|Piazza|Corso|Il|La|Un|Una)$/.test(m[1].split(' ')[0])&&!AS_MARCHE.some(function(b){ return b.toLowerCase()===m[1].split(' ')[0].toLowerCase(); })&&!AS_SERIE.some(function(s){ return s[0].test(m[1].toLowerCase()); })) o.name=m[1].trim();
   m=t.match(/\b((?:via|viale|v\.le|piazza|p\.zza|corso|c\.so|vico|vicolo|contrada|c\.da|largo|strada|localit[aà]|loc\.)\s+[^,;\n]+?)(?:\s*,\s*([A-Z][\wàèéìòù' ]{2,30}?))?(?=\s*(?:[,;.:\n]|$|\s(?:con|tel|telefono|cell)\b))/i);
   if(m){ o.addr=m[1].trim().replace(/\s+/g,' ')+(m[2]?', '+m[2].trim():''); }
   m=t.match(/((?:\+39[\s.]?)?3\d{2}[\s.]?\d{3}[\s.]?\d{3,4})/); if(m) o.tel=m[1].replace(/[\s.]+/g,' ').trim();
   m=t.match(/[\w.+-]+@[\w-]+\.[\w.]+/); if(m) o.email=m[0];
   return o;
 }
-function asMarche(t){ var r=[]; AS_MARCHE.forEach(function(b){ var re=new RegExp('\\b'+b.replace(/[.]/g,'\\.')+'\\b','i'); var m=t.match(re); if(m&&r.indexOf(b)<0) r.push({b:b,i:m.index}); }); return r.sort(function(a,b){ return a.i-b.i; }).map(function(x){ return x.b; }); }
+// marche e serie, nell'ordine in cui le hai scritte
+function asMarche(n){
+  var r=[];
+  AS_MARCHE.forEach(function(b){ var m=n.match(new RegExp('\\b'+b.toLowerCase().replace(/[.]/g,'\\.')+'\\b')); if(m) r.push({b:b,i:m.index,s:'',t:''}); });
+  AS_SERIE.forEach(function(s){ var m=n.match(s[0]); if(!m) return; var ex=r.filter(function(x){ return x.b===s[1]; })[0]; if(ex){ if(!ex.s){ ex.s=s[2]; ex.t=s[3]; } } else r.push({b:s[1],i:m.index,s:s[2],t:s[3]}); });
+  return r.sort(function(a,b){ return a.i-b.i; });
+}
+function asMarcaNome(x){ return x.b+(x.s&&x.s!==x.b?' '+x.s:''); }
 function asStanze(n){
   var out=[], visti={};
   n.split(/[,;.\n]|\se\s|\scon\s/).forEach(function(seg){
@@ -64,44 +145,94 @@ function asStanze(n){
   });
   return out;
 }
-function asFrasi(n){ return n.split(/[,;\n]|\.\s|\s(?:e|ed|piu|con|inoltre)\s/).map(function(s){ return s.trim(); }).filter(function(s){ return s.length>2; }); }
+var AS_IN=new RegExp('\\b(?:in|nel|nella|nello|nei|nelle|dal|dalla|dallo|dai|dalle|della|del|dello|per (?:la|il|lo)|in ogni|ogni)\\s+((?:'+AS_STANZE.map(function(s){ return s[0].source; }).join('|')+'))(?:\\s+(\\d+))?');
+// «3 prese in cucina», «togli i faretti dal bagno 2»
+function asDove(fr){
+  var m=fr.match(AS_IN); if(!m) return null; var k=null;
+  AS_STANZE.forEach(function(s){ if(!k&&new RegExp('^(?:'+s[0].source+')').test(m[1])) k=s[1]; });
+  return k?{k:k,n:m[2]?parseInt(m[2],10):0,rest:(fr.slice(0,m.index)+' '+fr.slice(m.index+m[0].length)).replace(/\s+/g,' ').trim()}:null;
+}
+// «10 punti luce 15 prese» sono due richieste: divido dove comincia un nuovo numero (non le unità: «4 mp», «25 metri»)
+var AS_NUOVA=/\s(?=\d+(?:\.\d+)?\s+(?!(?:mp|tb|gb|kw|kwh|kwp|mm|m|mt|metri|ml|mq|canali|porte|pollici|cm|a|v|w|ah|ore|h|anni|giorni|kg|x)\b)[a-z])/;
+function asFrasi(n){ return n.split(/[,;\n]|\.\s|\s(?:e|ed|piu|con|inoltre|poi)\s/).reduce(function(a,s){ return a.concat(/[a-z]/.test(s)?s.split(AS_NUOVA):[s]); },[]).map(function(s){ return s.trim(); }).filter(function(s){ return s.length>2; }); }
 function asQta(fr){ var m=fr.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*(?:x\s+|pz\.?\s+|pezzi\s+)?([a-z].*)$/); return m?{q:parseFloat(m[1]),r:m[2]}:null; }
+var AS_VERBO=/^\s*(?:aggiungi|aggiungere|aggiungimi|metti|mettimi|inserisci|togli|toglimi|togliere|elimina|rimuovi|cancella|leva|levami|cambia|porta|portare|imposta|modifica|sostituisci|aumenta|diminuisci|riduci|sconto|acconto|iva|validita)\b/;
+var AS_TOGLI=/^(?:togli|toglimi|togliere|elimina|eliminare|rimuovi|cancella|leva|levami|senza|niente|tranne|escluso|esclusa|esclusi|non (?:serve|servono|mettere|voglio)|no)\s+(?:(?:il|lo|la|i|gli|le|l'|un|una|uno)\s*)?(.+)$/;
+var AS_CAMBIA=/^(?:porta|portare|cambia|metti|mettimi|imposta|modifica|aumenta|riduci|diminuisci)\s+(?:(?:il|lo|la|i|gli|le|l')\s*)?(.+?)\s+(?:a|in|da)\s+(\d+(?:\.\d+)?)(?:\s*(?:pz|pezzi|cad|unita))?$/;
+var AS_COND=/\b(?:sconto|acconto|iva|validit\w*)\b/;
+function asLineaInfo(l){ var rm=roomById(l.r); return {d:l.d,k:rm?rm.kind:'',st:rm?rm.name:''}; }
+function asRigaInfo(x){ return {d:x.d,k:x.kind||'',st:x.stanza||''}; }
+// le righe che corrispondono a una frase («il quadro», «le prese in cucina»)
+function asTrova(list,frase,dove,get){
+  var ft=asToks(frase); if(!ft.length) return [];
+  var ok=function(o){ if(!dove) return true; if(o.k!==dove.k) return false; return !dove.n||/\s(\d+)$/.test(o.st)&&+o.st.match(/\s(\d+)$/)[1]===dove.n||(dove.n===1&&!/\s\d+$/.test(o.st)); };
+  var best=0, bd=null, need=ft.length<=1?1:2;
+  list.forEach(function(x){ var o=get(x); if(!ok(o)) return; var it=asToksC(o.d), m=0, hit=0; ft.forEach(function(w){ if(it.indexOf(w)>-1){ m+=(/\d/.test(w)?1.5:1); hit++; } }); if(hit<need) return; var sc=m*2-0.08*it.length; if(sc>best){ best=sc; bd=o.d; } });
+  if(!bd||best<1.2) return [];
+  return list.filter(function(x){ var o=get(x); return o.d===bd&&ok(o); });
+}
 
 // Analisi completa del testo: non cambia nulla, prepara una proposta da mostrare in anteprima
 function asAnalizza(testo){
-  var n=asNorm(testo), tipoTrovato=asTipo(n,S.model), model=tipoTrovato||S.model, res={model:model,cliente:asCliente(testo),marche:asMarche(testo),righe:[],stanze:[],note:[],ignorate:[],cond:null,titolo:''};
-  var esplicite={}; // voce -> quantità chiesta
-  var add=function(nome,q,perche,stanza){ var it=asItem(model,nome); if(!it||!(q>0)) return; var k=nome+'|'+(stanza||''); if(esplicite[k]!=null&&perche!=='richiesta') return;
+  var n=asNorm(testo), mk=asMarche(n), nPos=n.replace(/\b(?:senza|niente|tranne|escluso|esclusa|esclusi|no)\s+[^,;.]+/g,' ');
+  var hint=mk.map(function(x){ return x.t; }), tipoTrovato=asTipo(nPos.replace(/presa tv sat/g,'presa tv'),hint);
+  var verbo=AS_VERBO.test(n), mod=S.lines.length>0&&(verbo||!tipoTrovato);
+  var model=mod?S.model:(tipoTrovato||S.model);
+  var res={model:model,mode:mod?'mod':'nuovo',cliente:asCliente(testo),marche:mk.map(asMarcaNome),serie:mk.filter(function(x){ return x.s; }).map(function(x){ return x.b+' '+x.s; }),righe:[],stanze:[],note:[],ignorate:[],mods:[],cond:null,titolo:'',tipoTrovato:tipoTrovato};
+  var esplicite={};
+  var add=function(nome,q,perche,stanza,kind){ var it=asItem(model,nome); if(!it||!(q>0)) return; var k=it[0]+'|'+(stanza||''); if(esplicite[k]!=null&&perche!=='richiesta'&&perche!=='imparata') return;
     var ex=null; res.righe.forEach(function(r){ if(r.d===it[0]&&(r.stanza||'')===(stanza||'')) ex=r; });
-    if(ex){ if(perche==='richiesta'){ ex.q=q; ex.perche='richiesta'; } return; }
-    res.righe.push({d:it[0],u:it[1],q:q,p:num(it[2]),perche:perche,stanza:stanza||''}); };
-  var mq=(n.match(/(\d+(?:\.\d+)?) mq/)||[])[1], kw=(n.match(/(\d+(?:\.\d+)?) kwp?\b/)||[])[1], kwh=(n.match(/(\d+(?:\.\d+)?) kwh/)||[])[1], metri=(n.match(/(\d+) (?:m|metri|mt|ml)\b(?! ?q)/)||[])[1];
+    if(ex){ if(perche==='richiesta'||perche==='imparata'){ ex.q=q; ex.perche=perche; } return; }
+    res.righe.push({d:it[0],u:it[1],q:q,p:num(it[2]),perche:perche,stanza:stanza||'',kind:kind||''}); };
+  var mq=(nPos.match(/(\d+(?:\.\d+)?) mq/)||[])[1], kw=(nPos.match(/(\d+(?:\.\d+)?) kwp?\b/)||[])[1], kwh=(nPos.match(/(\d+(?:\.\d+)?) kwh/)||[])[1], metri=(nPos.match(/(\d+) (?:m|metri|mt|ml)\b(?! ?q)/)||[])[1];
   mq=mq?parseFloat(mq):0; kw=kw?parseFloat(kw):0; kwh=kwh?parseFloat(kwh):0; metri=metri?parseInt(metri,10):0;
-  // 1. richieste esplicite con quantità ("6 prese", "8 telecamere 4 mp", "3 radiocomandi")
-  var stanzeRe=new RegExp('\\b(?:'+AS_STANZE.map(function(s){ return s[0].source; }).join('|')+')');
-  asFrasi(n).forEach(function(fr){
-    var q=asQta(fr); if(!q) return;
-    if(/^(mq|kwp?|kwh|condomin\w*|utenz\w*|famigli\w*|appartament\w*|interni|anni|giorni|mesi|m|metri|mt|ml|km|ore|h|tb|gb|mp|canali|porte|kw\w*)\b/.test(q.r)) return;
-    if(model==='app'&&stanzeRe.test(q.r)&&!/punt|pres|luc|faret|linea|rete/.test(q.r)) return;
-    var it=asMatch(model,q.r,1);
-    if(it){ var k=it[0]+'|'; esplicite[k]=q.q; add(it[0],q.q,'richiesta'); }
-    else res.ignorate.push(fr.trim());
-  });
-  // 2. ricette per tipo (solo se il testo dice che lavoro e')
-  var has=function(re){ return re.test(n); };
-  if(!tipoTrovato){ if(res.righe.length) res.note.push('Non ho capito il tipo di lavoro: aggiungo le voci al preventivo «'+(MODELS[model].short||MODELS[model].name)+'».'); }
-  else if(model==='app'){
-    var st=asStanze(n);
-    if(!st.length&&mq){ st=[{k:'in',q:1},{k:'cu',q:1},{k:'so',q:1},{k:'ca',q:mq>=75?2:1},{k:'ba',q:mq>=90?2:1}]; if(mq>=110) st.push({k:'cm',q:1}); if(mq>=70) st.push({k:'co',q:1}); res.note.push('Stanze stimate dai '+mq+' mq: controllale prima di applicare.'); }
+  var has=function(re){ return re.test(nPos); };
+  // stanze dell'appartamento (servono prima, per «3 prese in cucina»)
+  var st=[];
+  if(!mod&&model==='app'){
+    st=asStanze(nPos); var tg=nPos.match(/\b(mono|bi|tri|quadri|penta)local/);
+    if(!st.length&&tg){ st=AS_TAGLI[tg[1]].map(function(a){ return {k:a[0],q:a[1]}; }); res.note.push('Stanze di un '+tg[1]+'locale tipo: controllale prima di applicare.'); }
+    else if(!st.length&&mq){ st=[{k:'in',q:1},{k:'cu',q:1},{k:'so',q:1},{k:'ca',q:mq>=75?2:1},{k:'ba',q:mq>=90?2:1}]; if(mq>=110) st.push({k:'cm',q:1}); if(mq>=70) st.push({k:'co',q:1}); res.note.push('Stanze stimate dai '+mq+' mq: controllale prima di applicare.'); }
     if(!st.length){ st=[{k:'in',q:1},{k:'cu',q:1},{k:'so',q:1},{k:'ca',q:1},{k:'ba',q:1}]; res.note.push('Non ho trovato le stanze: uso un appartamento tipo, modificalo pure.'); }
+  }
+  function stanzaDi(dove){
+    if(!dove||model!=='app') return null;
+    if(mod){ var L=S.rooms.filter(function(r){ return r.kind===dove.k; }); var rm=L[(dove.n||1)-1]||L[0]; return {nome:rm?rm.name:ROOMNAME[dove.k],k:dove.k}; }
+    var s=st.filter(function(x){ return x.k===dove.k; })[0]; if(!s){ s={k:dove.k,q:1,nokit:true}; st.push(s); }
+    return {nome:ROOMNAME[dove.k]+(s.q>1?' '+Math.min(s.q,dove.n||1):''),k:dove.k};
+  }
+  var curSt=null; if(mod&&model==='app'){ var cr=roomById(curKey()); if(cr) curSt={nome:cr.name,k:cr.kind}; }
+  // 1. frase per frase: comandi, quantità, parole imparate
+  var stanzeRe=new RegExp('\\b(?:'+AS_STANZE.map(function(s){ return s[0].source; }).join('|')+')'), cmds=[], ultimo='', libere=[];
+  asFrasi(n).forEach(function(fr){
+    if(AS_COND.test(fr)&&!asQta(fr.replace(/\b(?:sconto|acconto|iva|validit\w*)\b.*$/,''))) { ultimo=''; return; }
+    var mT=fr.match(AS_TOGLI), mC=fr.match(AS_CAMBIA);
+    if(!mT&&ultimo==='togli'&&!/\d/.test(fr)&&!AS_VERBO.test(fr)) mT=[fr,fr.replace(/^(?:(?:il|lo|la|i|gli|le|l'|un|una|uno)\s*)/,'')];
+    if(mT){ ultimo='togli'; cmds.push({t:'togli',x:mT[1],dove:asDove(mT[1])}); return; }
+    if(mC){ ultimo=''; cmds.push({t:'qta',x:mC[1],q:parseFloat(mC[2]),dove:asDove(mC[1])}); return; }
+    ultimo='';
+    var dove=asDove(fr), base=dove?dove.rest:fr, q=asQta(base), sd=dove?stanzaDi(dove):curSt;
+    var imp=asImparata(model,q?q.r:base);
+    if(imp&&(q||!/\d/.test(base))){ esplicite[imp[0]+'|'+(sd?sd.nome:'')]=q?q.q:1; add(imp[0],q?q.q:1,'imparata',sd?sd.nome:'',sd?sd.k:''); return; }
+    if(!q){ libere.push(fr); return; }
+    if(/^(mq|kwp?|kwh|condomin\w*|utenz\w*|famigli\w*|appartament\w*|interni|anni|giorni|mesi|m|metri|mt|ml|km|ore|h|tb|gb|mp|canali|porte|kw\w*|percento|per cento)\b/.test(q.r)) return;
+    if(model==='app'&&stanzeRe.test(q.r)&&!/punt|pres|luc|faret|linea|rete|interrut|devia|tappar|termost/.test(q.r)) return;
+    var it=asBase(model,q.r)||asMatch(model,q.r,1);
+    if(it){ esplicite[it[0]+'|'+(sd?sd.nome:'')]=q.q; add(it[0],q.q,'richiesta',sd?sd.nome:'',sd?sd.k:''); }
+    else res.ignorate.push({f:fr.trim(),k:asChiave(q.r),q:q.q});
+  });
+  var nAdd=' '+libere.join(' , ')+' ';
+  // 2. ricette per tipo (solo per un preventivo nuovo e se il testo dice che lavoro e')
+  if(mod){ /* sul preventivo aperto: solo quello che chiedi */ }
+  else if(!tipoTrovato){ if(res.righe.length) res.note.push('Non ho capito il tipo di lavoro: aggiungo le voci al preventivo «'+(MODELS[model].short||MODELS[model].name)+'».'); }
+  else if(model==='app'){
     res.stanze=st;
-    st.forEach(function(s){ for(var i=0;i<s.q;i++){ var nome=ROOMNAME[s.k]+(s.q>1?' '+(i+1):''); (KITS[s.k]||[]).forEach(function(x){ var it=catItem(x[0]); if(it) res.righe.push({d:it[0],u:it[1],q:x[1],p:num(it[2]),perche:'stanza',stanza:nome,kind:s.k}); }); } });
-    (KITS.ge||[]).forEach(function(x){ var it=catItem(x[0]); if(it) res.righe.push({d:it[0],u:it[1],q:x[1],p:num(it[2]),perche:'tipico',stanza:''}); });
-    // le richieste esplicite in un appartamento vanno nelle parti comuni
+    st.forEach(function(s){ for(var i=0;i<s.q;i++){ var nome=ROOMNAME[s.k]+(s.q>1?' '+(i+1):''); if(s.nokit) continue; (KITS[s.k]||[]).forEach(function(x){ var it=catItem(x[0]); if(it&&esplicite[it[0]+'|'+nome]==null) res.righe.push({d:it[0],u:it[1],q:x[1],p:num(it[2]),perche:'stanza',stanza:nome,kind:s.k}); }); } });
+    (KITS.ge||[]).forEach(function(x){ var it=catItem(x[0]); if(it&&esplicite[it[0]+'|']==null) res.righe.push({d:it[0],u:it[1],q:x[1],p:num(it[2]),perche:'tipico',stanza:''}); });
     res.titolo='Rifacimento impianto elettrico appartamento'+(mq?' di '+mq+' mq':'');
   }
   else if(model==='vcit'){
-    var cn=(n.match(/(\d+)\s*(?:condomin|utenz|famigli|appartament|interni|campanell)/)||[])[1];
+    var cn=(nPos.match(/(\d+)\s*(?:condomin|utenz|famigli|appartament|interni|campanell)/)||[])[1];
     var kind=has(/\b(solo )?citofon(o|ico|ia)\b/)&&!has(/videocitofon/)?'cit':(has(/entramb|sia .*citofon.* sia|confronto tra citofono/)?'both':'video');
     res.cond={n:cn?parseInt(cn,10):6,kind:kind}; if(!cn) res.note.push('Numero di condomini non indicato: ne metto 6, cambialo pure.');
     VCSET.forEach(function(x){ if(kind!=='both'&&x[2]!=='*'&&x[2]!==kind) return; var it=asItem('vcit',x[0]); if(it) res.righe.push({d:it[0],u:it[1],q:x[1]?res.cond.n:1,p:num(it[2]),perche:'tipico',stanza:'',pc:!!x[1],sol:x[2]}); });
@@ -133,7 +264,7 @@ function asAnalizza(testo){
     res.titolo='Installazione wallbox '+(p22?'22':(p11?'11':'7,4'))+' kW per ricarica auto elettrica';
   }
   else if(model==='aut'){
-    var mot=has(/sezional/)?'Automazione porta garage sezionale':has(/basculant/)?'Automazione per porta basculante':has(/sbarr/)?'Sbarra automatica per parcheggio':has(/scorrevol/)?(has(/pesant|industrial/)?'Motore per cancello scorrevole pesante':'Motore per cancello scorrevole'):(has(/interrat/)?'Motore interrato per cancello a battente (coppia)':'Motori per cancello a battente (coppia)');
+    var mot=has(/sezional/)?'Automazione porta garage sezionale':has(/basculant/)?'Automazione per porta basculante':has(/sbarr/)?'Sbarra automatica per parcheggio':has(/scorrevol|robus|krono|bxv?[ -]?\d|deimos/)?(has(/pesant|industrial/)?'Motore per cancello scorrevole pesante':'Motore per cancello scorrevole'):(has(/interrat/)?'Motore interrato per cancello a battente (coppia)':'Motori per cancello a battente (coppia)');
     add(mot,1,'tipico');
     if(/battente/.test(mot)) add('Centrale di comando',1,'tipico');
     add('Radiocomando 4 canali',2,'tipico'); add('Coppia di fotocellule',1,'tipico'); add('Lampeggiante con antenna',1,'tipico');
@@ -155,7 +286,7 @@ function asAnalizza(testo){
   }
   else if(model==='vid'){
     var ncam=0; res.righe.forEach(function(r){ if(/^Telecamera/.test(r.d)) ncam+=r.q; });
-    if(!ncam){ var mc=n.match(/(\d+)\s*(?:telecamer|punti di ripresa)/); ncam=mc?parseInt(mc[1],10):4; add(has(/\b8 ?mp|4k/)?'Telecamera IP 8 MP 4K bullet PoE':(has(/dome/)?'Telecamera IP 5 MP dome PoE':'Telecamera IP 4 MP bullet PoE'),ncam,mc?'richiesta':'stima'); if(!mc) res.note.push('Numero di telecamere non indicato: ne metto 4.'); }
+    if(!ncam){ var mc=nPos.match(/(\d+)\s*(?:telecamer|punti di ripresa)/); ncam=mc?parseInt(mc[1],10):4; add(has(/\b8 ?mp|4k/)?'Telecamera IP 8 MP 4K bullet PoE':(has(/dome/)?'Telecamera IP 5 MP dome PoE':'Telecamera IP 4 MP bullet PoE'),ncam,mc?'richiesta':'stima'); if(!mc) res.note.push('Numero di telecamere non indicato: ne metto 4.'); }
     add(ncam>8?'NVR 16 canali 4K':'NVR 8 canali 4K',1,'tipico');
     add(has(/8 ?tb/)?'Hard disk 8 TB per videosorveglianza':'Hard disk 4 TB per videosorveglianza',1,'tipico');
     add(ncam>8?'Switch PoE 16 porte':'Switch PoE 8 porte',1,'tipico');
@@ -166,9 +297,9 @@ function asAnalizza(testo){
   }
   else if(model==='tv'){
     var np=0; res.righe.forEach(function(r){ if(/^Presa TV/.test(r.d)) np+=r.q; });
-    if(!np){ var mp=n.match(/(\d+)\s*(?:prese?|punti tv|televisor)/); np=mp?parseInt(mp[1],10):3; add('Presa TV / SAT',np,mp?'richiesta':'stima'); }
+    if(!np){ var mp=nPos.match(/(\d+)\s*(?:prese?|punti tv|televisor)/); np=mp?parseInt(mp[1],10):3; add('Presa TV / SAT',np,mp?'richiesta':'stima'); }
     add(has(/5g|interferen/)?'Antenna digitale terrestre con filtro 5G':'Antenna UHF / VHF',1,'tipico');
-    if(has(/\bsat\b|parabol|satellit|sky|tivusat/)) add('Parabola 80 cm con LNB quad',1,'richiesta');
+    if(has(/parabol|satellit|sky|tivusat/)||/\bsat\b/.test(nPos.replace(/presa tv sat/g,''))) add('Parabola 80 cm con LNB quad',1,'richiesta');
     add('Centralino amplificatore',1,'tipico'); add('Partitore / derivatore',Math.max(1,Math.ceil(np/2)),'stima'); add('Cavo coassiale',metri||np*15,metri?'richiesta':'stima');
     add('Installazione e orientamento antenna',1,'tipico'); add('Sintonizzazione e configurazione',1,'tipico');
     res.titolo='Impianto TV e antenna';
@@ -179,72 +310,152 @@ function asAnalizza(testo){
     add('Materiale di consumo e minuteria',1,'tipico'); add('Verifica dell\'impianto di terra e dei differenziali',1,'tipico'); add('Dichiarazione di conformità dell\'intervento',1,'tipico');
     res.titolo='Intervento di riparazione impianto elettrico';
   }
-  else {
-    res.titolo=(TTL_T&&TTL_T[model])||MODELS[model].name;
-  }
-  if(!tipoTrovato) res.titolo=S.meta.title||'';
+  else res.titolo=(TTL_T&&TTL_T[model])||MODELS[model].name;
+  if(!tipoTrovato||mod) res.titolo=mod?'':(S.meta.title||'');
   // richieste senza numero ma chiare ("quadro nuovo", "salvavita", "messa a terra")
   if(/^(dom|app|ind|rip)$/.test(model)){
-    var gia=function(re){ return res.righe.some(function(r){ return re.test(r.d); }); };
+    var gia=function(re){ return res.righe.some(function(r){ return re.test(r.d); })||(mod&&S.lines.some(function(l){ return re.test(l.d)&&!l.off; })); };
     [[/\bquadr[oi]\b/,/^Quadro/,'quadro elettrico'],[/salvavita|differenzial/,/differenziale/i,'interruttore magnetotermico differenziale'],[/messa a terra|impianto di terra|dispersor/,/terra/i,'impianto di messa a terra'],[/videocitofon/,/[Vv]ideocitofono/,'videocitofono con posto esterno']].forEach(function(x){
       if(model==='rip'&&x[0].source.indexOf('differenzial')>-1) return;
-      if(x[0].test(n)&&!gia(x[1])){ var it=asMatch(model,x[2],1); if(it) add(it[0],1,'richiesta'); }
+      if(x[0].test(mod?nAdd:nAdd+nPos.replace(/\b(?:togli|elimina|rimuovi|cancella|leva)\b[^,;.]*/g,' '))&&!gia(x[1])){ var it=asMatch(model,x[2],1); if(it) add(it[0],1,'richiesta',curSt?curSt.nome:'',curSt?curSt.k:''); }
     });
   }
   // ore di manodopera ("8 ore di manodopera")
-  var ore=n.match(/(\d+(?:\.\d+)?)\s*(?:ore|h)\b/); if(ore){ var mo=asMatch(model,'manodopera oraria',1); if(mo) add(mo[0],parseFloat(ore[1]),'richiesta'); }
-  // proposte a confronto ("Bticino oppure Vimar", "due proposte", "a confronto")
-  res.confronto=res.marche.length>=2&&/confront|oppure|alternativ|due proposte|due soluzioni|o in alternativa|\bvs\b/.test(n);
-  if(!res.confronto&&res.marche.length) res.marca=res.marche[0];
-  res.ignorate=res.ignorate.filter(function(f){ return !/^\d+ (mq|kwp?|kwh|condomin|m|metri|ore|h)\b/.test(f); });
-  if(!res.righe.length) res.note.push('Non ho riconosciuto voci del listino: prova a indicare quantità e cosa serve (es. «6 prese, 4 punti luce»).');
+  var ore=(mod?nAdd:nPos).match(/(\d+(?:\.\d+)?)\s*(?:ore|h)\b/); if(ore){ var mo=asMatch(model,'manodopera oraria',1); if(mo) add(mo[0],parseFloat(ore[1]),'richiesta'); }
+  // comandi: togli, cambia quantità (sul preventivo aperto o su quello nuovo)
+  cmds.forEach(function(c){
+    var src=mod?S.lines.filter(function(l){ return !l.vm; }):res.righe, get=mod?asLineaInfo:asRigaInfo, L=asTrova(src,c.dove?c.dove.rest:c.x,c.dove,get);
+    if(!L.length){ if(mod&&model==='vcit'&&c.t==='qta'&&/condomin/.test(c.x)) res.mods.push({tipo:'s',k:'cond',v:Math.max(1,Math.round(c.q)),t:'Condomini: '+vcN()+' → '+Math.round(c.q),on:true}); else res.note.push('Non ho trovato «'+c.x+'» '+(mod?'nel preventivo':'tra le voci')+': controlla come è scritto.'); return; }
+    if(c.t==='togli'){
+      if(mod) L.forEach(function(l){ if(res.mods.some(function(z){ return z.ref===l; })) return; var o=get(l); res.mods.push({tipo:'t',ref:l,t:o.d+(o.st?' · '+o.st:'')+' · '+qfmt(num(l.q))+' '+(l.u||''),on:true}); });
+      else { res.righe=res.righe.filter(function(x){ return L.indexOf(x)<0; }); res.note.push('Senza «'+L[0].d+'»'+(L.length>1?' ('+L.length+' righe)':'')+', come hai chiesto.'); }
+    } else {
+      var T=L.length>1&&!c.dove?[L[0]]:L; if(T.length<L.length) res.note.push('«'+L[0].d+'» è in '+L.length+' stanze: ho cambiato solo «'+(get(L[0]).st||'la prima')+'». Scrivi la stanza, es. «in cucina».');
+      T.forEach(function(x){ var o=get(x); if(mod) res.mods.push({tipo:'c',ref:x,a:c.q,t:o.d+(o.st?' · '+o.st:'')+': '+qfmt(num(x.q))+' → '+qfmt(c.q),on:true}); else { x.q=c.q; x.perche='richiesta'; } });
+    }
+  });
+  // condizioni economiche
+  var m;
+  if((m=n.match(/\bsconto\s+(?:del\s+|di\s+|al\s+)?(\d+(?:\.\d+)?)\s*(?:%|percento|per cento)?/))) res.mods.push({tipo:'s',k:'disc',v:Math.min(100,parseFloat(m[1])),t:'Sconto '+m[1].replace('.',',')+'%',on:true});
+  if((m=n.match(/\bacconto\s+(?:del\s+|di\s+|al\s+)?(\d+(?:\.\d+)?)\s*(?:%|percento|per cento)?/))) res.mods.push({tipo:'s',k:'dep',v:Math.min(100,parseFloat(m[1])),t:'Acconto '+m[1].replace('.',',')+'%',on:true});
+  if((m=n.match(/\biva\s+(?:al\s+|a\s+)?(22|10|4|0)\b/))||/\biva agevolata\b/.test(n)) res.mods.push({tipo:'s',k:'iva',v:m?+m[1]:10,t:'IVA '+(m?m[1]:'10')+'%',on:true});
+  if((m=n.match(/\bvalid\w*\s+(?:di\s+|a\s+)?(\d+)\s*(?:giorni|gg)\b/))) res.mods.push({tipo:'s',k:'val',v:parseInt(m[1],10),t:'Validità '+m[1]+' giorni',on:true});
+  if(mod&&model==='vcit'){ var cm=nPos.match(/(\d+)\s*(?:condomin|utenz|famigli|appartament)/); if(cm&&+cm[1]!==vcN()&&!res.mods.some(function(x){ return x.k==='cond'; })) res.mods.push({tipo:'s',k:'cond',v:+cm[1],t:'Condomini: '+vcN()+' → '+cm[1],on:true}); }
+  // marche: confronto, marca unica, cambio marca
+  res.confronto=!mod&&mk.length>=2&&/confront|oppure|alternativ|due proposte|due soluzioni|o in alternativa|\bvs\b/.test(n);
+  if(!res.confronto&&mk.length){ res.marca=res.marche[0]; if(mod&&/\b(marca|tutto|tutta|tutti|cambia|passa)\b/.test(n)&&!brOn()){ res.mods.push({tipo:'b',v:res.marca,t:'Marca di tutte le voci → '+res.marca,on:true}); } }
+  res.ignorate=res.ignorate.filter(function(f){ return !/^\d+ (mq|kwp?|kwh|condomin|m|metri|ore|h)\b/.test(f.f); });
+  if(!res.righe.length&&!res.mods.length) res.note.push(mod?'Non ho riconosciuto voci o modifiche: prova con «aggiungi 3 prese in cucina», «togli il quadro», «sconto 10%».':'Non ho riconosciuto voci del listino: prova a indicare quantità e cosa serve (es. «6 prese, 4 punti luce»).');
   return res;
 }
 function asTot(res){ var s=0; res.righe.forEach(function(r){ if(r.on!==false) s+=num(r.q)*num(r.p); }); var iva=num(S.meta.iva); return {imp:r2(s),tot:r2(s*(1+iva/100))}; }
+function asDelta(res){
+  var s=asTot(res).imp; (res.mods||[]).forEach(function(x){ if(x.on===false||!x.ref) return; if(x.tipo==='t') s-=lineTotal(x.ref); else if(x.tipo==='c') s+=num(x.ref.p)*(1-num(x.ref.s)/100)*(num(x.a)-num(x.ref.q)); });
+  return r2(s*(1+num(S.meta.iva)/100));
+}
+// «ho capito»: cosa ha letto l'assistente, mentre scrivi
+function asCapito(r){
+  var c=[], n=r.righe.filter(function(x){ return x.on!==false; }).length, tm=r.mods.filter(function(x){ return x.tipo==='t'; }).length, cm=r.mods.filter(function(x){ return x.tipo==='c'; }).length;
+  if(r.mode==='mod') c.push(['Modifico il preventivo aperto','m']);
+  else if(r.tipoTrovato) c.push([MODELS[r.model].short||MODELS[r.model].name,'']);
+  if(r.stanze&&r.stanze.length) c.push([r.stanze.reduce(function(a,s){ return a+s.q; },0)+' stanze','']);
+  if(r.cond) c.push([r.cond.n+' condomini','']);
+  var kw=r.titolo.match(/(\d+(?:,\d+)?) kWp/); if(kw) c.push([kw[1]+' kWp','']);
+  if(r.confronto) c.push([r.marche.join(' vs '),'']); else if(r.marca) c.push([r.marca,'']);
+  if(r.cliente.name) c.push([r.cliente.name,'']);
+  r.mods.forEach(function(x){ if(x.tipo==='s'||x.tipo==='b') c.push([x.t,'m']); });
+  if(n) c.push([(r.mode==='mod'?'+':'')+n+(n===1?' voce':' voci'),'']); if(tm) c.push(['−'+tm+' da togliere','m']); if(cm) c.push([cm+' quantità','m']);
+  if(n||tm||cm) c.push([(r.mode==='mod'?'variazione ':'≈ ')+eur(r.mode==='mod'?asDelta(r):asTot(r).tot),'']);
+  return c;
+}
+function asLive(){
+  var el=$('as-live'); if(!el) return; var t=$('as-txt').value.trim();
+  if(t.length<3){ el.innerHTML=''; return; }
+  var r; try{ r=asAnalizza(t); }catch(e){ el.innerHTML=''; return; }
+  var c=asCapito(r); el.innerHTML=c.length?'<small>Ho capito:</small>'+c.map(function(x){ return '<span class="as-k'+(x[1]?' '+x[1]:'')+'">'+esc(x[0])+'</span>'; }).join(''):'<small>Scrivi cosa ti serve: tipo di lavoro, quantità, marca…</small>';
+}
 
 // ---------- interfaccia ----------
+function asOpzioni(model,frase){
+  var it=S.cat[model]||[], tk=asToks(frase).map(function(w){ return w.slice(0,4); });
+  var sc=it.map(function(c,i){ var t=asToksC(c[0]), m=0; tk.forEach(function(w){ if(t.some(function(x){ return x.indexOf(w)===0||w.indexOf(x.slice(0,4))===0; })) m++; }); return {i:i,m:m}; }).filter(function(x){ return x.m>0; }).sort(function(a,b){ return b.m-a.m; }).slice(0,5);
+  return '<option value="">Associa a una voce del listino…</option>'+(sc.length?'<optgroup label="Più simili">'+sc.map(function(x){ return '<option value="'+x.i+'">'+esc(it[x.i][0])+'</option>'; }).join('')+'</optgroup>':'')+
+    '<optgroup label="Tutto il listino «'+esc(MODELS[model].short||MODELS[model].name)+'»">'+it.map(function(c,i){ return '<option value="'+i+'">'+esc(c[0])+'</option>'; }).join('')+'</optgroup>';
+}
 function asRender(){
-  var box=$('as-out'); if(!box) return; var r=AS.res; if(!r){ box.innerHTML=''; return; }
-  var T=asTot(r), PER={richiesta:'chiesto',stanza:'stanza',tipico:'tipico',stima:'stimato'};
-  var gruppi={}, ord=[]; r.righe.forEach(function(x,i){ var g=x.stanza||'Generale e parti comuni'; if(!gruppi[g]){ gruppi[g]=[]; ord.push(g); } gruppi[g].push(i); });
-  var h='<div class="as-sum"><div><small>Tipo</small><b>'+esc(MODELS[r.model].short||MODELS[r.model].name)+'</b></div><div><small>Voci</small><b>'+r.righe.filter(function(x){ return x.on!==false; }).length+'</b></div><div><small>Totale stimato</small><b>'+eur(T.tot)+'</b></div></div>'+
+  var box=$('as-out'); if(!box) return; var r=AS.res; asRenderParole(); if(!r){ box.innerHTML=''; return; }
+  var T=asTot(r), PER={richiesta:'chiesto',stanza:'stanza',tipico:'tipico',stima:'stimato',imparata:'imparata'}, mod=r.mode==='mod';
+  var gruppi={}, ord=[]; r.righe.forEach(function(x,i){ var g=x.stanza||(mod?'Voci da aggiungere':'Generale e parti comuni'); if(!gruppi[g]){ gruppi[g]=[]; ord.push(g); } gruppi[g].push(i); });
+  var h=mod?'<div class="as-sum"><div><small>Preventivo aperto</small><b>'+esc(MODELS[r.model].short||MODELS[r.model].name)+'</b></div><div><small>Modifiche</small><b>'+(r.righe.filter(function(x){ return x.on!==false; }).length+r.mods.filter(function(x){ return x.on!==false; }).length)+'</b></div><div><small>Variazione</small><b>'+(asDelta(r)>=0?'+':'−')+'\u00a0'+eur(Math.abs(asDelta(r)))+'</b></div></div>'
+    :'<div class="as-sum"><div><small>Tipo</small><b>'+esc(MODELS[r.model].short||MODELS[r.model].name)+'</b></div><div><small>Voci</small><b>'+r.righe.filter(function(x){ return x.on!==false; }).length+'</b></div><div><small>Totale stimato</small><b>'+eur(T.tot)+'</b></div></div>'+
     '<label class="f">Titolo<input type="text" id="as-tit" value="'+esc(r.titolo)+'"></label>';
   var c=r.cliente; if(c.name||c.addr||c.tel||c.email) h+='<div class="as-cli"><b>Cliente</b> '+esc([c.name,c.addr,c.tel,c.email].filter(Boolean).join(' · '))+'</div>';
   if(r.cond) h+='<div class="as-cli"><b>Condomini</b> '+r.cond.n+' · '+(r.cond.kind==='cit'?'solo citofono':r.cond.kind==='both'?'videocitofono e citofono a confronto':'videocitofono')+'</div>';
-  if(r.confronto) h+='<div class="as-cli"><b>Proposte a confronto</b> '+esc(r.marche.join(' · '))+'</div>'; else if(r.marca) h+='<div class="as-cli"><b>Marca</b> '+esc(r.marca)+'</div>';
+  if(r.confronto) h+='<div class="as-cli"><b>Proposte a confronto</b> '+esc(r.marche.join(' · '))+'</div>'; else if(r.marca&&!r.mods.some(function(x){ return x.tipo==='b'; })) h+='<div class="as-cli"><b>Marca</b> '+esc(r.marca)+'</div>';
   r.note.forEach(function(x){ h+='<div class="as-note">'+esc(x)+'</div>'; });
+  if(r.mods.length){ var TY={t:['t','togli'],c:['c','quantità'],s:['s','condizioni'],b:['s','marca']};
+    h+='<div class="as-mods"><div class="as-mt">'+(mod?'Modifiche al preventivo aperto':'Condizioni')+'</div>'+r.mods.map(function(x,i){ return '<label class="as-mod'+(x.on===false?' off':'')+'"><input type="checkbox" data-asm="'+i+'"'+(x.on===false?'':' checked')+'><span class="as-ty '+TY[x.tipo][0]+'">'+TY[x.tipo][1]+'</span><span>'+esc(x.t)+'</span></label>'; }).join('')+'</div>'; }
   var molte=r.righe.length>15;
-  h+='<div class="as-righe">'+ord.map(function(g){ var sub=0, nv=0; gruppi[g].forEach(function(i){ var x=r.righe[i]; if(x.on!==false){ sub+=num(x.q)*num(x.p); nv++; } });
+  if(r.righe.length) h+='<div class="as-righe">'+ord.map(function(g){ var sub=0, nv=0; gruppi[g].forEach(function(i){ var x=r.righe[i]; if(x.on!==false){ sub+=num(x.q)*num(x.p); nv++; } });
     return '<details class="as-gd" data-asg="'+esc(g)+'"'+((!molte||AS.aperti[g])?' open':'')+'><summary class="as-g"><span>'+esc(g)+'</span><span>'+nv+(nv===1?' voce':' voci')+' · '+eur(sub)+'</span></summary>'+gruppi[g].map(function(i){ var x=r.righe[i];
-    return '<label class="as-r'+(x.on===false?' off':'')+'"><input type="checkbox" data-asr="'+i+'"'+(x.on===false?'':' checked')+'><span class="as-d">'+esc(x.d)+((x.perche==='richiesta'||x.perche==='stima')?'<small class="as-p '+x.perche+'">'+PER[x.perche]+'</small>':'')+'</span><input type="number" min="0" step="any" class="as-q" data-asq="'+i+'" value="'+x.q+'" aria-label="Quantità"><span class="as-u">'+esc(x.u)+'</span><span class="as-e">'+eur(num(x.q)*num(x.p))+'</span></label>'; }).join('')+'</details>'; }).join('')+'</div>'+(molte?'<p class="hint">Tocca una stanza per vedere e modificare le sue voci.</p>':'');
-  if(r.ignorate.length) h+='<div class="as-note">Non ho trovato nel listino: <b>'+esc(r.ignorate.join(' · '))+'</b>. Aggiungile a mano o scrivile in modo diverso.</div>';
+    return '<label class="as-r'+(x.on===false?' off':'')+'"><input type="checkbox" data-asr="'+i+'"'+(x.on===false?'':' checked')+'><span class="as-d">'+esc(x.d)+((x.perche==='richiesta'||x.perche==='stima'||x.perche==='imparata')?'<small class="as-p '+x.perche+'">'+PER[x.perche]+'</small>':'')+'</span><input type="number" min="0" step="any" class="as-q" data-asq="'+i+'" value="'+x.q+'" aria-label="Quantità"><span class="as-u">'+esc(x.u)+'</span><span class="as-e">'+eur(num(x.q)*num(x.p))+'</span></label>'; }).join('')+'</details>'; }).join('')+'</div>'+(molte?'<p class="hint">Tocca una stanza per vedere e modificare le sue voci.</p>':'');
+  if(r.ignorate.length) h+='<div class="as-note as-learn"><div>Non ho trovato nel listino: <b>'+esc(r.ignorate.map(function(f){ return f.f; }).join(' · '))+'</b>. Insegnamelo una volta e la prossima lo capisco da solo:</div>'+
+    r.ignorate.map(function(f,i){ return '<div class="as-lr"><b>«'+esc(f.f)+'»</b><select data-asl="'+i+'" aria-label="Voce per «'+esc(f.f)+'»">'+asOpzioni(r.model,f.k||f.f)+'</select></div>'; }).join('')+'</div>';
   var vuoto=!S.lines.length;
-  h+='<div class="row"><button type="button" class="btn" id="as-ok">'+(vuoto?'Crea il preventivo':'Sostituisci le voci attuali')+'</button>'+(vuoto?'':'<button type="button" class="btn ghost" id="as-add">Aggiungi alle voci attuali</button>')+'<button type="button" class="btn ghost" id="as-x">Annulla</button></div>'+
-    '<p class="hint">Prezzi del tuo listino. «Stimato» indica una quantità che ho calcolato io: controllala.</p>';
+  h+='<div class="row">'+(mod?'<button type="button" class="btn" id="as-add">Applica le modifiche</button>':'<button type="button" class="btn" id="as-ok">'+(vuoto?'Crea il preventivo':'Sostituisci le voci attuali')+'</button>'+(vuoto?'':'<button type="button" class="btn ghost" id="as-add">Aggiungi alle voci attuali</button>'))+'<button type="button" class="btn ghost" id="as-x">Annulla</button></div>'+
+    '<p class="hint">'+(mod?'Le voci uguali già presenti aumentano di quantità. ':'')+'Prezzi del tuo listino. «Stimato» indica una quantità che ho calcolato io: controllala.</p>';
   box.innerHTML=h;
 }
+function asRenderParole(){
+  var el=$('as-par'); if(!el) return; var L=DB.parole||[];
+  $('as-par-n').textContent=L.length?'· '+L.length:''; $('as-par-d').hidden=!L.length;
+  el.innerHTML=L.map(function(p){ return '<span class="chip" title="'+esc((MODELS[p.m]||{}).name||'')+'">«'+esc(p.k)+'» → '+esc(p.d)+'<button type="button" class="btn x" data-asdel="'+esc(p.id)+'" aria-label="Dimentica">×</button></span>'; }).join('');
+}
+function asImpara(i,idx){
+  var r=AS.res; if(!r) return; var f=r.ignorate[i], it=(S.cat[r.model]||[])[idx]; if(!f||!it) return;
+  var k=f.k||asChiave(f.f); if(!k) return;
+  DB.parole=(DB.parole||[]).filter(function(p){ return !(p.m===r.model&&p.k===k); });
+  DB.parole.push({id:uid(),m:r.model,k:k,d:it[0],upd:Date.now()}); dbSave();
+  var sd=r.mode==='mod'&&r.model==='app'?roomById(curKey()):null;
+  r.righe.push({d:it[0],u:it[1],q:f.q||1,p:num(it[2]),perche:'imparata',stanza:sd?sd.name:'',kind:sd?sd.kind:''});
+  r.ignorate.splice(i,1); asRender(); toast('Imparato: «'+k+'» = «'+it[0]+'». La prossima volta lo capisco da solo');
+}
 function asApplica(sostituisci){
-  var r=AS.res; if(!r) return;
-  var tit=$('as-tit')?$('as-tit').value.trim():r.titolo, righe=r.righe.filter(function(x){ return x.on!==false&&num(x.q)>0; });
+  var r=AS.res; if(!r) return; var mod=r.mode==='mod';
+  var tit=$('as-tit')?$('as-tit').value.trim():r.titolo, righe=r.righe.filter(function(x){ return x.on!==false&&num(x.q)>0; }), mods=(r.mods||[]).filter(function(x){ return x.on!==false; });
   if(sostituisci&&S.lines.length&&!confirm('Sostituisco le '+S.lines.length+' voci attuali con le '+righe.length+' preparate dall\'assistente?')) return;
   var prev=S.model;
   if(sostituisci){ S.lines=[]; S.products=S.products.filter(function(p){ return !prodEmpty(p); }); if(S.cmp) S.cmp.on=false; S.tiers.on=false; }
-  if(r.model!==prev){ S.model=r.model; typeTitle(prev); condSwitch(prev); }
+  if(!mod&&r.model!==prev){ S.model=r.model; typeTitle(prev); condSwitch(prev); }
   var c=r.cliente; if(c.name) S.client.name=c.name; if(c.addr) S.client.addr=c.addr; if(c.tel) S.client.tel=c.tel; if(c.email) S.client.email=c.email;
-  if(tit) S.meta.title=tit;
+  if(tit&&!mod) S.meta.title=tit;
+  // modifiche al preventivo aperto
+  var nt=0, nc=0, ns=0;
+  mods.forEach(function(x){
+    if(x.tipo==='t'&&S.lines.indexOf(x.ref)>-1){ S.lines.splice(S.lines.indexOf(x.ref),1); nt++; }
+    else if(x.tipo==='c'&&S.lines.indexOf(x.ref)>-1){ x.ref.q=num(x.a); nc++; }
+    else if(x.tipo==='s'){ ns++; if(x.k==='cond'){ S.cond.n=x.v; vcSyncQty(); } else S.meta[x.k]=x.v; }
+    else if(x.tipo==='b'){ ns++; S.lines.forEach(function(l){ if(!l.sy&&!l.vm) l.br=x.v; }); S.products.forEach(function(p){ if(!p.sys&&prodUsers(p).length) p.brand=x.v; }); }
+  });
+  if(nt) S.products=S.products.filter(function(p){ return prodUsers(p).length||!prodEmpty(p); });
+  var mappa={};
   if(r.model==='app'){
-    if(sostituisci) S.rooms=[]; S.__rm=1; var mappa={};
+    if(sostituisci) S.rooms=[]; S.__rm=1; var nuove=!S.rooms.length;
     righe.forEach(function(x){ if(x.stanza&&!mappa[x.stanza]){ var esiste=null; S.rooms.forEach(function(o){ if(o.name===x.stanza) esiste=o; }); var rm=esiste||{id:rid(),name:x.stanza,kind:x.kind||'al'}; if(!esiste) S.rooms.push(rm); mappa[x.stanza]=rm.id; } });
-    if(S.rooms.length) S.curRoom=S.rooms[0].id;
+    if(S.rooms.length&&(nuove||!roomById(S.curRoom))) S.curRoom=S.rooms[0].id;
   }
-  if(r.model==='vcit'&&r.cond){ S.cond.n=r.cond.n; S.cond.kind=r.cond.kind==='both'?'both':r.cond.kind; if(r.cond.kind==='both'){ S.tiers.on=true; S.tiers.n=2; S.tiers.names=[vcSolTitle('cit'),vcSolTitle('video')]; S.tiers.rec=1; S.tiers.sel=-1; } }
+  if(!mod&&r.model==='vcit'&&r.cond){ S.cond.n=r.cond.n; S.cond.kind=r.cond.kind==='both'?'both':r.cond.kind; if(r.cond.kind==='both'){ S.tiers.on=true; S.tiers.n=2; S.tiers.names=[vcSolTitle('cit'),vcSolTitle('video')]; S.tiers.rec=1; S.tiers.sel=-1; } }
+  var nn=0;
   righe.forEach(function(x){
+    var rk=(r.model==='app'&&x.stanza)?mappa[x.stanza]:'';
+    if(mod){ var ex=S.lines.filter(function(l){ return l.d===x.d&&!l.vm&&!l.off&&(l.r||'')===(rk||'')&&(!brOn()||l.sy===sysCur().id); })[0]; if(ex){ ex.q=num(ex.q)+num(x.q); nn++; return; } }
     var l={d:x.d,u:x.u,q:num(x.q),p:num(x.p),s:0};
-    if(r.model==='app'&&x.stanza) l.r=mappa[x.stanza];
-    if(x.pc){ l.pc=1; l.tp=1; } else if(r.model==='vcit') l.tp=1;
-    if(r.model==='vcit'&&r.cond&&r.cond.kind==='both'&&(x.sol==='cit'||x.sol==='video')) l.tm=[x.sol==='cit'?0:1];
+    if(rk) l.r=rk;
+    if(x.pc){ l.pc=1; l.tp=1; } else if(r.model==='vcit'&&!mod) l.tp=1;
+    if(!mod&&r.model==='vcit'&&r.cond&&r.cond.kind==='both'&&(x.sol==='cit'||x.sol==='video')) l.tm=[x.sol==='cit'?0:1];
     if(r.marca) l.br=r.marca;
-    S.lines.push(l); linkLine(l,{brand:r.marca||'',sol:r.model==='vcit'&&r.cond&&r.cond.kind==='both'?(x.sol==='*'?'':x.sol):''});
+    if(mod) brTag(l);
+    S.lines.push(l); nn++; linkLine(l,{brand:l.br||r.marca||'',sol:!mod&&r.model==='vcit'&&r.cond&&r.cond.kind==='both'?(x.sol==='*'?'':x.sol):''});
   });
   if(r.confronto){
     var mk=r.marche.slice(0,3);
@@ -254,26 +465,31 @@ function asApplica(sostituisci){
       for(var i=1;i<mk.length;i++) brCopy(0,i); sysTiers(); S.tiers.rec=-1; S.tiers.sel=-1; }
   }
   if(r.model==='vcit') vmSync();
-  AS.res=null; asRender(); $('as-txt').value='';
+  AS.res=null; asRender(); $('as-txt').value=''; asLive();
   renderAll(); touch();
-  toast('Preventivo preparato: '+righe.length+' voci. Controllalo e completalo');
+  toast(mod?'Fatto: '+[nn?nn+(nn===1?' voce aggiunta':' voci aggiunte'):'',nt?nt+' tolte':'',nc?nc+' quantità cambiate':'',ns?ns+(ns===1?' condizione':' condizioni'):''].filter(Boolean).join(', '):'Preventivo preparato: '+righe.length+' voci. Controllalo e completalo');
   try{ var lb=$('lines'); if(lb) lb.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
 }
 var AS_ESEMPI=[
-  'Rifacimento impianto appartamento 95 mq per Rossi Mario, via Roma 3, Matera: ingresso, cucina, soggiorno, 2 camere, 2 bagni, Bticino',
-  'Videocitofono per condominio di 12 condomini, via Lucana 40',
-  'Fotovoltaico 6 kW trifase con batteria 10 kWh su tetto a falda per Bianchi Luca',
-  'Wallbox 11 kW trifase, 25 metri dal quadro, cliente Verdi Anna',
+  'Rifacimento impianto appartamento 95 mq per Rossi Mario, via Roma 3, Matera: ingresso, cucina, soggiorno, 2 camere, 2 bagni, Bticino Living Now',
+  'Trilocale Vimar Plana per Bianchi Anna',
+  'citofono 10',
+  'fv 6 con batteria 10',
+  'wallbox 22 25m',
+  '8 cam 4 mp',
   'Cancello scorrevole con 3 telecomandi e app sullo smartphone',
-  'Videosorveglianza 6 telecamere 4 mp con hard disk 8 tb',
   'Allarme radio con app, 5 sensori volumetrici e 6 contatti magnetici',
-  'Appartamento 80 mq, Bticino oppure Vimar a confronto'
+  'Appartamento 80 mq, Bticino oppure Vimar a confronto',
+  'aggiungi 3 prese in cucina, togli il quadro, sconto 10%'
 ];
 (function(){
   var go=$('as-go'); if(!go) return;
   $('as-ex').innerHTML=AS_ESEMPI.map(function(e,i){ return '<button type="button" class="chip" data-asex="'+i+'">'+esc(e.length>46?e.slice(0,44)+'…':e)+'</button>'; }).join('');
-  $('as-ex').addEventListener('click',function(e){ var b=e.target.closest('[data-asex]'); if(!b) return; $('as-txt').value=AS_ESEMPI[+b.getAttribute('data-asex')]; $('as-txt').focus(); });
-  go.addEventListener('click',function(){ var t=$('as-txt').value.trim(); if(t.length<4){ toast('Scrivi o detta cosa ti serve'); return; } AS.res=asAnalizza(t); AS.aperti={}; asRender(); });
+  $('as-ex').addEventListener('click',function(e){ var b=e.target.closest('[data-asex]'); if(!b) return; $('as-txt').value=AS_ESEMPI[+b.getAttribute('data-asex')]; asLive(); $('as-txt').focus(); });
+  function prepara(){ var t=$('as-txt').value.trim(); if(t.length<3){ toast('Scrivi o detta cosa ti serve'); return; } AS.res=asAnalizza(t); AS.aperti={}; asRender(); }
+  go.addEventListener('click',prepara);
+  $('as-txt').addEventListener('input',function(){ clearTimeout(AS.lt); AS.lt=setTimeout(asLive,280); });
+  $('as-txt').addEventListener('keydown',function(e){ if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); prepara(); } });
   $('as-out').addEventListener('toggle',function(e){ var d=e.target; if(d.matches&&d.matches('details.as-gd')) AS.aperti[d.getAttribute('data-asg')]=d.open; },true);
   $('as-out').addEventListener('click',function(e){
     if(e.target.id==='as-ok') return asApplica(true);
@@ -281,19 +497,24 @@ var AS_ESEMPI=[
     if(e.target.id==='as-x'){ AS.res=null; asRender(); }
   });
   $('as-out').addEventListener('change',function(e){
-    var r=AS.res; if(!r) return; var i=e.target.getAttribute('data-asr'), q=e.target.getAttribute('data-asq');
-    if(i!=null){ r.righe[+i].on=e.target.checked; asRender(); }
-    else if(q!=null){ r.righe[+q].q=Math.max(0,num(e.target.value)); asRender(); }
+    var r=AS.res; if(!r) return; var t=e.target, i=t.getAttribute('data-asr'), q=t.getAttribute('data-asq'), m=t.getAttribute('data-asm'), l=t.getAttribute('data-asl');
+    if(i!=null){ r.righe[+i].on=t.checked; asRender(); }
+    else if(q!=null){ r.righe[+q].q=Math.max(0,num(t.value)); asRender(); }
+    else if(m!=null){ r.mods[+m].on=t.checked; asRender(); }
+    else if(l!=null&&t.value!==''){ asImpara(+l,+t.value); }
   });
+  var pd=$('as-par'); if(pd) pd.addEventListener('click',function(e){ var b=e.target.closest('[data-asdel]'); if(!b) return; var id=b.getAttribute('data-asdel'), p=(DB.parole||[]).filter(function(x){ return x.id===id; })[0]; if(!p) return; DB.parole=DB.parole.filter(function(x){ return x!==p; }); DB.del[id]=Date.now(); dbSave(); asRenderParole(); toast('Dimenticato «'+p.k+'»'); });
+  var acc=$('acc-as'); if(acc) acc.addEventListener('toggle',asRenderParole);
+  setTimeout(asRenderParole,1500);
   // dettato: riconoscimento vocale del browser, se disponibile
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition, mic=$('as-mic');
   if(!SR){ mic.hidden=true; return; }
   mic.addEventListener('click',function(){
     if(AS.ascolto&&AS.rec){ AS.rec.stop(); return; }
-    var rec=new SR(); AS.rec=rec; rec.lang='it-IT'; rec.continuous=true; rec.interimResults=false;
+    var rec=new SR(); AS.rec=rec; rec.lang='it-IT'; rec.continuous=true; rec.interimResults=true;
     var base=$('as-txt').value.trim();
-    rec.onresult=function(ev){ var t=''; for(var i=0;i<ev.results.length;i++) t+=ev.results[i][0].transcript+' '; $('as-txt').value=(base?base+' ':'')+t.trim(); };
-    rec.onend=function(){ AS.ascolto=false; mic.classList.remove('on'); mic.textContent='Detta'; };
+    rec.onresult=function(ev){ var t=''; for(var i=0;i<ev.results.length;i++) t+=ev.results[i][0].transcript+' '; $('as-txt').value=(base?base+' ':'')+t.trim(); clearTimeout(AS.lt); AS.lt=setTimeout(asLive,200); };
+    rec.onend=function(){ AS.ascolto=false; mic.classList.remove('on'); mic.textContent='Detta'; if($('as-txt').value.trim().length>3){ AS.res=asAnalizza($('as-txt').value.trim()); AS.aperti={}; asRender(); } };
     rec.onerror=function(ev){ toast(ev&&ev.error==='not-allowed'?'Consenti l\'uso del microfono per dettare':'Dettato non disponibile ora: puoi usare il microfono della tastiera'); };
     try{ rec.start(); AS.ascolto=true; mic.classList.add('on'); mic.textContent='Ferma'; }catch(e){ toast('Dettato non disponibile: usa il microfono della tastiera'); }
   });

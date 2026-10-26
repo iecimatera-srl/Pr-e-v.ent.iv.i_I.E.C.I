@@ -8,7 +8,7 @@ function dbSave(ns){
   },300);
 }
 function dbLoad(cb){
-  function fin(d){ if(d&&typeof d==='object'){ DB.clients=d.clients||[]; DB.prods=d.prods||[]; DB.quotes=d.quotes||[]; DB.arts=d.arts||[]; DB.del=d.del||{}; DB.su=d.su||0; DB.lastBackup=d.lastBackup||0; DB.lastChange=d.lastChange||0; } dbReady=true; if(cb) cb(); }
+  function fin(d){ if(d&&typeof d==='object'){ DB.clients=d.clients||[]; DB.prods=d.prods||[]; DB.quotes=d.quotes||[]; DB.arts=d.arts||[]; DB.logos=d.logos||[]; DB.parole=d.parole||[]; DB.del=d.del||{}; DB.su=d.su||0; DB.lastBackup=d.lastBackup||0; DB.lastChange=d.lastChange||0; } dbReady=true; if(cb) cb(); }
   if(IDB){ try{ var q=IDB.transaction('kv').objectStore('kv').get(DBKEY); q.onsuccess=function(){ fin(q.result); }; q.onerror=function(){ fin(null); }; }catch(e){ fin(null); } }
   else { var r=null; try{ r=JSON.parse(localStorage.getItem(DBKEY)); }catch(e){} fin(r); }
 }

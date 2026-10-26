@@ -107,7 +107,7 @@ function cutAll(){
     cutHalo(a[0][a[1]],function(r,ok){ if(ok){ a[0][a[1]]=r; okn++; } setTimeout(next,0); }); })();
 }
 /* ---------- personalizza app ---------- */
-var APP={cut:'on',cutt:38,halo:'soft',autop:'on',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''};
+var APP={cut:'on',cutt:38,halo:'soft',autop:'on',webimg:'auto',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''};
 function apLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-app')||'null'); if(o) Object.keys(o).forEach(function(k){ if(k in APP) APP[k]=o[k]; }); }catch(e){} }
 function apStore(){ try{ var o={}; Object.keys(APP).forEach(function(k){ if(k!=='view') o[k]=APP[k]; }); localStorage.setItem('ieci-app',JSON.stringify(o)); }catch(e){ toast('Memoria piena: logo non salvato'); } }
 function procLogo(url,mode,cb){
@@ -152,7 +152,7 @@ function apUI(){
   var th=$('ap-themes'); if(th) th.innerHTML=AP_TH.map(function(t,i){ return '<button type="button" class="btn ghost sm" data-th="'+i+'"><span style="display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;vertical-align:-1px;background:'+(t.col||S.style.b1)+'"></span>'+t.n+'</button>'; }).join('');
   $('ap-name').value=APP.name; $('ap-suf').value=APP.suf; $('ap-lmode').value=APP.lm; $('ap-lbg').value=APP.bg;
   $('ap-lsize').value=APP.ls; $('ap-lsv').textContent=APP.ls+' px'; $('ap-theme').value=APP.theme; $('ap-fz').value=String(APP.fz);
-  $('ap-dens').value=APP.dens; $('ap-sub').checked=!!APP.sub; $('ap-cut').checked=APP.cut!=='off'; $('ap-cutt').value=String(APP.cutt||38); $('ap-halo').value=APP.halo||'soft'; $('ap-autop').checked=APP.autop!=='off'; $('ap-greet').value=APP.greet; $('ap-col').value=APP.col||S.style.b1;
+  $('ap-dens').value=APP.dens; $('ap-sub').checked=!!APP.sub; $('ap-cut').checked=APP.cut!=='off'; $('ap-cutt').value=String(APP.cutt||38); $('ap-halo').value=APP.halo||'soft'; $('ap-autop').checked=APP.autop!=='off'; $('ap-webimg').value=APP.webimg||'auto'; $('ap-greet').value=APP.greet; $('ap-col').value=APP.col||S.style.b1;
   $('ap-sw').innerHTML=AP_COLS.map(function(c){ return '<button type="button" data-c="'+c+'" style="background:'+c+'" aria-label="Colore '+c+'" aria-pressed="'+(APP.col.toLowerCase()===c.toLowerCase())+'"></button>'; }).join('');
 }
 function apSet(k,v,refresh){ APP[k]=v; apStore(); if(refresh) apRefresh(); else brandUI(); }
@@ -184,7 +184,7 @@ function apInit(){
   });
   $('ap-orig').addEventListener('click',function(){ APP.logo=LOGO0; APP.lm='own'; APP.bg='keep'; apStore(); apUI(); apRefresh(); toast('Logo IECI originale ripristinato'); });
   $('ap-toq').addEventListener('click',function(){ var u=APP.lm==='own'&&APP.logo?APP.logo:LOGO0; S.style.logo=u; V={t:'',w:'',src:''}; refreshVariants(); touch(); toast('Logo usato anche nei preventivi'); });
-  $('ap-reset').addEventListener('click',function(){ if(!confirm('Ripristinare nome, logo e aspetto originali dell\'app?')) return; APP={cut:'on',cutt:38,halo:'soft',autop:'on',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''}; apStore(); apUI(); apApply(); apRefresh(); });
+  $('ap-reset').addEventListener('click',function(){ if(!confirm('Ripristinare nome, logo e aspetto originali dell\'app?')) return; APP={cut:'on',cutt:38,halo:'soft',autop:'on',webimg:'auto',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''}; apStore(); apUI(); apApply(); apRefresh(); });
 }
 apLoad();
 

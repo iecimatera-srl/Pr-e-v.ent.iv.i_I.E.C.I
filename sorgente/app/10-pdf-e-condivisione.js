@@ -84,7 +84,7 @@ function openShare(){
   if(S.qid===''&&dbReady&&(String(S.client.name||'').trim()||S.lines.length)) saveQuote(true);
   $('sh-doc').textContent=quoteName()+' · '+headTotal();
   var np=pdfProducts().length; $('sh-att-w').hidden=!np; $('sh-att').checked=np>0;
-  $('sh-bg').hidden=false; $('sh-step').hidden=true; shMsgFill(); shLinks(); document.body.style.overflow='hidden';
+  $('sh-bg').hidden=false; $('sh-step').hidden=true; shMsgFill(); shLinks(); ckShare(); document.body.style.overflow='hidden';
   setTimeout(shPrepare,50);
 }
 function closeShare(){ $('sh-bg').hidden=true; document.body.style.overflow=''; }
@@ -138,7 +138,7 @@ function navIc(p){ return '<svg class="ni" viewBox="0 0 24 24" width="18" height
 function showPanel(p){
   panel=p; mnOpen=false;
   Array.prototype.forEach.call(document.querySelectorAll('[data-panel]'),function(s){ s.hidden=(s.getAttribute('data-panel')!==p); });
-  renderNav(); if(p==='menu') renderMenuEd(); if(p==='app') apUI(); if(p==='salva') svDash(); if(p==='messaggi') renderMt(); if(p==='listini'){ lsModel=S.model; renderListini(); } renderQbar();
+  renderNav(); if(p==='menu') renderMenuEd(); if(p==='app') apUI(); if(p==='salva') svDash(); if(p==='messaggi') renderMt(); if(p==='listini'){ lsModel=S.model; renderListini(); } if(p==='invio') ckRender(); renderQbar();
 }
 $('ptabs').addEventListener('click',function(e){
   e.stopPropagation();

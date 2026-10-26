@@ -15,7 +15,7 @@ function libFill(p,l){
   DB.prods.forEach(function(x){ if(!lib&&lcn(x.name)===n) lib=x; });
   var src=a||lib; if(!src) return false;
   ['brand','code','desc','specs','link'].forEach(function(k){ if(!p[k]&&src[k]) p[k]=src[k]; });
-  if((!p.photos||!p.photos.length)&&src.photos&&src.photos.length) p.photos=src.photos.slice(0,MAXPH);
+  if((!p.photos||!p.photos.length)&&src.photos&&src.photos.length){ p.photos=src.photos.slice(0,MAXPH); if(src.po) p.po=src.po.slice(0,MAXPH); if(src.cr) p.cr=copy(src.cr); }
   if(a) p.artId=a.id; return true;
 }
 function linkLine(l,opt){

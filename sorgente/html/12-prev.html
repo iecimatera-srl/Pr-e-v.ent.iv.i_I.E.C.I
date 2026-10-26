@@ -1,10 +1,12 @@
       <section class="card" data-panel="prev">
         <h2>Preventivo</h2>
         <details class="acc as" id="acc-as" open><summary><span>Assistente: descrivi il preventivo</span></summary><div class="accb">
-          <p class="hint">Scrivi o detta cosa ti serve, come lo diresti a un collega: tipo di lavoro, cliente, stanze, quantità, marca. L'assistente prepara le voci con i prezzi del <b>tuo listino</b> e ti mostra un'anteprima prima di applicare. Gratis, funziona anche senza internet e non invia i dati a nessuno.</p>
+          <p class="hint">Scrivi o detta come lo diresti a un collega, anche di fretta: «fv 6 con batteria», «citofono 10», «trilocale Vimar Plana per Bianchi». Con un preventivo aperto puoi anche correggerlo: «aggiungi 3 prese in cucina, togli il quadro, sconto 10%». Usa i prezzi del <b>tuo listino</b>, ti mostra un'anteprima e impara le tue parole. Gratis, anche senza internet, non invia dati a nessuno.</p>
           <textarea id="as-txt" rows="4" placeholder="es. Rifacimento appartamento 95 mq per Rossi Mario, via Roma 3, Matera: 2 camere, 2 bagni, cucina, soggiorno, Bticino"></textarea>
+          <div class="as-live" id="as-live" aria-live="polite"></div>
           <div class="row"><button class="btn" id="as-go" type="button">Prepara il preventivo</button><button class="btn ghost" id="as-mic" type="button">Detta</button></div>
           <details class="sv"><summary>Esempi di richieste</summary><div class="as-ex" id="as-ex"></div></details>
+          <details class="sv" id="as-par-d" hidden><summary>Parole che ho imparato <em id="as-par-n"></em></summary><div class="as-par" id="as-par"></div></details>
           <div id="as-out"></div>
         </div></details>
         <details class="acc" id="acc-save" open><summary><span>Salvataggi e preventivi salvati</span><em id="acc-save-n"></em></summary><div class="accb">

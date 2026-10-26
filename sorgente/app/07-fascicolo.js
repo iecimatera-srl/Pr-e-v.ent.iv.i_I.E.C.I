@@ -213,10 +213,16 @@ function specsHtml(t){
     return '<tr><td>'+esc(r.slice(0,i).trim())+'</td><td>'+esc(r.slice(i+1).trim())+'</td></tr>';
   }).join('')+'</tbody></table>';
 }
+// marca nella scheda: il logo se lo conosco, il resto (es. la serie) scritto accanto
+function brandLine(b){
+  var lg=brandLogo(b); if(!lg) return '<div class="brand">'+esc(b)+'</div>';
+  var base=iwBase(b), rest=String(b).trim(); if(base&&rest.toLowerCase().indexOf(base.toLowerCase())===0) rest=rest.slice(base.length).replace(/^[\s\-·:]+/,'');
+  return '<div class="brand lg"><img src="'+lg+'" alt="'+esc(base||b)+'">'+(rest?'<span>'+esc(rest)+'</span>':'')+'</div>';
+}
 function prodHtml(p,big){
   var x=p.x||{}, ph=x.photos?[]:(p.photos||[]), has=ph.length>0, ps=Math.max(15,Math.min(100,num(p.ps)||45));
   var photos=has?'<div class="p-ph" style="width:'+ps+'%"><img class="main" src="'+ph[0]+'" alt="'+esc(p.name)+'" referrerpolicy="no-referrer">'+
-    (ph.length>1?'<div class="th">'+ph.slice(1).map(function(u){return '<img src="'+u+'" alt="" referrerpolicy="no-referrer">';}).join('')+'</div>':'')+'</div>':'';
+    (ph.length>1?'<div class="th">'+ph.slice(1).map(function(u){return '<img src="'+u+'" alt="" referrerpolicy="no-referrer">';}).join('')+'</div>':'')+prodCred(p,ph)+'</div>':'';
   var tags=x.tags?'':String(p.tags||'').split(',').map(function(t){return t.trim();}).filter(Boolean).map(function(t){return '<span class="tag">'+esc(t)+'</span>';}).join('');
   var link=(!x.link&&p.link)?'<a class="ds" href="'+esc(p.link)+'" target="_blank" rel="noopener">Scheda tecnica: '+esc(p.link)+'</a>':'';
   var pdfn=(p.pdf&&!x.pdf&&S.style.attachPdf)?'<div class="ds">Scheda tecnica completa allegata in fondo al fascicolo ('+esc(p.pdf.name)+')</div>':'';
@@ -225,7 +231,7 @@ function prodHtml(p,big){
   if(PG_GROUPED) solb='';
   var alt=prodAlt(p);
   return '<article class="prod'+(has?'':' nophoto')+(big?' big':'')+(alt?' alt':'')+'"><div class="p-i">'+solb+prodBadge(p,alt)+
-    (p.brand?'<div class="brand">'+esc(p.brand)+'</div>':'')+'<h3>'+esc(p.name)+'</h3>'+(p.code?'<div class="code">'+esc(p.code)+'</div>':'')+
+    (p.brand?brandLine(p.brand):'')+'<h3>'+esc(p.name)+'</h3>'+(p.code?'<div class="code">'+esc(p.code)+'</div>':'')+
     ((!x.desc&&p.desc)?'<p>'+esc(p.desc)+'</p>':'')+'</div>'+photos+(rest?'<div class="p-i">'+rest+'</div>':'')+'</article>';
 }
 

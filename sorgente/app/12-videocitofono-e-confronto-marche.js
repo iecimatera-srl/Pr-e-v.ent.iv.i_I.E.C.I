@@ -92,7 +92,7 @@ function renderSys(){
     h+='<div class="vms sysc'+(i===cur?' cur':'')+'"><div class="vmo-h"><b class="vmt">'+W+' '+String.fromCharCode(65+i)+'</b><span>'+(l.length>2?'<button type="button" class="btn ghost sm" data-sy="del:'+i+'" aria-label="Elimina">Elimina</button>':'')+'</span></div>'+
       '<div class="grid2"><label class="f">Marca<input type="text" data-syf="b:'+i+'" value="'+esc(x.b||'')+'" placeholder="es. '+(i===0?'Bticino':i===1?'Vimar':'AVE')+'"></label>'+
       '<label class="f">Nome '+(vc?'dell\'impianto':'della proposta')+'<input type="text" data-syf="n:'+i+'" value="'+esc(x.n||'')+'" placeholder="'+esc(sysName({n:'',b:x.b},i))+'"></label></div>'+
-      '<div class="sylg"><div class="sylg-p">'+(lg?'<img src="'+lg+'" alt="">':'<span>'+esc(String(x.b||W).slice(0,2).toUpperCase())+'</span>')+'</div><div class="sylg-t"><b>Logo</b><small>'+(x.logo?'Il tuo logo caricato.':lg?'Preso dai «Marchi che installiamo».':'Per ora le iniziali: carica il logo della marca.')+'</small><div class="row"><label class="btn ghost sm">'+(x.logo?'Cambia logo':'Carica il tuo logo')+'<input type="file" accept="image/*" hidden data-sylogo="'+i+'"></label>'+(x.logo?'<button type="button" class="btn ghost sm" data-sy="nologo:'+i+'">Rimuovi</button>':'')+'</div></div></div>'+
+      '<div class="sylg"><div class="sylg-p">'+(lg?'<img src="'+lg+'" alt="">':'<span>'+esc(String(x.b||W).slice(0,2).toUpperCase())+'</span>')+'</div><div class="sylg-t"><b>Logo</b><small>'+(x.logo?'Il tuo logo caricato.':lg?(iwLogoSrc(x.b)==='trust'?'Preso dai «Marchi che installiamo».':'Logo della marca salvato: vale per tutti i preventivi.'):(x.b&&iwMode()==='auto'&&iwNet()&&!iwTried(x.b)?'Cerco il logo di '+esc(iwBase(x.b))+'… oppure scegli tu.':'Per ora le iniziali: trova o carica il logo.'))+'</small><div class="row"><button type="button" class="btn ghost sm" data-sy="iwlogo:'+i+'">'+(lg?'Cambia dal web':'Trova il logo')+'</button><label class="btn ghost sm">'+(x.logo?'Cambia file':'Carica file')+'<input type="file" accept="image/*" hidden data-sylogo="'+i+'"></label>'+(x.logo?'<button type="button" class="btn ghost sm" data-sy="nologo:'+i+'">Rimuovi</button>':'')+'</div></div></div>'+
       (vc?'<label class="f">Tipo<select data-syf="k:'+i+'"><option value="video"'+(x.k==='cit'?'':' selected')+'>Videocitofono</option><option value="cit"'+(x.k==='cit'?' selected':'')+'>Solo citofono</option></select></label>':'')+
       '<div class="row"><button type="button" class="btn'+(i===cur?'':' ghost')+' sm" data-sy="cur:'+i+'" aria-pressed="'+(i===cur)+'">'+(i===cur?'✓ Le nuove voci vanno qui':'Aggiungi qui le nuove voci')+'</button>'+
         (vc?'<button type="button" class="btn ghost sm" data-sy="typ:'+i+'">Voci tipiche</button>':'')+
@@ -116,6 +116,7 @@ function renderSys(){
         S.lines=S.lines.filter(function(ln){ return !(ln.sy===x2.id&&ln.tp); }); vcTypicalSys(x2,i); }
       else if(act==='copy'){ var src=i===0?1:0; if(S.lines.some(function(ln){ return ln.sy===l[i].id&&!ln.vm; })&&!confirm('Sostituisco le voci di «'+sysName(l[i],i)+'» con una copia di quelle di «'+sysName(l[src],src)+'»?')) return; var n=brCopy(src,i); toast('Copiate '+n+' voci in «'+sysName(l[i],i)+'»: ora cambia marca e prezzi'); }
       else if(act==='nologo'){ delete l[i].logo; }
+      else if(act==='iwlogo'){ iwSysLogo(i); return; }
       else if(act==='keep'){ if(!confirm('Chiudo il confronto e tengo solo «'+sysName(l[i],i)+'»? Le voci e le schede delle altre proposte vengono rimosse.')) return; var nm=sysName(l[i],i); brClose(i); toast('Confronto chiuso: resta «'+nm+'»'); }
       else return;
       after(); renderBrPanel();
@@ -161,7 +162,7 @@ function renderSol(){
     var k=a[0], d=vcSolData(k), lg=d.logo, T=totals(a[1]);
     h+='<div class="vms"><div class="vmo-h"><b class="vmt">Soluzione '+(k==='cit'?'audio':'video')+(tierRec()===a[1]?' · consigliata':'')+'</b></div>'+
       '<label class="f">Titolo della soluzione<input type="text" data-solf="n:'+k+'" value="'+esc(d.n||'')+'" placeholder="'+esc(a[2])+' ('+esc(a[3])+')"></label>'+
-      '<div class="sylg"><div class="sylg-p">'+(lg?'<img src="'+lg+'" alt="">':'<span>'+(k==='cit'?'AU':'VI')+'</span>')+'</div><div class="sylg-t"><b>Logo</b><small>'+(lg?'Il tuo logo caricato.':'Nessun logo: carica quello della marca o il tuo.')+'</small><div class="row"><label class="btn ghost sm">'+(lg?'Cambia logo':'Carica il logo')+'<input type="file" accept="image/*" hidden data-sollogo="'+k+'"></label>'+(lg?'<button type="button" class="btn ghost sm" data-solx="'+k+'">Rimuovi</button>':'')+'</div></div></div>'+
+      '<div class="sylg"><div class="sylg-p">'+(lg?'<img src="'+lg+'" alt="">':'<span>'+(k==='cit'?'AU':'VI')+'</span>')+'</div><div class="sylg-t"><b>Logo</b><small>'+(lg?'Il tuo logo caricato.':'Nessun logo: carica quello della marca o il tuo.')+'</small><div class="row"><button type="button" class="btn ghost sm" data-solw="'+k+'">Trova il logo</button><label class="btn ghost sm">'+(lg?'Cambia file':'Carica file')+'<input type="file" accept="image/*" hidden data-sollogo="'+k+'"></label>'+(lg?'<button type="button" class="btn ghost sm" data-solx="'+k+'">Rimuovi</button>':'')+'</div></div></div>'+
       '<div class="hint">'+(T.tot>0?'Totale '+eur(T.tot)+' IVA inclusa · '+eur(vcQuota(T,a[1]))+' a condomino':'Nessuna voce ancora')+'</div></div>';
   });
   h+='</div>';
@@ -175,7 +176,7 @@ function renderSol(){
     if(lk!=null){ var f=t.files&&t.files[0]; t.value=''; if(!f) return; readImage(f,360,true,function(url){ if(!url){ toast('Immagine non valida'); return; } vcSolData(lk).logo=url; after(); toast('Logo caricato per «'+vcSolTitle(lk)+'»'); }); return; }
     var fa=t.getAttribute('data-solf'); if(!fa) return; var a=fa.split(':'); vcSolData(a[1]).n=t.value.trim(); after();
   });
-  w.addEventListener('click',function(e){ var b=e.target.closest('[data-solx]'); if(!b) return; vcSolData(b.getAttribute('data-solx')).logo=''; after(); });
+  w.addEventListener('click',function(e){ var fw=e.target.closest('[data-solw]'); if(fw){ iwSolLogo(fw.getAttribute('data-solw')); return; } var b=e.target.closest('[data-solx]'); if(!b) return; vcSolData(b.getAttribute('data-solx')).logo=''; after(); });
 })();
 function vcSyncQty(){ S.lines.forEach(function(l){ if(l.pc) l.q=vcN(); }); }
 function vcTypical(mode){

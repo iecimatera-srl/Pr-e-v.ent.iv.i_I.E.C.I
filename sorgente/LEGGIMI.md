@@ -7,7 +7,7 @@ L'app che usi (la pagina pubblicata in questo repository, il file singolo e il p
 
 | Cartella | Contenuto |
 |---|---|
-| `app/` | Il programma (JavaScript), diviso in 26 moduli per area: modelli e listini, assistente, totali, fascicolo, videocitofono, confronto marche, PIN, archivio, sincronizzazione, fornitori, salvataggi… |
+| `app/` | Il programma (JavaScript), diviso in 28 moduli per area: modelli e listini, assistente, loghi e foto dal web, controllo prima dell'invio, totali, fascicolo, videocitofono, confronto marche, PIN, archivio, sincronizzazione, fornitori, salvataggi… |
 | `html/` | La pagina, divisa per pannello del menu (Dati, Preventivo, Prodotti, Invio, Messaggi…) |
 | `css/` | La grafica, divisa per area (editor, copertina, prodotti, preventivo…) |
 | `librerie/` | Librerie esterne incluse nell'app (PDF, immagini) |

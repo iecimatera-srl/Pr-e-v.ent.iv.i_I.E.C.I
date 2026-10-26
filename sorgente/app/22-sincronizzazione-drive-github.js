@@ -57,7 +57,13 @@ function settingsStamp(){
   lastSet=h;
 }
 function buildPayload(){
-  return {tipo:'archivio-preventivi-ieci',v:2,su:DB.su||0,db:{clients:DB.clients,prods:DB.prods,quotes:DB.quotes,arts:DB.arts,del:DB.del||{}},cat:S.cat,cgroups:S.cgroups,company:S.company,profile:S.profile,style:S.style,trust:S.trust,ccond:S.ccond||{},mtpl:S.mtpl,mdef:S.mdef,menu:MENU};
+  return {tipo:'archivio-preventivi-ieci',v:2,su:DB.su||0,db:{clients:DB.clients,prods:DB.prods,quotes:DB.quotes,arts:DB.arts,logos:DB.logos||[],parole:DB.parole||[],del:DB.del||{}},cat:S.cat,cgroups:S.cgroups,company:S.company,profile:S.profile,style:S.style,trust:S.trust,ccond:S.ccond||{},mtpl:S.mtpl,mdef:S.mdef,menu:MENU};
+}
+/* loghi delle marche e parole imparate: uno per chiave, vince il più recente */
+function mergeByKey(name,arr,key,del){
+  var L=DB[name]||(DB[name]=[]);
+  (arr||[]).forEach(function(a){ if(!a) return; var k=key(a), ex=L.filter(function(x){ return key(x)===k; })[0]; if(!ex) L.push(a); else if((a.upd||0)>(ex.upd||0)) L[L.indexOf(ex)]=a; });
+  DB[name]=L.filter(function(x){ return !(del||{})[x.id]; }); if(name==='logos') DB.logos.sort(byName);
 }
 function gdMerge(o){
   if(!o||o.tipo!=='archivio-preventivi-ieci'||!o.db) return;
@@ -71,6 +77,7 @@ function gdMerge(o){
   });
   (d.arts||[]).forEach(function(a){ var ex=DB.arts.filter(function(x){ return x.id===a.id||artKey(x)===artKey(a); })[0]; if(!ex) DB.arts.push(a); else if((a.upd||0)>(ex.upd||0)) DB.arts[DB.arts.indexOf(ex)]=a; });
   DB.arts=DB.arts.filter(function(x){ return !del[x.id]; }).sort(byName);
+  mergeByKey('logos',d.logos,function(x){ return iwK(x.name); },del); mergeByKey('parole',d.parole,function(x){ return x.m+'|'+x.k; },del);
   DB.clients=DB.clients.filter(function(x){ return !del[x.id]; }).sort(byName);
   DB.prods=DB.prods.filter(function(x){ return !del[x.id]; }).sort(byName);
   DB.quotes=DB.quotes.filter(function(x){ return !del[x.id]; });

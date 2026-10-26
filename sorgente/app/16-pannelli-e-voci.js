@@ -74,10 +74,12 @@ function renderProducts(){
       '<div class="row"><button type="button" class="btn ghost sm" data-act="lib" data-pi="'+i+'">Salva in libreria</button></div>'+
       '<label class="f">Grandezza della foto nel documento: <b class="psv">'+Math.max(15,Math.min(100,num(p.ps)||45))+'%</b><input type="range" min="15" max="100" step="5" value="'+Math.max(15,Math.min(100,num(p.ps)||45))+'" data-pf="ps" data-pi="'+i+'"></label>'+
       (function(){ var bm=p.bg||(cutOn()?'cut':'keep'); return '<div class="row" style="align-items:center"><span class="hint">Sfondo delle foto:</span><button type="button" class="tab" data-act="bgcut" data-pi="'+i+'" aria-pressed="'+(bm==='cut')+'">Senza sfondo, con alone</button><button type="button" class="tab" data-act="bgkeep" data-pi="'+i+'" aria-pressed="'+(bm==='keep')+'">Con sfondo originale</button></div>'; })()+
+      (iwVero(p.brand)?(function(){ var lg=brandLogo(p.brand); return '<div class="iw-pl"><span class="iw-mi">'+(lg?'<img src="'+lg+'" alt="">':'<i>'+esc(iwBase(p.brand).slice(0,2).toUpperCase())+'</i>')+'</span><small>'+(lg?'Logo '+esc(iwBase(p.brand))+' nel fascicolo':'Nessun logo per '+esc(iwBase(p.brand)))+'</small><button type="button" class="btn ghost sm" data-act="iwlg" data-pi="'+i+'">'+(lg?'Cambia logo':'Trova il logo')+'</button></div>'; })():'')+
       '<div class="thumbs">'+th+'</div>'+
-      ((p.photos||[]).length<MAXPH?'<label class="drop" data-drop="'+i+'">Trascina qui le foto oppure tocca per caricarle ('+(p.photos||[]).length+'/'+MAXPH+')<input type="file" accept="image/*" multiple hidden data-pphoto="'+i+'"></label>':'<p class="hint">Massimo '+MAXPH+' foto per prodotto.</p>')+
+      ((p.photos||[]).length<MAXPH?'<div class="iw-ph"><button type="button" class="btn sm" data-act="iwph" data-pi="'+i+'">Trova foto sul web</button><label class="drop" data-drop="'+i+'">Trascina qui le foto oppure tocca per caricarle ('+(p.photos||[]).length+'/'+MAXPH+')<input type="file" accept="image/*" multiple hidden data-pphoto="'+i+'"></label></div>':'<p class="hint">Massimo '+MAXPH+' foto per prodotto.</p>')+
       '</div></details>';
   }).join('');
+  iwRenderMem();
 }
 function syncFields(){
   var st=S.style;
@@ -95,7 +97,7 @@ function renderLogoPrev(){ var u=S.style.logo; $('logo-prev').innerHTML=u?'<div 
 function renderAll(){ try{ renderCondSave(); }catch(e){} if(S.products[0]&&openP[S.products[0].id]===undefined) openP[S.products[0].id]=true; renderTabs(); renderRooms(); renderVc(); renderCat(); renderLines(); renderProducts(); renderContent(); renderOrder(); renderCustom(); renderEcon(); renderTiers(); renderTrust(); renderIcons(); renderTpl(); syncFields(); sigDraw('cli'); sigDraw('dit'); renderStamp(); renderPlan(); renderFvRes(); renderInvio(); renderArchivio(); renderGd(); renderGh(); renderQbar(); renderAiSet(); renderImp(); renderArts(); renderAq(); renderDoc(); refreshVariants(); }
 var docVer=0;
 var lastEdit=0;
-function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); }
+function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); }
 
 var TTL_G='Rifacimento impianto appartamento', TTL_T={wb:'Installazione wallbox per ricarica auto elettrica',rip:'Riparazione impianto elettrico',vid:'Impianto di videosorveglianza',all:'Impianto di allarme antintrusione',vcit:'Impianto videocitofonico',aut:'Automazione cancello e accessi',fv:'Impianto fotovoltaico',tv:'Impianto TV e antenna',ind:'Impianto elettrico industriale',sw:'Programmazione e messa in servizio'};
 function typeTitle(prev){ if(S.meta.title===TTL_G||S.meta.title===TTL_T[prev]||(prev&&S.meta.title===(MODELS[prev]||{}).name)){ S.meta.title=TTL_T[S.model]||TTL_G; if($('m-title')) $('m-title').value=S.meta.title; } }

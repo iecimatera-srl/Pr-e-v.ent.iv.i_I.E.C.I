@@ -21,7 +21,7 @@ function prodBadge(p,alt){
 function brandLogo(brand){
   var b=String(brand||'').toLowerCase().replace(/[^a-z0-9]/g,''); if(b.length<2) return '';
   var r=''; (S.trust.bgroups||[]).forEach(function(g){ (g.items||[]).forEach(function(it){ if(r) return; var n=String(it.name||'').toLowerCase().replace(/[^a-z0-9]/g,''); if(n&&(n.indexOf(b)>-1||(n.length>=3&&b.indexOf(n)>-1))) r=it.img; }); });
-  return r;
+  return r||iwMem(brand);
 }
 function vcProdGroups(list){
   var G=[];

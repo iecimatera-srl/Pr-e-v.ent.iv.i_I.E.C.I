@@ -65,6 +65,7 @@ $('plist').addEventListener('click',function(e){
   e.preventDefault();
   var i=+b.getAttribute('data-pi'), act=b.getAttribute('data-act');
   if(act==='lib'){ saveProd(i); return; }
+  if(act==='iwph'||act==='iwlg'){ iwProd(i,act); return; }
   if(act==='bgcut'||act==='bgkeep'){ setBg(i,act==='bgcut'?'cut':'keep'); return; }
   if(act==='rm'){ S.products.splice(i,1); }
   else if(act==='up'&&i>0){ var t=S.products[i]; S.products[i]=S.products[i-1]; S.products[i-1]=t; }

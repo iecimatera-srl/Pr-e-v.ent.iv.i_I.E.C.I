@@ -7,7 +7,13 @@
           <label class="btn ghost sm">Crea schede da foto<input id="p-bulk" type="file" accept="image/*" multiple hidden></label>
         </div>
         <div class="row"><select id="lib-pick" aria-label="Aggiungi dalla libreria"></select></div>
+        <div class="iw-box"><div class="iw-boxt"><b>Foto e loghi in automatico</b><small>Trovo io le foto dei prodotti e i loghi delle marche del preventivo: tu tocchi quella giusta, il resto lo ricordo.</small></div><button class="btn sm" id="iw-fill" type="button">Trova foto e loghi mancanti</button></div>
+        <details class="sv" id="iw-mem-d"><summary>Loghi delle marche <em id="iw-mem-n"></em></summary>
+          <p class="hint">Valgono per tutti i preventivi: impianti e proposte a confronto, schede prodotto e fascicolo. Le marche nuove trovano il logo da sole quando le usi.</p>
+          <div class="iw-mem" id="iw-mem"></div>
+          <div class="iw-q"><input type="text" id="iw-mem-in" placeholder="Scrivi le marche: Bticino, Vimar, Came…" aria-label="Marche di cui cercare il logo" autocomplete="off" enterkeyhint="search"><button class="btn ghost" id="iw-mem-go" type="button">Trova i loghi</button></div>
+        </details>
         <div class="lines" id="plist"></div>
-        <p class="hint">Per ogni prodotto: foto (fino a 3), descrizione, caratteristiche tecniche e link alla scheda tecnica del produttore. Fino a 6 foto per prodotto, anche trascinandole. Le foto vengono ridimensionate e salvate su questo dispositivo.</p>
+        <p class="hint">Per ogni prodotto: foto, descrizione, caratteristiche tecniche e link alla scheda tecnica del produttore. Fino a 6 foto per prodotto, anche trascinandole. Le foto vengono ridimensionate e salvate su questo dispositivo.</p>
       </section>
 

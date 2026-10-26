@@ -28,7 +28,8 @@ function renderTrust(){
   $('tr-brand').innerHTML=BGs.map(function(g,gi){
     return '<div class="bgx" data-bg="'+gi+'"><div class="mngrp"><input type="text" class="gn" data-bgt="'+gi+'" value="'+esc(g.t)+'" aria-label="Titolo della riga" placeholder="Titolo (es. Domotica)" list="bg-sug"><button type="button" class="sq" data-bgm="'+gi+':-1"'+(gi===0?' disabled':'')+' aria-label="Sposta su">▲</button><button type="button" class="sq" data-bgm="'+gi+':1"'+(gi===BGs.length-1?' disabled':'')+' aria-label="Sposta giù">▼</button><button type="button" class="sq" data-bgd="'+gi+'" aria-label="Elimina la riga">×</button></div>'+
       '<div class="thumbs">'+(g.items.map(function(b,j){ return '<div class="thumb logo" title="'+esc(b.name)+'"><img src="'+b.img+'" alt=""><button type="button" data-brd="'+gi+':'+j+'" aria-label="Rimuovi">×</button></div>'; }).join('')||'<div class="empty" style="width:100%">Nessun logo in questa riga.</div>')+'</div>'+
-      '<div class="row"><label class="btn ghost sm">+ Carica loghi<input type="file" accept="image/*" multiple hidden data-bgf="'+gi+'"></label></div></div>';
+      '<div class="iw-q"><input type="text" data-bgn="'+gi+'" placeholder="Scrivi le marche: Bticino, Vimar…" aria-label="Marche da aggiungere" autocomplete="off" enterkeyhint="go"><button type="button" class="btn ghost sm" data-bgw="'+gi+'">Aggiungi i loghi</button></div>'+
+      '<div class="row"><label class="btn ghost sm">+ Carica loghi dal dispositivo<input type="file" accept="image/*" multiple hidden data-bgf="'+gi+'"></label></div></div>';
   }).join('')+'<datalist id="bg-sug"><option value="Domotica"><option value="Videosorveglianza"><option value="Civile"><option value="Industriale"><option value="Fotovoltaico"><option value="Automazioni"><option value="Videocitofonia"><option value="Illuminazione"></datalist>';
 }
 $('ba-add').addEventListener('click',function(){ if(S.trust.ba.length>=4){ toast('Massimo 4 coppie'); return; } S.trust.ba.push({title:'',before:'',after:''}); renderTrust(); touch(); });
@@ -114,6 +115,7 @@ function renderInvio(){
   var d=waDigits(S.client.tel);
   $('i-wa').href='https://wa.me/'+d+'?text='+encodeURIComponent(txt);
   $('i-mail').href='mailto:'+encodeURIComponent(S.client.email||'').replace('%40','@')+'?subject='+encodeURIComponent(fillMsg(S.msgs.subj))+'&body='+encodeURIComponent(fillMsg(S.msgs.body));
+  ckRender();
   var n=pdfProducts().length, pc=$('pdf-count'); if(pc) pc.textContent=n?('Schede PDF che verranno accodate: '+n+'.'):'Nessuna scheda PDF allegata ai prodotti (si allegano dalla scheda Prodotti).';
 }
 function renderTpl(){ $('msg-tpl').innerHTML=S.mtpl.map(function(t){ return '<option value="'+esc(t.id)+'">'+esc(t.n||'Senza nome')+(t.id===S.mdef?' (predefinito)':'')+'</option>'; }).join('')+(mtById(S.msgs.tpl)?'':'<option value="">Messaggio modificato</option>'); $('msg-tpl').value=mtById(S.msgs.tpl)?S.msgs.tpl:''; }

@@ -138,13 +138,14 @@ function importAll(o){
   var replace=document.querySelector('input[name="imp-mode"]:checked').value==='replace';
   var d=o.db, nC=0,nP=0,nQ=0;
   if(replace){
-    DB.clients=(d.clients||[]).slice(); DB.prods=(d.prods||[]).slice(); DB.quotes=(d.quotes||[]).slice(); DB.arts=(d.arts||[]).slice(); DB.del=d.del||{}; DB.su=o.su||0;
+    DB.clients=(d.clients||[]).slice(); DB.prods=(d.prods||[]).slice(); DB.quotes=(d.quotes||[]).slice(); DB.arts=(d.arts||[]).slice(); DB.logos=(d.logos||[]).slice(); DB.parole=(d.parole||[]).slice(); DB.del=d.del||{}; DB.su=o.su||0;
     nC=DB.clients.length; nP=DB.prods.length; nQ=DB.quotes.length;
   } else {
     (d.clients||[]).forEach(function(c){ if(!DB.clients.some(function(x){ return lc(x.name)===lc(c.name); })){ DB.clients.push(c); nC++; } });
     (d.prods||[]).forEach(function(p){ if(!DB.prods.some(function(x){ return lc(x.name)===lc(p.name)&&lc(x.code)===lc(p.code); })){ DB.prods.push(p); nP++; } });
     (d.quotes||[]).forEach(function(q){ var ex=DB.quotes.filter(function(x){ return x.id===q.id; })[0]; if(!ex){ DB.quotes.push(q); nQ++; } else if(q.upd>ex.upd){ DB.quotes[DB.quotes.indexOf(ex)]=q; nQ++; } });
     (d.arts||[]).forEach(function(a){ var ex=DB.arts.filter(function(x){ return artKey(x)===artKey(a); })[0]; if(!ex) DB.arts.push(a); else if((a.upd||0)>(ex.upd||0)) DB.arts[DB.arts.indexOf(ex)]=a; });
+    mergeByKey('logos',d.logos,function(x){ return iwK(x.name); }); mergeByKey('parole',d.parole,function(x){ return x.m+'|'+x.k; });
   }
   if(replace&&o.menu){ MENU=o.menu; menuFix(); menuSave(); renderNav(); }
   DB.clients.sort(byName); DB.prods.sort(byName);

@@ -1,0 +1,28 @@
+      <section class="card" data-panel="stime">
+        <h2>Stime e tempi</h2>
+        <h3>Fotovoltaico: produzione e risparmio</h3>
+        <label class="chk"><input type="checkbox" data-b="show.fv" data-after="content">Includi la stima fotovoltaico nel fascicolo</label>
+        <div class="grid2">
+          <label class="f">Potenza (kWp)<input type="number" step="any" min="0" data-b="fv.kwp" data-after="fv"></label>
+          <label class="f">Producibilità (kWh/kWp anno)<input type="number" step="any" min="0" data-b="fv.yield" data-after="fv"></label>
+          <label class="f">Autoconsumo %<input type="number" step="any" min="0" max="100" data-b="fv.auto" data-after="fv"></label>
+          <label class="f">Prezzo energia acquistata (€/kWh)<input type="number" step="any" min="0" data-b="fv.price" data-after="fv"></label>
+          <label class="f">Valore energia immessa (€/kWh)<input type="number" step="any" min="0" data-b="fv.sell" data-after="fv"></label>
+          <label class="f">Costo impianto IVA incl. (0 = totale preventivo)<input type="number" step="any" min="0" data-b="fv.cost" data-after="fv"></label>
+          <label class="f">Detrazione / incentivo %<input type="number" step="any" min="0" max="100" data-b="fv.detr" data-after="fv"></label>
+          <label class="f">Calo annuo moduli %<input type="number" step="any" min="0" data-b="fv.deg" data-after="fv"></label>
+          <label class="f">Anni di calcolo (5-30)<input type="number" step="1" min="5" max="30" data-b="fv.years" data-after="fv"></label>
+        </div>
+        <div class="res" id="fv-res"></div>
+        <p class="hint">Valori di esempio: sostituiscili con i dati del caso (producibilità da PVGIS o dal tuo software, detrazione in vigore). La stima non è una garanzia e il documento lo dice.</p>
+        <h3>Cronoprogramma</h3>
+        <label class="chk"><input type="checkbox" data-b="show.crono" data-after="content">Includi il cronoprogramma nel fascicolo</label>
+        <div class="grid2">
+          <label class="f">Inizio lavori<input type="date" data-b="crono.start"></label>
+          <label class="chk" style="align-self:end;padding-bottom:8px"><input type="checkbox" data-b="crono.bd">Solo giorni lavorativi</label>
+        </div>
+        <label class="f">Fasi (una per riga: nome | giorni)<textarea data-b="crono.phases" style="min-height:120px"></textarea></label>
+        <label class="f">Nota<textarea data-b="crono.note"></textarea></label>
+        <div class="row"><button class="btn ghost sm" id="cr-def" type="button">Usa le fasi tipiche del modello</button></div>
+      </section>
+

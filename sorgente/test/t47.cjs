@@ -1,0 +1,10 @@
+const {chromium}=require('./_amb.cjs');
+(async()=>{const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});const p=await b.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+await p.goto(require('./_amb.cjs').SRC);await p.waitForTimeout(1500);
+const r=await p.evaluate(()=>{const M=window.IECI_T.mir();let perm='prompt',asked=0,wrote=0;
+M.h={queryPermission:async()=>perm,requestPermission:async()=>{asked++;perm='granted';return 'granted'},getFileHandle:async()=>{wrote++;return {createWritable:async()=>({write:async()=>{},close:async()=>{}}),getFile:async()=>({lastModified:Date.now(),text:async()=>'{}'})}}};
+M.need=true;window.IECI_T.renderMir();
+return {armed:M.armed,btn:!document.getElementById('mi-on').hidden,get:()=>0};});
+await p.mouse.click(50,50);await p.waitForTimeout(800);
+const r2=await p.evaluate(()=>{const M=window.IECI_T.mir();return {need:M.need,btnHidden:document.getElementById('mi-on').hidden,armed:M.armed}});
+console.log(JSON.stringify(r),JSON.stringify(r2),'ERR',JSON.stringify(errs));await b.close()})();

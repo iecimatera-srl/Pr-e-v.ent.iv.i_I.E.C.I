@@ -1,0 +1,29 @@
+      <section class="card" data-panel="fornitori">
+        <h2>Fornitori e articoli</h2>
+        <p class="hint">Carica il preventivo del fornitore (PDF o foto): il programma legge da solo le righe, calcola i prezzi con i tuoi sconti e ricarichi e crea gli articoli da inserire nei preventivi per i clienti. Tutto avviene sul tuo dispositivo, gratis: non serve nessun abbonamento o chiave.</p>
+        <details class="sv" id="ai-set"><summary>Ricarico e opzioni</summary>
+          <label class="f">Ricarico predefinito sugli articoli %<input type="number" id="ai-mk" step="any" min="0"></label>
+          <label class="chk"><input type="checkbox" id="ai-use"><b>Usa l'intelligenza artificiale a pagamento (facoltativo, non serve)</b></label>
+          <div id="ai-adv" hidden>
+            <p class="hint">Solo se vuoi: con una tua chiave API di Anthropic (console.anthropic.com, a consumo) il programma può leggere anche documenti difficili e cercare foto e descrizioni sul web. Ha un costo per ogni uso. Senza chiave tutto il resto funziona lo stesso.</p>
+            <label class="f">Chiave API<input type="password" id="ai-key" autocomplete="off" placeholder="sk-ant-..."></label>
+            <label class="f">Modello<input type="text" id="ai-model"></label>
+          </div>
+        </details>
+        <h3>Importa un preventivo del fornitore</h3>
+        <div class="grid2"><label class="f">Fornitore<input type="text" id="im-sup" list="sup-dl" autocomplete="off" placeholder="es. Rexel, Sonepar…"><datalist id="sup-dl"></datalist></label><label class="f">Data del preventivo<input type="date" id="im-date"></label></div>
+        <label class="drop" id="im-drop">Trascina qui il PDF o la foto del preventivo (anche più file) oppure tocca per sceglierli<input type="file" id="im-file" accept="image/*,application/pdf,.pdf,.json,.csv,.txt" multiple hidden></label>
+        <p class="hint" id="im-files"></p>
+        <details class="sv"><summary>Oppure incolla il testo del preventivo (email, WhatsApp, Excel)</summary><textarea id="im-paste" style="min-height:110px" placeholder="Incolla qui le righe: codice, descrizione, quantità, prezzo…"></textarea></details>
+        <div class="row"><button class="btn" id="im-go" type="button">Leggi il preventivo</button><button class="btn ghost" id="im-web" type="button" hidden>Cerca descrizioni e foto sul web (IA)</button><button class="btn x" id="im-stop" type="button" hidden>Ferma</button></div>
+        <p class="res" id="im-state" hidden></p>
+        <div class="lines" id="im-rows"></div>
+        <div class="row"><button class="btn" id="im-save" type="button">Salva gli articoli selezionati</button><button class="btn ghost" id="im-clear" type="button">Svuota</button></div>
+        <p class="hint">Le foto sono facoltative: in ogni articolo trovi «Cerca foto» (si apre la ricerca già compilata), poi copi la foto e la incolli nel campo, oppure la scegli dal dispositivo. Usale solo per presentare i prodotti che fornisci.</p>
+        <h3>Articoli salvati</h3>
+        <div class="grid2"><input type="search" id="art-search" placeholder="Cerca nome, codice, marca"><select id="art-sup"></select></div>
+        <label class="chk"><input type="checkbox" id="art-card" checked>Quando aggiungo al preventivo, crea anche la scheda prodotto con foto e descrizione</label>
+        <p class="hint" id="art-count"></p>
+        <div class="lines" id="art-list"></div>
+      </section>
+

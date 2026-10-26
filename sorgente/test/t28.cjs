@@ -1,0 +1,17 @@
+const {chromium}=require('./_amb.cjs');
+(async()=>{const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+const p=await b.newPage({viewport:{width:1100,height:900}});
+p.on('pageerror',e=>console.log('ERR',e.message));p.on('console',m=>{if(m.type()==='error')console.log('CE',m.text())});
+await p.goto(require('./_amb.cjs').SA);await p.waitForTimeout(2000);
+await p.screenshot({path:require('path').join(require('./_amb.cjs').TMP,'a0.png'),clip:{x:0,y:0,width:1100,height:200}});
+await p.click('#mn-btn');await p.click('.mit[data-p="app"]');await p.waitForTimeout(300);
+await p.fill('#ap-name','Nicola');await p.fill('#ap-greet','Nicola');
+await p.click('#ap-sw button[data-c="#0F766E"]');
+await p.selectOption('#ap-lmode','own');await p.selectOption('#ap-lbg','all');await p.waitForTimeout(800);
+await p.fill('#ap-lsize','120');await p.dispatchEvent('#ap-lsize','input');
+await p.selectOption('#ap-theme','dark');await p.selectOption('#ap-dens','c');await p.waitForTimeout(400);
+await p.screenshot({path:require('path').join(require('./_amb.cjs').TMP,'a1.png')});
+await p.reload();await p.waitForTimeout(2000);
+console.log(await p.evaluate(()=>document.getElementById('app-name').textContent+'|'+document.documentElement.getAttribute('data-theme')+'|'+document.getElementById('app-sub').textContent));
+await p.click('#mn-btn');await p.click('.mit[data-p="app"]');await p.click('#ap-reset');
+await b.close();})();

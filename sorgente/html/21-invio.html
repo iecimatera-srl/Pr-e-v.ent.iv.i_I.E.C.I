@@ -1,0 +1,75 @@
+      <section class="card" data-panel="invio">
+        <h2>Invio al cliente</h2>
+        <div class="grid2">
+          <label class="f">Telefono cliente<input type="tel" data-b="client.tel" data-after="invio" placeholder="es. 333 1234567"></label>
+          <label class="f">Email cliente<input type="email" data-b="client.email" data-after="invio"></label>
+        </div>
+        <label class="f">Modello di messaggio
+          <select id="msg-tpl"></select>
+        </label>
+        <div class="row"><button class="btn ghost sm" type="button" data-gomt>Gestisci i tuoi messaggi</button></div>
+        <label class="f">Messaggio WhatsApp / SMS<textarea data-b="msgs.wa" data-after="invio" style="min-height:110px"></textarea></label>
+        <label class="f">Oggetto email<input type="text" data-b="msgs.subj" data-after="invio"></label>
+        <label class="f">Testo email<textarea data-b="msgs.body" data-after="invio" style="min-height:130px"></textarea></label>
+        <p class="hint">Segnaposto: {cliente} {numero} {titolo} {totale} {validita} {ditta} {tel}</p>
+        <h3>Anteprima WhatsApp</h3>
+        <div class="msgprev" id="msg-prev"></div>
+        <div class="row">
+          <a class="btn" id="i-wa" target="_blank" rel="noopener">Apri WhatsApp</a>
+          <button class="btn ghost" id="i-copy" type="button">Copia messaggio</button>
+          <a class="btn ghost" id="i-mail" target="_blank" rel="noopener">Apri email</a>
+        </div>
+        <p class="hint">WhatsApp si apre col testo pronto e il numero del cliente; il PDF si allega a mano (WhatsApp non permette l'allegato automatico).</p>
+        <h3>PDF completo con schede tecniche</h3>
+        <div id="pdf-box">
+          <p class="hint">Disponibile nel file .html scaricato, nel programma Windows e nell'app Android. 1) Premi «Stampa / PDF» e salva il fascicolo. 2) Qui scegli quel PDF: le schede tecniche PDF dei prodotti vengono accodate e scarichi un unico file.</p>
+          <div class="row">
+            <label class="btn sm">Unisci a un PDF del fascicolo<input id="pdf-main" type="file" accept="application/pdf,.pdf" hidden></label>
+            <button class="btn ghost sm" id="pdf-only" type="button">Scarica solo le schede PDF unite</button>
+          </div>
+          <p class="hint" id="pdf-count"></p>
+        </div>
+      </section>
+
+    </div>
+
+    <div class="col paperCol">
+      <div class="paperBar noprint">
+        <h2 style="font-size:1.25rem;text-transform:uppercase">Anteprima fascicolo</h2>
+        <div class="row">
+          <button class="btn ghost sm" id="copy-text" type="button">Copia preventivo come testo</button>
+          <button class="btn sm" id="print" type="button" hidden>Stampa / PDF</button>
+        </div>
+      </div>
+      <p class="hint noprint" id="print-hint" hidden>Stampa e salvataggio in PDF funzionano nel file .html scaricabile, aperto nel browser.</p>
+      <div class="paperWrap" id="paperWrap"><div class="doc" id="doc"></div></div>
+    </div>
+  </div>
+</div>
+<div class="shbg noprint" id="sh-bg" hidden><div class="sheet" role="dialog" aria-modal="true" aria-label="Condividi preventivo">
+  <div class="sh-h"><b>Condividi il preventivo</b><button class="btn x" id="sh-x" type="button" aria-label="Chiudi">×</button></div>
+  <p class="sh-doc" id="sh-doc"></p>
+  <div class="sh-st" id="sh-st"></div>
+  <label class="chk" id="sh-att-w" hidden><input type="checkbox" id="sh-att" checked>Includi le schede tecniche PDF dei prodotti</label>
+  <div class="sh-msg">
+    <div class="sh-mh"><b>Messaggio che accompagna il PDF</b><select id="sh-tpl" aria-label="Scegli il messaggio"></select></div>
+    <textarea id="sh-txt" rows="5" aria-label="Testo del messaggio WhatsApp"></textarea>
+    <details class="sv" id="sh-em"><summary>Testo dell'email</summary><label class="f">Oggetto<input type="text" id="sh-subj"></label><label class="f">Testo<textarea id="sh-body" rows="6"></textarea></label></details>
+    <div class="row"><button class="btn ghost sm" id="sh-save" type="button">Salva come mio messaggio</button><button class="btn ghost sm" type="button" data-gomt>Gestisci i messaggi</button><button class="btn ghost sm" id="sh-cp2" type="button">Copia il testo</button></div>
+  </div>
+  <div class="sh-b">
+    <button class="btn sh-wa" id="sh-wa" type="button" disabled>WhatsApp</button>
+    <button class="btn sh-ml" id="sh-ml" type="button" disabled>Email</button>
+    <button class="btn ghost" id="sh-dl" type="button" disabled>Salva file PDF</button>
+  </div>
+  <div class="sh-step" id="sh-step" hidden>
+    <div class="sh-sn"><span>2</span><b>Ora invia il messaggio</b></div>
+    <p>WhatsApp allega il PDF ma spesso non il testo che lo accompagna. Il tuo messaggio è <b>già copiato</b>: nella chat tieni premuto il campo di scrittura e scegli «Incolla», oppure invialo con un tocco qui sotto.</p>
+    <a class="btn sh-wa" id="sh-wa2" target="_blank" rel="noopener">Invia il messaggio su WhatsApp</a>
+    <button class="btn ghost sm" id="sh-cp3" type="button">Copia di nuovo il messaggio</button>
+  </div>
+  <details class="sv"><summary>Solo testo, senza PDF</summary><div class="row" style="margin-top:8px"><a class="btn ghost sm" id="sh-wat" target="_blank" rel="noopener">Messaggio WhatsApp al cliente</a><a class="btn ghost sm" id="sh-mlt" target="_blank" rel="noopener">Email al cliente</a><button class="btn ghost sm" id="sh-cp" type="button">Copia messaggio</button></div></details>
+  <p class="hint">Su telefono si apre il menu di condivisione: scegli WhatsApp o Gmail e il contatto. Il testo qui sopra vale solo per questo invio; i tuoi testi predefiniti li gestisci in «Messaggi di invio». Con WhatsApp l'invio è in due tocchi: prima il PDF, poi il messaggio (già copiato, oppure con il pulsante che compare).</p>
+</div></div>
+<div class="toast" id="toast" hidden></div>
+

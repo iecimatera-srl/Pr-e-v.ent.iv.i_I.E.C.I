@@ -1,0 +1,10 @@
+const {chromium}=require('./_amb.cjs');
+(async()=>{const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+const p=await b.newPage({viewport:{width:1100,height:900}});
+p.on('pageerror',e=>console.log('ERR',e.message));
+await p.goto(require('./_amb.cjs').SA);await p.waitForTimeout(2000);
+await p.click('#mn-btn');await p.click('.mit[data-p="app"]');await p.waitForTimeout(300);
+await p.fill('#ap-greet','Nicola');
+await p.click('#ap-sw button[data-c="#0F766E"]');
+await p.screenshot({path:require('path').join(require('./_amb.cjs').TMP,'a2.png'),clip:{x:0,y:0,width:1100,height:900}});
+await b.close();})();

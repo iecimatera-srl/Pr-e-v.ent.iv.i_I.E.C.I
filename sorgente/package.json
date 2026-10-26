@@ -1,0 +1,19 @@
+{
+  "name": "ieci-preventivi",
+  "private": true,
+  "description": "IECI preventivi: sorgente diviso in moduli, controlli automatici e test",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "pubblica": "node build.mjs --pubblica",
+    "verifica": "node strumenti/verifica.mjs",
+    "test": "node strumenti/test.mjs"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "playwright": "1.56.0"
+  }
+}

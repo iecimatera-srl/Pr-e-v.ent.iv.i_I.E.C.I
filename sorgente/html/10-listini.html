@@ -1,0 +1,17 @@
+      <section class="card" data-panel="listini" hidden>
+        <h2>Modifica listini</h2>
+        <p class="hint">Qui gestisci le voci di ogni listino: categorie, descrizioni, prezzi e unità di misura. Le modifiche valgono per «Aggiungi dal listino»; le righe già inserite nei preventivi non cambiano.</p>
+        <div class="lstop">
+          <label class="f">Listino<select id="ls-model"></select></label>
+          <label class="f">Cerca<input type="search" id="ls-q" placeholder="Cerca…"></label>
+        </div>
+        <div class="lsbox"><b>Nuova voce</b>
+          <div class="newitem"><input id="ls-nd" type="text" placeholder="Descrizione della voce"><input id="ls-nu" type="text" placeholder="u.m."><input id="ls-np" type="number" step="any" min="0" placeholder="€"><select id="ls-ng" aria-label="Categoria"></select><button class="btn sm" id="ls-nadd" type="button">Aggiungi</button></div>
+        </div>
+        <div class="lsbox"><b>Nuova categoria</b>
+          <div class="newitem"><input id="ls-cg" type="text" placeholder="Nome della categoria (es. Illuminazione)"><button class="btn sm" id="ls-cgadd" type="button">Aggiungi categoria</button></div>
+        </div>
+        <div id="ls-body"></div>
+        <div class="row"><button class="btn ghost sm" id="ls-restore" type="button">Ripristina le voci eliminate</button><button class="btn ghost sm" id="ls-reset" type="button">Riporta questo listino all'originale</button><button class="btn ghost sm" id="ls-back" type="button">Torna al preventivo</button></div>
+      </section>
+

@@ -1,0 +1,13 @@
+      <section class="card" data-panel="prodotti">
+        <h2>Prodotti e soluzioni</h2>
+        <label class="f">Testo introduttivo<textarea id="p-prodIntro" data-pr="prodIntro"></textarea></label>
+        <div class="row">
+          <button class="btn sm" id="p-add" type="button">+ Nuovo prodotto</button>
+          <button class="btn ghost sm" id="p-import" type="button">Crea le schede mancanti dalle voci del preventivo</button>
+          <label class="btn ghost sm">Crea schede da foto<input id="p-bulk" type="file" accept="image/*" multiple hidden></label>
+        </div>
+        <div class="row"><select id="lib-pick" aria-label="Aggiungi dalla libreria"></select></div>
+        <div class="lines" id="plist"></div>
+        <p class="hint">Per ogni prodotto: foto (fino a 3), descrizione, caratteristiche tecniche e link alla scheda tecnica del produttore. Fino a 6 foto per prodotto, anche trascinandole. Le foto vengono ridimensionate e salvate su questo dispositivo.</p>
+      </section>
+

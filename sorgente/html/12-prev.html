@@ -1,0 +1,85 @@
+      <section class="card" data-panel="prev">
+        <h2>Preventivo</h2>
+        <details class="acc" id="acc-save" open><summary><span>Salvataggi e preventivi salvati</span><em id="acc-save-n"></em></summary><div class="accb">
+        <div class="row"><button class="btn" id="q-save" type="button">Salva preventivo</button><button class="btn ghost" id="q-new" type="button">+ Nuovo preventivo</button></div>
+        <p class="hint" id="q-state"></p>
+                <input type="search" id="q-search" placeholder="Cerca per cliente, numero o titolo">
+        <div class="chips" id="q-filt"></div><p class="hint" id="q-sum"></p>
+        <div class="lines" id="q-list"></div>
+        <div class="row"><button class="btn ghost sm" id="q-more" type="button" hidden>Mostra tutti</button></div>
+        </div></details>
+        <details class="acc" open><summary><span>Tipo di preventivo</span></summary><div class="accb">
+        <div class="tabs" id="tabs" role="group" aria-label="Tipo di preventivo"></div>
+        </div></details>
+        <details class="acc" id="acc-rooms" open hidden><summary><span>Stanze dell'appartamento</span></summary><div class="accb"><div id="rooms"></div></div></details>
+        <details class="acc" id="acc-vc" open hidden><summary><span>Impianto condominiale · quota a condomino</span></summary><div class="accb">
+          <div class="vck-w" role="group" aria-label="Soluzione da proporre">
+            <button type="button" class="vck" data-vck="video" aria-pressed="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="12" rx="2"/><path d="M9 21h6M12 17v4"/><circle cx="12" cy="11" r="2.2"/></svg><b>Videocitofono</b><small>audio e video</small></button>
+            <button type="button" class="vck" data-vck="cit" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><b>Solo citofono</b><small>solo audio</small></button>
+            <button type="button" class="vck" data-vck="brands" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="8.5" height="11" rx="1.6"/><rect x="13" y="5" width="8.5" height="11" rx="1.6"/><path d="M5 20h3M16 20h3"/></svg><b>Più marche</b><small>impianti a confronto</small></button>
+            <button type="button" class="vck" data-vck="both" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="8" height="16" rx="1.6"/><rect x="13" y="4" width="8" height="16" rx="1.6"/><path d="M6 9h2M16 9h2M6 13h2M16 13h2"/></svg><b>Entrambe</b><small>il cliente sceglie</small></button>
+          </div>
+          <div class="f">Quanti condomini (utenze) sono nel palazzo?
+            <div class="vc-n"><button type="button" class="btn ghost" id="vc-m" aria-label="Uno in meno">−</button><input type="number" id="vc-n" min="1" max="999" step="1" inputmode="numeric" aria-label="Numero di condomini"><button type="button" class="btn ghost" id="vc-p" aria-label="Uno in più">+</button></div></div>
+          <div class="row"><button type="button" class="btn" id="vc-fill">Aggiungi le voci tipiche</button></div>
+          <div id="vc-sys"></div>
+          <div id="vc-sol"></div>
+          <div id="vc-vm"></div>
+          <div class="f">Come mostri il prezzo al cliente
+            <div class="vck-w two"><button type="button" class="vck sm" data-vcp="righe" aria-pressed="true"><b>Prezzo su ogni voce</b><small>somma automatica</small></button><button type="button" class="vck sm" data-vcp="totale" aria-pressed="false"><b>Solo totale libero</b><small>nessun prezzo sulle voci</small></button></div></div>
+          <div id="vc-tot"></div>
+          <div class="vc-res" id="vc-res" aria-live="polite"></div>
+          <label class="chk"><input type="checkbox" id="vc-show">Scrivi la quota a condomino nel preventivo</label>
+          <p class="hint"><b>Entrambe</b> prepara un'offerta con due livelli, «Solo citofono» e «Videocitofono» (consigliato): nel preventivo il cliente vede le due soluzioni a confronto con la quota a condomino di ciascuna, e nelle schede prodotto ogni articolo porta l'etichetta della sua soluzione. «Aggiungi le voci tipiche» inserisce un impianto completo per la soluzione scelta. Le voci «Per ogni condomino» seguono da sole il numero dei condomini; le altre sono a corpo, e la spesa si divide per tutti. Cambiando il numero la quota si aggiorna subito.</p>
+        </div></details>
+        <details class="acc" id="acc-list" open><summary><span>Aggiungi dal listino <span id="cat-name"></span></span></summary><div class="accb">
+        <p class="hint" id="cat-hint">Tocca + per aggiungere la voce al preventivo. I prezzi sono di esempio: modificali, restano salvati.</p>
+        <div class="row catbar"><input type="search" id="cat-q" placeholder="Cerca una voce…" aria-label="Cerca nel listino"><button type="button" class="chip" id="cat-f" hidden></button></div>
+        <div class="cat" id="cat"></div>
+        <div class="row"><button class="btn ghost sm" id="cat-restore" type="button">Ripristina le voci eliminate</button><button class="btn ghost sm" id="cat-edit" type="button">Modifica listini e categorie…</button></div>
+        <div class="newitem">
+          <input id="n-d" type="text" placeholder="Nuova voce di listino">
+          <input id="n-u" type="text" placeholder="u.m.">
+          <input id="n-p" type="number" step="any" min="0" placeholder="€">
+          <select id="n-g" aria-label="Categoria della voce"></select>
+          <button class="btn sm" id="n-add" type="button">Aggiungi al listino</button>
+        </div>
+        </div></details>
+        <details class="acc" id="acc-forn"><summary><span>Articoli dai fornitori</span></summary><div class="accb">
+        <input type="search" id="aq-search" placeholder="Cerca per nome, codice o marca">
+        <div class="cat" id="aq-list" style="max-height:230px"></div>
+        </div></details>
+        <details class="acc" id="acc-righe" open><summary><span>Righe del preventivo</span><em id="lines-count"></em></summary><div class="accb">
+        <div class="lines" id="lines"></div>
+        <div class="row">
+          <button class="btn ghost" id="add-free" type="button">+ Riga libera</button>
+          <button class="btn ghost" id="clear-lines" type="button">Svuota righe</button>
+          <button class="btn ghost" id="lines-to-cat" type="button">Salva righe nel listino</button>
+        </div>
+        </div></details>
+        <details class="acc" id="acc-prezzo" open><summary><span>Prezzo e totale</span></summary><div class="accb">
+        <div id="econ-box" class="col" style="gap:8px"></div>
+        <div class="grid2">
+          <label class="f">IVA
+            <select id="m-iva">
+              <option value="22">22%</option>
+              <option value="10">10%</option>
+              <option value="4">4%</option>
+              <option value="0">0% (esente / non imponibile)</option>
+            </select>
+          </label>
+          <label class="f">Sconto commerciale %<input id="m-disc" type="number" min="0" max="100" step="any"></label>
+          <label class="f">Acconto %<input id="m-dep" type="number" min="0" max="100" step="any"></label>
+        </div>
+        <p class="hint">L'aliquota IVA dipende dal tipo di lavoro e dal committente: verificala con il tuo commercialista.</p>
+        </div></details>
+        <details class="acc" id="acc-br"><summary><span>Proposte a confronto per marca</span></summary><div class="accb">
+          <p class="hint">Metti nello stesso preventivo due o tre proposte di marche diverse (per esempio Bticino e Vimar): ognuna con le sue voci, il suo totale, il suo logo e le sue schede prodotto. Il cliente le vede a confronto e sceglie.</p>
+          <label class="chk"><input type="checkbox" id="br-on"><b>Confronta più marche in questo preventivo</b></label>
+          <div id="br-sys"></div>
+        </div></details>
+        <details class="acc" id="acc-tier"><summary><span>Offerta a livelli (Base / Comfort / Premium)</span></summary><div class="accb">
+        <div id="tier-box" class="col" style="gap:8px"></div>
+        </div></details>
+      </section>
+

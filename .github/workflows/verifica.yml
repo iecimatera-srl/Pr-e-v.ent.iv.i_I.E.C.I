@@ -1,0 +1,34 @@
+# Controllo automatico a ogni modifica del sorgente.
+# Verifica che il codice sia corretto e che l'app pubblicata corrisponda esattamente al sorgente.
+name: Verifica del sorgente
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verifica:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sorgente
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Strumenti
+        run: npm install --no-audit --no-fund
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+      - name: Controlli (TypeScript, funzioni, elementi della pagina)
+        run: node strumenti/verifica.mjs
+      - name: L'app pubblicata corrisponde al sorgente
+        run: |
+          node build.mjs
+          for f in index.html sw.js version.json manifest.webmanifest; do
+            cmp "dist/android/IECI preventivi app/$f" "../$f" || { echo "::error::$f pubblicato diverso dal sorgente"; exit 1; }
+          done
+          echo "Pubblicazione allineata al sorgente"

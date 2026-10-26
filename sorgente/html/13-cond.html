@@ -1,0 +1,19 @@
+      <section class="card" data-panel="cond">
+        <h2>Condizioni</h2>
+        <label class="f">Pagamento<textarea id="m-pay"></textarea></label>
+        <label class="f">Note e clausole<textarea id="m-notes" style="min-height:150px"></textarea></label>
+        <div id="cc-box" class="ccbox"></div>
+        <div class="row"><button class="btn ghost sm" id="reset-notes" type="button">Ripristina le clausole originali dell'app</button></div>
+        <h3>Firma del cliente sullo schermo</h3>
+        <p class="hint">Fai firmare col dito o col mouse: la firma compare nelle Condizioni e nei documenti che la prevedono. Si mostra solo se attivi «Firme» da Contenuto.</p>
+        <div class="sigbox"><b>Cliente</b><canvas id="sig-cli" class="sigpad" width="800" height="200"></canvas>
+          <div class="row"><button class="btn ghost sm" data-sigclr="cli" type="button">Cancella firma</button></div>
+          <div class="grid2"><label class="f">Nome<input type="text" data-b="sign.cli.name" placeholder="se vuoto: nome cliente"></label><label class="f">Luogo<input type="text" data-b="sign.cli.place"></label><label class="f">Data<input type="date" data-b="sign.cli.date"></label></div></div>
+        <div class="sigbox"><b>Ditta</b><canvas id="sig-dit" class="sigpad" width="800" height="200"></canvas>
+          <div class="row"><button class="btn ghost sm" data-sigclr="dit" type="button">Cancella firma</button></div>
+          <div class="grid2"><label class="f">Nome firmatario<input type="text" data-b="sign.dit.name" placeholder="se vuoto: ragione sociale"></label></div>
+          <div class="row" style="margin-top:8px;align-items:center"><div class="thumb" id="stamp-prev" style="width:120px;height:72px"></div><label class="btn ghost sm">Carica foto del timbro<input id="stamp-file" type="file" accept="image/*" hidden></label><button class="btn ghost sm" id="stamp-rm" type="button">Rimuovi timbro</button></div>
+          <label class="f" style="margin-top:8px">Grandezza del timbro<input type="range" min="40" max="240" step="5" data-b="company.stampW" data-int="1"></label>
+          <p class="hint">Il timbro viene centrato sulla linea di firma della ditta, con lo sfondo tolto automaticamente, e resta salvato per tutti i preventivi. Meglio una foto frontale su carta bianca.</p></div>
+      </section>
+

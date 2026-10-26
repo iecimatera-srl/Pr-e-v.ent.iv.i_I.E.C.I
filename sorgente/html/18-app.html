@@ -1,0 +1,51 @@
+      <section class="card" data-panel="app">
+        <h2>Personalizza app</h2>
+        <div class="apv" id="ap-prev"></div>
+        <div class="apg"><b>Nome</b>
+          <div class="grid2"><label class="f">Nome evidenziato<input type="text" id="ap-name" placeholder="Automatico dalla ditta"></label>
+          <label class="f">Seguito da<input type="text" id="ap-suf" placeholder="preventivi"></label></div>
+        </div>
+        <div class="apg"><b>Logo</b>
+          <label class="f">Logo mostrato nell'app
+            <select id="ap-lmode"><option value="quote">Lo stesso dei preventivi</option><option value="own">Un logo diverso solo per l'app</option><option value="none">Nessun logo</option></select></label>
+          <div class="row"><label class="btn sm">Carica logo per l'app<input id="ap-file" type="file" accept="image/*,.svg" hidden></label>
+          <button class="btn ghost sm" id="ap-orig" type="button">Ripristina logo IECI originale</button>
+          <button class="btn ghost sm" id="ap-toq" type="button">Usalo anche nei preventivi</button></div>
+          <label class="f">Sfondo del logo
+            <select id="ap-lbg"><option value="keep">Lascia com'è</option><option value="out">Toglie lo sfondo esterno</option><option value="all">Toglie tutto il bianco</option></select></label>
+          <label class="f">Dimensione logo: <span id="ap-lsv"></span><input type="range" id="ap-lsize" min="36" max="160" step="2"></label>
+          <p class="hint">Il logo diverso vale solo per l'app: non cambia quello dei preventivi.</p>
+        </div>
+        <div class="apg"><b>Aspetto</b>
+          <div class="f">Temi pronti<div class="row" id="ap-themes"></div></div>
+          <label class="f">Tema<select id="ap-theme"><option value="auto">Automatico (come il dispositivo)</option><option value="light">Chiaro</option><option value="dark">Scuro</option></select></label>
+          <div class="f">Colore dell'app<div class="apsw" id="ap-sw"></div></div>
+          <div class="row"><label class="f" style="flex-direction:row;align-items:center;gap:8px">Colore a scelta <input type="color" id="ap-col"></label><button class="btn ghost sm" id="ap-colauto" type="button">Segui i colori del logo</button></div>
+          <div class="grid2"><label class="f">Grandezza testo<select id="ap-fz"><option value="0.92">Piccolo</option><option value="1">Normale</option><option value="1.12">Grande</option><option value="1.25">Molto grande</option></select></label>
+          <label class="f">Spaziatura<select id="ap-dens"><option value="c">Compatta</option><option value="n">Comoda</option></select></label></div>
+        </div>
+        <div class="apg"><b>Intestazione</b>
+          <label class="chk"><input type="checkbox" id="ap-sub">Mostra riga di benvenuto con data e preventivi in attesa</label>
+          <label class="f">Come ti chiamo?<input type="text" id="ap-greet" placeholder="Il tuo nome (facoltativo)"></label>
+        </div>
+        <div class="apg"><b>Foto dei prodotti</b>
+          <label class="chk"><input type="checkbox" id="ap-cut">Togli sempre lo sfondo alle foto che carico</label>
+          <label class="f">Forza della rimozione<select id="ap-cutt"><option value="22">Delicata (sfondo uniforme)</option><option value="38">Normale</option><option value="60">Forte (sfondi con sfumature)</option></select></label>
+          <label class="f">Alone attorno alle foto senza sfondo<select id="ap-halo"><option value="none">Nessuno</option><option value="soft">Discreto (consigliato)</option><option value="mid">Più marcato</option></select></label>
+          <div class="row"><button class="btn ghost sm" id="ap-cutall" type="button">Togli lo sfondo alle foto già caricate</button></div>
+          <p class="hint">Vale per le foto nuove dei prodotti, anche quelle prese dalle schede dei fornitori. Per ogni prodotto puoi scegliere se tenere o togliere lo sfondo. Se lo sfondo è troppo complicato la foto resta com'è.</p>
+          <label class="chk"><input type="checkbox" id="ap-autop">Crea la scheda in «Prodotti» quando aggiungo un articolo al preventivo</label>
+        </div>
+        <div class="apg" id="pin-box"><b>Blocco con PIN</b>
+          <div id="pn-off"><p class="hint" style="margin:0">Proteggi l'app con un PIN di 6 cifre: viene chiesto a ogni apertura e dopo un po' di inattività. Il PIN non è scritto da nessuna parte: sul dispositivo resta solo un'impronta cifrata.</p>
+          <div class="row"><button class="btn" id="pn-set" type="button">Imposta il PIN</button></div></div>
+          <div id="pn-on" hidden><p class="hint" style="margin:0"><b>PIN attivo.</b> L'app si blocca da sola quando non la usi.</p>
+          <label class="f">Blocca automaticamente<select id="pn-auto"><option value="-1">Solo quando apro l'app</option><option value="0">Appena esco dall'app</option><option value="1">Dopo 1 minuto</option><option value="5">Dopo 5 minuti</option><option value="15">Dopo 15 minuti</option><option value="60">Dopo 1 ora</option></select></label>
+          <div class="row"><button class="btn" id="pn-lock" type="button">Blocca ora</button><button class="btn ghost" id="pn-chg" type="button">Cambia PIN</button><button class="btn ghost" id="pn-del" type="button">Disattiva PIN</button></div></div>
+          <p class="hint" style="margin:0">Dopo 5 errori l'app aspetta (30 secondi, poi sempre di più). Se dimentichi il PIN serve il codice di recupero che ricevi quando lo imposti.</p>
+        </div>
+        <div class="apg"><b>Menu</b><p class="hint" style="margin:0">Cambia i nomi delle sezioni, il loro ordine, i gruppi e cosa mostrare.</p><div class="row"><button class="btn" id="ap-gomenu" type="button">Modifica nomi e ordine del menu</button></div></div>
+        <div class="row"><button class="btn ghost" id="ap-reset" type="button">Ripristina l'aspetto originale</button></div>
+        <p class="hint">Queste scelte valgono per questo dispositivo e si vedono subito.</p>
+      </section>
+

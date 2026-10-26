@@ -1,0 +1,43 @@
+      <section class="card" data-panel="fiducia">
+        <h2>Lavori, recensioni e contatti</h2>
+        <p class="hint">Una pagina che rassicura il cliente. Ogni blocco si accende o si spegne da qui o da Contenuto; i blocchi vuoti non compaiono.</p>
+        <label class="chk"><input type="checkbox" data-b="show.fiducia" data-after="content"><b>Includi la pagina nel fascicolo</b></label>
+        <div class="subs" style="padding-left:0">
+          <label class="chk"><input type="checkbox" data-b="show.trBA" data-after="content">Prima e dopo</label>
+          <label class="chk"><input type="checkbox" data-b="show.trWorks" data-after="content">Lavori eseguiti</label>
+          <label class="chk"><input type="checkbox" data-b="show.trRev" data-after="content">Recensioni</label>
+          <label class="chk"><input type="checkbox" data-b="show.trBrand" data-after="content">Marchi</label>
+          <label class="chk"><input type="checkbox" data-b="show.trQR" data-after="content">Contatti con link</label>
+        </div>
+        <h3>Prima e dopo (max 4)</h3>
+        <div class="lines" id="tr-ba"></div>
+        <div class="row"><button class="btn sm" id="ba-add" type="button">+ Aggiungi coppia di foto</button></div>
+        <h3>Lavori eseguiti (max 9 foto)</h3>
+        <p class="hint">Foto di impianti già realizzati, con una breve didascalia (es. «Fotovoltaico 6 kWp, Matera»).</p>
+        <div class="lines" id="tr-works"></div>
+        <div class="row"><label class="btn sm">+ Carica foto di lavori<input id="wk-file" type="file" accept="image/*" multiple hidden></label></div>
+        <h3>Recensioni dei clienti (max 6)</h3>
+        <p class="hint">Inserisci solo recensioni vere, con il consenso di chi le ha scritte.</p>
+        <div class="lines" id="tr-rev"></div>
+        <div class="row"><button class="btn sm" id="rev-add" type="button">+ Aggiungi recensione</button></div>
+        <h3>Marchi che installi, per categoria</h3>
+        <p class="hint">Ogni riga ha il suo titolo (per esempio Domotica, Videosorveglianza, Civile) e i suoi loghi. Le righe vuote non compaiono nel fascicolo.</p>
+        <div class="col" style="gap:10px" id="tr-brand"></div>
+        <div class="row"><button class="btn sm" id="bg-add" type="button">+ Nuova riga di marchi</button><button class="btn sm ghost" id="bg-from" type="button">Usa i loghi di un altro preventivo</button></div>
+        <p class="hint">I loghi dei marchi valgono per tutti i preventivi, vecchi e nuovi. Se in un preventivo salvato li avevi disposti meglio, toccando «Usa i loghi di un altro preventivo» scegli quello e diventano la disposizione di tutti.</p>
+        <h3>Contatti con link e icone</h3>
+        <label class="f">Titolo del blocco<input type="text" data-b="trust.qrTitle"></label>
+        <div class="subs" style="padding-left:0">
+          <label class="chk"><input type="checkbox" data-b="trust.qr.wa">WhatsApp (principale)</label>
+          <label class="chk"><input type="checkbox" data-b="trust.qr.wa2">WhatsApp (secondo numero)</label>
+          <label class="chk"><input type="checkbox" data-b="trust.qr.web">Sito web</label>
+          <label class="chk"><input type="checkbox" data-b="trust.qr.fb">Facebook</label>
+          <label class="chk"><input type="checkbox" data-b="trust.qr.ig">Instagram</label>
+          <label class="chk"><input type="checkbox" data-b="trust.qr.mail">Email</label>
+        </div>
+        <p class="hint">I contatti si modificano nella scheda Azienda. Compaiono con link anche in copertina (si spegne da Contenuto → Copertina).</p>
+        <h3>Icone dei social</h3>
+        <p class="hint">Carica le icone ufficiali di ogni social (PNG o SVG scaricati dalle pagine ufficiali dei marchi). Finché non ne carichi una, compare un'icona neutra.</p>
+        <div class="lines" id="ico-list"></div>
+      </section>
+

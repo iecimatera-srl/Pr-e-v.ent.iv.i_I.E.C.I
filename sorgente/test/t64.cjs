@@ -1,0 +1,40 @@
+const {chromium}=require('./_amb.cjs');
+let fail=0;const ok=(c,m)=>{console.log((c?'OK   ':'FAIL ')+m);if(!c)fail++;};
+(async()=>{const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+const p=await (await b.newContext({viewport:{width:420,height:900}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+p.on('dialog',d=>d.accept());
+await p.goto(require('./_amb.cjs').SRC);await p.waitForTimeout(1500);
+const S=(f,a)=>p.evaluate(f,a);
+const set=async(sel,v)=>{await p.fill(sel,v);await p.dispatchEvent(sel,'change');await p.waitForTimeout(200);};
+const doc=()=>S(()=>[...document.querySelectorAll('#doc section.page')].filter(e=>/Prodotti e soluzioni/i.test(e.innerText)).map(e=>e.innerText).join('\n'));
+await p.click('[data-m="vcit"]');await S(()=>{const s=window.IECI_T.S();s.lines=[];s.products=[];window.IECI_T.touch();});
+await p.click('#vc-fill');await p.waitForTimeout(300);
+await p.click('[data-vm="add:video:0"]');await set('[data-vmf="n:video:0"]','Monitor Wi-Fi 10');await set('[data-vmf="p:video:0"]','260');await set('[data-vmf="t:video:0"]','Schermo 10 pollici, app');
+let d=await doc();
+ok(/Modelli alternativi del monitor/i.test(d),'una soluzione: sezione dei modelli alternativi');
+ok(/Modello alternativo · a richiesta/i.test(d)&&/Surplus per questo monitor \+ 97,60/.test(d),'scheda alternativa con surplus');
+ok(/Schermo 10 pollici, app/.test(d),'caratteristiche del modello alternativo mostrate');
+ok(/Modello incluso nel prezzo/i.test(d),'modello base segnato come incluso');
+const order=await S(()=>{const a=[...document.querySelectorAll('#doc .prod')].map(e=>e.classList.contains('alt'));return a.indexOf(true)===a.length-1});ok(order,'alternativo dopo i prodotti inclusi');
+ok(!(await S(()=>!!document.querySelector('#doc .pgrp'))),'una sola soluzione: nessuna intestazione di gruppo');
+// entrambe
+await p.click('[data-vck="both"]');await p.waitForTimeout(400);
+d=await doc();
+ok(await S(()=>document.querySelectorAll('#doc .pgrp').length>=2),'entrambe: blocchi per soluzione');
+ok(await S(()=>document.querySelectorAll('#doc .pcmp-c').length===2),'entrambe: confronto in apertura');
+// piu marche
+await p.click('[data-vck="video"]');await p.waitForTimeout(300);
+await p.click('[data-vck="brands"]');await p.waitForTimeout(400);
+await set('[data-syf="b:0"]','Bticino');await set('[data-syf="b:1"]','Urmet');
+const ids=await S(()=>window.IECI_T.S().cond.sys.map(x=>x.id));
+await p.click('[data-vm="add:'+ids[1]+':0"]');await set('[data-vmf="n:'+ids[1]+':0"]','Urmet Miró');await set('[data-vmf="p:'+ids[1]+':0"]','290');
+const g=await S(()=>[...document.querySelectorAll('#doc .pgrp .pgrp-t')].map(e=>e.textContent));console.log(g.join(' / '));
+ok(g[0]==='Bticino'&&g[1]==='Urmet','più marche: un blocco per marca, nell\'ordine');
+const altIn=await S(()=>{const pg=[...document.querySelectorAll('#doc section.page')].find(e=>[...e.querySelectorAll('.prod.alt h3')].some(h=>/urmet miró/i.test(h.textContent)));return pg&&/Urmet/.test(pg.querySelector('.pgrp, .pgrp-mini').textContent)});
+ok(altIn,'il modello alternativo sta nel blocco della sua marca');
+ok(await S(()=>document.querySelectorAll('#doc .pcmp-c').length===2),'confronto tra le marche in apertura');
+ok(await S(()=>![...document.querySelectorAll('#doc .prod .solb')].length),'niente etichette ripetute dentro i blocchi');
+// altri tipi invariati
+await p.click('[data-m="dom"]');await p.waitForTimeout(300);
+ok(await S(()=>!document.querySelector('#doc .pgrp')&&!document.querySelector('#doc .altb')),'altri tipi di preventivo invariati');
+console.log(fail?'FAIL '+fail:'FAIL 0','ERR',JSON.stringify(errs));await b.close()})();

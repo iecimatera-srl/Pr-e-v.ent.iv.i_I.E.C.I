@@ -1,0 +1,32 @@
+/* copertina */
+.cover{padding:0;overflow:hidden}
+.cv-head{position:relative;display:flex;flex-direction:column;padding:44px 52px 40px;gap:0}
+.cv-top{position:relative;z-index:1;display:flex;justify-content:space-between;align-items:flex-start;gap:20px}
+.plate{background:#fff;padding:14px 18px;border-radius:4px;display:inline-flex;align-items:center;max-width:340px;color:#1A1D21}
+.plate .logo{max-height:112px;max-width:300px;object-fit:contain;display:block}
+.plate.plain{background:none;padding:0}
+.plate.plain .logo{max-height:130px;max-width:330px}
+.cover:not(.cv-line) .plate.plain .mark{color:var(--on1)}
+.cv-ref{text-align:right;font-size:11px;letter-spacing:.14em;text-transform:uppercase;line-height:1.6}
+.cv-ref b{display:block;font-family:var(--fd);font-size:30px;letter-spacing:.04em;line-height:1.1}
+.cv-mid{position:relative;z-index:1;margin-top:auto;padding-top:60px}
+.kicker{font-size:12px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;margin-bottom:14px;display:flex;align-items:center;gap:12px}
+.kicker::before{content:'';width:38px;height:4px;background:var(--b2);flex:none}
+.cv-mid h1{font-style:var(--fs);font-family:var(--fd);font-size:58px;line-height:1.02;text-transform:var(--tt);margin:0 0 16px;max-width:640px;letter-spacing:.005em}
+.cv-mid p{margin:0;font-size:15px;max-width:520px;opacity:.9}
+.circuit{position:absolute;right:0;bottom:0;pointer-events:none;color:var(--on1);opacity:.17}
+.cv-bot{padding:30px 52px 40px;display:grid;grid-template-columns:repeat(var(--n,3),1fr);gap:26px;font-size:12px;line-height:1.55}
+.cv-bot small{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;opacity:.7;margin-bottom:4px}
+.cv-bot b{font-size:15px;display:block}
+.cv-band .cv-head{background:var(--b1);color:var(--on1);min-height:700px;border-bottom:12px solid var(--b2)}
+.cv-band .cv-bot{flex:1;align-content:end}
+.cv-full{background:var(--b1);color:var(--on1)}
+.cv-full .cv-head{flex:1;min-height:700px}
+.cv-full .cv-bot{border-top:1px solid rgba(255,255,255,.28);margin-inline:52px;padding-inline:0}
+.cv-line{border-top:18px solid var(--b1)}
+.cv-line .cv-head{min-height:700px}
+.cv-line .plate{background:none;padding:0}
+.cv-line .circuit{color:var(--b1);opacity:.13}
+.cv-line .cv-mid h1{color:var(--b1t)}
+.cv-line .cv-bot{border-top:4px solid var(--b2);margin-inline:52px;padding-inline:0;flex:1;align-content:end}
+.cv-line .cv-ref b{color:var(--b1t)}

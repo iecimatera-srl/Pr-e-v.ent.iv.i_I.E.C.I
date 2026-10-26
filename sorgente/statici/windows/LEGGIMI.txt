@@ -1,0 +1,30 @@
+IECI PREVENTIVI - WINDOWS
+
+USO
+Doppio clic su "Avvia IECI preventivi.bat": si apre come applicazione con Microsoft Edge. Funziona anche senza internet.
+
+ICONA SUL DESKTOP
+Doppio clic su "Crea collegamento sul Desktop.bat" (una volta sola): compare l'icona "IECI preventivi" con il logo.
+Puoi trascinarla sulla barra delle applicazioni. Tieni la cartella dove si trova: l'icona punta a quella.
+Se un giorno sposti la cartella, rilancia quel file per ricreare l'icona.
+
+AGGIORNARE ALLA NUOVA VERSIONE (30 secondi, senza perdere nulla)
+1. Estrai il nuovo zip e copia la cartella sopra quella vecchia, scegliendo "Sostituisci i file".
+   (oppure copia solo il nuovo index.html sopra al vecchio)
+2. Apri il programma di sempre: i dati ci sono. In alto compare "Aggiornato alla versione ...: i tuoi dati sono intatti".
+Prima di toccare i dati, il programma salva da solo una copia di sicurezza interna
+(Archivio - "Aggiornare la versione senza perdere nulla" - "Copie prima di ogni aggiornamento").
+
+LA RETE DI SICUREZZA (fallo UNA volta, adesso)
+Archivio - "Copia automatica su file" - "Scegli la cartella dati" (ad esempio Documenti\IECI preventivi dati).
+Da quel momento ogni modifica viene scritta in un file in quella cartella, fuori dal programma.
+Se un giorno apri una versione "vuota" (altra cartella, altro browser, altro PC), compare un avviso:
+"Recupera dalla cartella dati", scegli la stessa cartella e ritrovi tutto.
+Dopo un riavvio Edge puo' chiedere di riconfermare il permesso: tocca "Riattiva".
+Se la cartella sta in OneDrive o Dropbox, i dati si copiano anche su altri PC.
+
+DA PC A PC / DA ANDROID A PC
+Archivio - "Salva copia di sicurezza", poi nel nuovo dispositivo "Ripristina da file" (Sostituisci tutto).
+
+GOOGLE DRIVE
+La sincronizzazione Drive richiede un indirizzo https: usa l'app online (pacchetto Android/PWA) anche su PC.

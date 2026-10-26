@@ -1,0 +1,28 @@
+      <section class="card" data-panel="documenti">
+        <h2>Documenti aggiuntivi</h2>
+        <p class="hint">Si generano con i dati del preventivo e si accodano al fascicolo (puoi spostarli dalla scheda Pagine). Sono spenti finché non li attivi.</p>
+        <div class="grp"><label class="chk"><input type="checkbox" data-b="show.conferma" data-after="content"><b>Conferma d'ordine</b></label>
+          <div class="grid2">
+            <label class="f">Inizio lavori<input type="date" data-b="docs.conferma.inizio"></label>
+            <label class="f">Fine prevista<input type="date" data-b="docs.conferma.fine"></label>
+            <label class="f">Acconto ricevuto (€)<input type="number" step="any" min="0" data-b="docs.conferma.accRic"></label>
+          </div>
+          <label class="f">Note<textarea data-b="docs.conferma.note"></textarea></label></div>
+        <div class="grp"><label class="chk"><input type="checkbox" data-b="show.lavoro" data-after="content"><b>Ordine di lavoro (interno, senza prezzi)</b></label>
+          <div class="grid2">
+            <label class="f">Data intervento<input type="date" data-b="docs.lavoro.data"></label>
+            <label class="f">Squadra<input type="text" data-b="docs.lavoro.squadra"></label>
+            <label class="f">Mezzi e attrezzature<input type="text" data-b="docs.lavoro.mezzi"></label>
+          </div>
+          <label class="f">Sicurezza<textarea data-b="docs.lavoro.sicurezza"></textarea></label>
+          <label class="f">Note<textarea data-b="docs.lavoro.note"></textarea></label></div>
+        <div class="grp"><label class="chk"><input type="checkbox" data-b="show.collaudo" data-after="content"><b>Verbale di collaudo</b></label>
+          <div class="grid2">
+            <label class="f">Data collaudo<input type="date" data-b="docs.collaudo.data"></label>
+            <label class="f">Tecnico<input type="text" data-b="docs.collaudo.tecnico"></label>
+          </div>
+          <label class="f">Prove e controlli (uno per riga; vuoto = elenco tipico del modello)<textarea data-b="docs.collaudo.list" style="min-height:130px"></textarea></label>
+          <div class="row"><button class="btn ghost sm" id="co-def" type="button">Carica l'elenco tipico del modello</button></div>
+          <label class="f">Note<textarea data-b="docs.collaudo.note"></textarea></label></div>
+      </section>
+

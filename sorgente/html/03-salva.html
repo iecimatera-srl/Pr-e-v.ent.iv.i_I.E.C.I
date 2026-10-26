@@ -1,0 +1,94 @@
+      <section class="card" data-panel="salva" id="salva">
+        <h2>Salvataggi e aggiornamenti</h2>
+        <div class="svd" id="sv-dash"></div>
+        <details class="acc" id="acc-bkf" open><summary><span>Copia di sicurezza su file</span></summary><div class="accb">
+        
+        <p class="res" id="bk-state"></p>
+        <div class="row"><button class="btn" id="db-exp" type="button">Salva copia di sicurezza</button><label class="btn ghost">Ripristina da file<input id="db-imp" type="file" accept="application/json,.json,.txt,text/plain" hidden></label></div>
+        <p class="hint">La copia è un solo file con tutto: clienti, prodotti, preventivi, listino, dati ditta e stile. Su telefono si apre il menu di condivisione (Drive, WhatsApp, email); su PC viene scaricata. Per passare da una versione all'altra, da PC ad Android o a un altro PC: salva la copia, apri l'altra versione e premi «Ripristina da file».</p>
+        <div class="subs" style="padding-left:0"><label class="chk"><input type="radio" name="imp-mode" value="merge" checked>Unisci a ciò che c'è già</label><label class="chk"><input type="radio" name="imp-mode" value="replace">Sostituisci tutto (ripristino completo)</label></div>
+        <details class="sv"><summary>Ripristina da testo copiato</summary><textarea id="db-txt" style="min-height:70px;font-size:.75rem;margin-top:8px"></textarea><div class="row" style="margin-top:8px"><button class="btn ghost sm" id="db-imp-txt" type="button">Ripristina</button>
+        </div></details>
+        <details class="acc" id="acc-auto"><summary><span>Salvataggi automatici di sicurezza</span></summary><div class="accb">
+        <p class="hint">Reti di sicurezza che lavorano da sole: una cartella dove il programma scrive ogni modifica, le copie fatte prima di ogni aggiornamento e la protezione dei dati del browser.</p>
+        <div class="row"><b>1. Copia automatica su file</b></div>
+        <p class="hint" id="mi-state"></p>
+        <div class="row"><button class="btn" id="mi-pick" type="button">Scegli la cartella dati</button><button class="btn ghost" id="mi-rest" type="button">Recupera i dati dalla cartella</button><button class="btn ghost" id="mi-on" type="button" hidden>Riattiva</button><button class="btn ghost" id="mi-off" type="button" hidden>Scollega</button></div>
+        <p class="hint">Scegli una cartella (ad esempio Documenti › Preventivi IECI dati). Da quel momento ogni modifica viene scritta in un file lì dentro, fuori dal programma: cambiando versione, browser o cartella basta indicare la stessa cartella e ritrovi tutto.</p>
+        <div class="row"><b>2. Copie prima di ogni aggiornamento</b></div>
+        <div class="lines" id="sn-list"></div>
+        <div class="row"><b>3. Protezione dei dati del browser</b></div>
+        <p class="hint" id="pe-state"></p>
+        <div class="row"><button class="btn ghost" id="pe-btn" type="button">Proteggi i dati</button></div>
+        <div class="row"><b>4. Recupera loghi e impostazioni dai preventivi salvati</b></div>
+        <p class="hint">Ogni preventivo salvato conserva una copia dei loghi dei marchi e delle impostazioni di quel momento. Se hai perso dei loghi, qui scegli un preventivo in cui c'erano ancora.</p>
+        <div class="lines" id="rc-list"></div>
+        
+        </div></details>
+        <details class="acc" id="acc-sync"><summary><span>Sincronizza telefono e computer</span></summary><div class="accb">
+        <h3>GitHub privato (consigliato)</h3>
+        <p class="hint">Gratis. Archivio, listino, dati ditta e stile restano uguali su telefono e computer. I dati stanno in un archivio <b>privato</b> del tuo account GitHub.</p>
+        <details class="sv"><summary>Prima volta? Guida passo passo (circa 5 minuti)</summary>
+          <ol class="hint" style="margin:8px 0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
+            <li><b>Crea l'archivio dei dati.</b> Su github.com tocca «+» in alto → «New repository». Nome: <b>preventivi-ieci-dati</b>. Scegli <b>Private</b> (importante). Spunta «Add a README file». Poi «Create repository».</li>
+            <li><b>Crea il codice di accesso.</b> Tocca la tua foto → Settings → in fondo «Developer settings» → Personal access tokens → <b>Fine-grained tokens</b> → «Generate new token».</li>
+            <li>Nome: <b>Preventivi IECI</b>. Scadenza: la più lunga disponibile. «Repository access»: <b>Only select repositories</b> e scegli <b>preventivi-ieci-dati</b>.</li>
+            <li>«Permissions» → «Repository permissions» → <b>Contents</b> → <b>Read and write</b>. Poi «Generate token» e <b>copia il codice</b> (inizia con github_pat_). Si vede una volta sola.</li>
+            <li><b>Qui sotto</b> scrivi <b>iltuoutente/preventivi-ieci-dati</b>, incolla il codice e premi «Collega e sincronizza».</li>
+            <li><b>Sugli altri dispositivi</b> ripeti solo il passo 5: stesso archivio, stesso codice (conservalo in un posto sicuro).</li>
+          </ol>
+        </details>
+        <label class="f">Archivio (utente/nome)<input type="text" id="gh-repo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="iltuoutente/preventivi-ieci-dati"></label>
+        <label class="f">Codice di accesso<input type="password" id="gh-token" autocomplete="off" placeholder="github_pat_…"></label>
+        <div class="row tokr"><button class="btn ghost sm" type="button" data-tokshow="gh-token">Mostra codice</button><button class="btn ghost sm" type="button" data-tokcp="gh-token">Copia codice</button></div>
+        <div class="row"><button class="btn" id="gh-on" type="button">Collega e sincronizza</button><button class="btn ghost" id="gh-sync" type="button">Sincronizza ora</button><button class="btn ghost" id="gh-off" type="button">Scollega</button></div>
+        <label class="chk"><input type="checkbox" id="gh-auto">Sincronizza da solo (all'apertura e dopo le modifiche)</label>
+        <p class="res" id="gh-state"></p>
+          <details class="sv"><summary>Alternativa avanzata: Google Drive</summary><div class="col" style="gap:10px;margin-top:10px">
+        <p class="hint">Archivio, listino, dati ditta e stile vengono salvati in una cartella riservata all'app nel tuo Drive e uniti su tutti i dispositivi. L'app non vede gli altri tuoi file.</p>
+        <details class="sv"><summary>Come ottenere il Client ID (una volta sola)</summary>
+          <ol class="hint" style="margin:8px 0;padding-left:18px;display:flex;flex-direction:column;gap:4px">
+            <li>Apri console.cloud.google.com e crea un progetto (es. «Preventivi IECI»).</li>
+            <li>API e servizi → Libreria: abilita «Google Drive API».</li>
+            <li>API e servizi → Schermata consenso OAuth: tipo «Esterno», nome app e tua email; poi «Pubblica app» (così l'accesso non scade).</li>
+            <li>Credenziali → Crea credenziali → ID client OAuth → Applicazione web. In «Origini JavaScript autorizzate» inserisci l'indirizzo mostrato qui sotto.</li>
+            <li>Copia l'ID client (finisce con .apps.googleusercontent.com) e incollalo qui.</li>
+          </ol>
+        </details>
+        <p class="hint">Indirizzo da autorizzare: <b id="gd-origin"></b></p>
+        <label class="f">Client ID Google<input type="text" id="gd-cid" autocomplete="off" placeholder="123456-abc.apps.googleusercontent.com"></label>
+        <div class="row"><button class="btn" id="gd-on" type="button">Collega Google Drive</button><button class="btn ghost" id="gd-sync" type="button">Sincronizza ora</button><button class="btn ghost" id="gd-off" type="button">Scollega</button></div>
+        <label class="chk"><input type="checkbox" id="gd-auto">Sincronizza da solo dopo le modifiche (mentre l'accesso è attivo)</label>
+        <p class="res" id="gd-state"></p>
+          </div></details>
+        </div></details>
+        <details class="acc" id="acc-pub"><summary><span>Pubblica una versione nuova su GitHub</span></summary><div class="accb">
+        <p class="hint">Niente più «Upload files»: scegli lo zip <b>IECI-preventivi-Android-PWA.zip</b>, il programma lo apre, lo carica sul tuo GitHub in un solo passaggio e tutti i dispositivi si aggiornano da soli. Funziona anche dal telefono. È gratis.</p>
+        <div class="grid2"><label class="f">Repository (utente/nome)<input type="text" id="pb-repo" placeholder="tuonome/preventivi" autocomplete="off" autocapitalize="off"></label><label class="f">Ramo<input type="text" id="pb-br" placeholder="main" autocomplete="off" autocapitalize="off"></label></div>
+        <label class="f">Token GitHub (resta solo su questo dispositivo)<input type="password" id="pb-tok" placeholder="github_pat_…" autocomplete="off"></label>
+        <div class="row tokr"><button class="btn ghost sm" type="button" data-tokshow="pb-tok">Mostra codice</button><button class="btn ghost sm" type="button" data-tokcp="pb-tok">Copia codice</button></div>
+        <details class="sv"><summary>Come creo il token (1 minuto, gratis)</summary><ol class="hint" style="margin:8px 0 0 18px;padding:0;line-height:1.5">
+          <li>Su github.com apri: Settings → Developer settings → Personal access tokens → <b>Fine-grained tokens</b> → Generate new token.</li>
+          <li>Nome a piacere, scadenza «No expiration» (o la più lunga), <b>Repository access → Only select repositories</b> e scegli il repository dell'app.</li>
+          <li>In «Repository permissions» imposta <b>Contents: Read and write</b>. Nient'altro.</li>
+          <li>Premi Generate token, copia il codice che inizia con <b>github_pat_</b> e incollalo qui sopra.</li>
+        </ol></details>
+        <div class="row"><label class="btn" id="pb-pick">Scegli lo zip e pubblica<input type="file" id="pb-file" accept=".zip,application/zip" hidden></label><button class="btn ghost sm" id="pb-clr" type="button">Dimentica il token</button></div>
+        <p class="res" id="pb-out" role="status"></p>
+        </div></details>
+        <details class="acc" id="acc-upd"><summary><span>Aggiornamenti e installazione</span></summary><div class="accb">
+        
+        <p class="res" id="up-ver"></p>
+        <label class="chk"><input type="checkbox" id="up-auto">Aggiorna da solo quando su GitHub c'è una versione nuova</label>
+        <p class="hint" id="up-stat"></p>
+        <p class="hint">Con l'app installata da GitHub Pages il controllo è automatico: all'apertura, quando torni sull'app e ogni 15 minuti. Se stai scrivendo aspetta che ti fermi, salva i dati e si ricarica da sola. Quando ricevi una nuova versione, la installi sopra a quella vecchia: i dati restano. In più, qui sotto hai tre reti di sicurezza che non richiedono di fare nulla a mano.</p>
+        
+        <div class="row"><button class="btn ghost" id="up-chk" type="button" hidden>Controlla aggiornamenti ora</button><button class="btn ghost" id="up-rl" type="button" hidden>Ricarica l'ultima versione</button></div>
+        <h3>Installare l'app sul telefono o sul PC</h3>
+        <p class="res" id="in-state"></p>
+        <div class="row"><button class="btn" id="in-btn" type="button" hidden>Installa IECI preventivi</button><button class="btn ghost" id="in-diag" type="button">Controlla l'installazione</button></div>
+        <pre class="res" id="in-out" hidden style="white-space:pre-wrap;font-size:.8rem;margin:0"></pre>
+        
+        </div></details>
+      </section>
+

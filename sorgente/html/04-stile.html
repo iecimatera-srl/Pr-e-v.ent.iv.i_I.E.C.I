@@ -1,0 +1,48 @@
+      <section class="card" data-panel="stile">
+        <h2>Stile e logo</h2>
+        <div class="logo-prev" id="logo-prev"></div>
+        <div class="row">
+          <label class="btn sm">Carica logo<input id="logo-file" type="file" accept="image/*,.svg" hidden></label>
+          <button class="btn ghost sm" id="logo-rm" type="button">Rimuovi logo</button>
+          <button class="btn ghost sm" id="logo-pal" type="button">Ricalcola colori dal logo</button>
+        </div>
+        <p class="hint">Carica il logo in PNG, JPG o SVG: i colori del fascicolo vengono ricavati da lì e li puoi correggere qui sotto.</p>
+        <label class="f">Logo in copertina
+          <select id="s-clogo">
+            <option value="white">Bianco, senza sfondo (consigliato sui colori)</option>
+            <option value="transp">Senza sfondo, colori originali</option>
+            <option value="plate">Su riquadro bianco</option>
+          </select>
+        </label>
+        <p class="hint">Lo sfondo bianco del logo viene tolto in automatico. Se hai un PNG già trasparente, caricalo: il risultato è ancora più pulito.</p>
+        <div class="grid2">
+          <label class="f">Colore principale<input id="s-b1" type="color"></label>
+          <label class="f">Colore secondario<input id="s-b2" type="color"></label>
+        </div>
+        <div class="grid2">
+          <label class="f">Carattere
+            <select id="s-font">
+              <option value="tec">Tecnico (Barlow)</option>
+              <option value="mod">Moderno (Manrope)</option>
+              <option value="cla">Classico (Playfair + Source Sans)</option>
+            </select>
+          </label>
+          <label class="f">Copertina
+            <select id="s-cover">
+              <option value="band">Banda colore in alto</option>
+              <option value="full">Tutta a colore</option>
+              <option value="line">Chiara con filetto</option>
+            </select>
+          </label>
+        </div>
+        <h3>Filigrana con il tuo logo</h3>
+        <label class="chk"><input type="checkbox" data-b="style.wmOn">Mostra la filigrana sulle pagine del fascicolo</label>
+        <div class="grid2">
+          <label class="f">Disposizione<select data-b="style.wmMode"><option value="tile">Ripetuta su tutta la pagina</option><option value="one">Una sola, grande, al centro</option></select></label>
+          <label class="f">Inclinazione<select data-b="style.wmRot" data-int="1"><option value="0">Dritta</option><option value="-8">Leggera</option><option value="-15">Media</option><option value="-30">Forte</option></select></label>
+        </div>
+        <label class="f">Intensità<input type="range" min="3" max="30" step="1" data-b="style.wmOp" data-int="1"></label>
+        <label class="f">Grandezza<input type="range" min="90" max="520" step="10" data-b="style.wmSize" data-int="1"></label>
+        <p class="hint">Usa il logo dei preventivi (lo cambi qui sopra). Non compare sulla copertina.</p>
+      </section>
+

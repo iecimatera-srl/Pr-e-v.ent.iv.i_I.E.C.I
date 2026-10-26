@@ -1,0 +1,16 @@
+      <section class="card" data-panel="piante">
+        <h2>Planimetria e posizioni</h2>
+        <p class="hint">Carica la pianta o uno schizzo, poi tocca la pianta per mettere i segnaposto numerati (luci, prese, telecamere, sensori…). Trascinali per spostarli, doppio tocco per eliminarli. La pagina compare nel fascicolo solo se la attivi da Contenuto o Pagine.</p>
+        <div class="row">
+          <label class="btn sm">Carica planimetria<input id="pl-file" type="file" accept="image/*" hidden></label>
+          <button class="btn ghost sm" id="pl-rm" type="button">Rimuovi pianta</button>
+          <button class="btn ghost sm" id="pl-clr" type="button">Cancella segnaposto</button>
+          <button class="btn ghost sm" id="pl-del" type="button">Elimina il selezionato</button>
+        </div>
+        <label class="chk"><input type="checkbox" data-b="show.planimetria" data-after="content">Includi la planimetria nel fascicolo</label>
+        <h3>Tipo di segnaposto</h3>
+        <div class="tabs" id="pl-types"></div>
+        <div id="pl-ed"></div>
+        <p class="hint" id="pl-count"></p>
+      </section>
+

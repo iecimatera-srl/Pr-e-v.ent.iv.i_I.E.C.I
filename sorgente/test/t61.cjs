@@ -1,0 +1,36 @@
+const {chromium}=require('./_amb.cjs');
+let fail=0;const ok=(c,m)=>{console.log((c?'OK   ':'FAIL ')+m);if(!c)fail++;};
+(async()=>{const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
+const p=await (await b.newContext({viewport:{width:420,height:900}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
+p.on('dialog',d=>d.accept());
+await p.goto(require('./_amb.cjs').SRC);await p.waitForTimeout(1500);
+const S=f=>p.evaluate(f);
+const set=async(f,v)=>{await p.fill('[data-vmf="'+f+'"]',String(v));await p.dispatchEvent('[data-vmf="'+f+'"]','change');await p.waitForTimeout(250);};
+const tot=()=>S(()=>document.querySelector('#doc .tots .grand span:last-child').textContent);
+await p.click('[data-m="vcit"]');await p.click('#vc-fill');await p.waitForTimeout(300);
+const t0=await tot();console.log('totale',t0);
+ok(!(await p.$('[data-vm^="pre:"]')),'nessuna preselezione');
+await p.click('[data-vm="add:video:0"]');await p.waitForTimeout(300);
+ok(await S(()=>{const o=window.IECI_T.S().cond.vm.video.o[0];return o.d===''&&o.n===''}),'modello nuovo vuoto');
+ok(!(await p.$('[data-vmf="q:video:0"]')),'nessun conteggio delle scelte');
+await set('n:video:0','Monitor 10" Wi-Fi');await set('p:video:0',260);
+await set('bn:video:0','Monitor Base M7');await set('bp:video:0',200);
+ok(await S(()=>{const l=window.IECI_T.S().lines.find(l=>l.vbk);return l&&l.d==='Monitor Base M7'&&l.p===200}),'la riga del base segue nome e prezzo');
+const t1=await tot();
+ok(await S(()=>!window.IECI_T.S().lines.some(l=>l.vm)),'nessuna riga del modello alternativo nel preventivo');
+await p.click('[data-vm="add:video:0"]');await p.waitForTimeout(300);await set('n:video:1','Monitor 4,3"');await set('p:video:1',150);
+const t2=await tot();console.log('totale con base 200',t1,'dopo i modelli',t2);
+ok(t1===t2,'il totale non cambia con i modelli alternativi');
+const box=await S(()=>document.querySelector('#doc .vmbox').innerText.replace(/\n+/g,' | '));console.log(box);
+ok(/Surplus per questo monitor: \+ 73,20 € IVA inclusa/.test(box),'voce a parte: surplus per questo monitor + 73,20');
+ok(/Riduzione per questo monitor: − 61,00/.test(box),'modello più economico: riduzione');
+ok(/non sono compresi nel totale/.test(box),'detto chiaramente che non sono nel totale');
+ok(/Incluso nel prezzo/i.test(box)&&/Monitor Base M7/.test(box),'modello base incluso');
+// totale libero: invariato
+await p.click('[data-vcp="totale"]');await p.waitForTimeout(300);
+await p.fill('[data-b="econ.total"]','1000');await p.dispatchEvent('[data-b="econ.total"]','input');await p.waitForTimeout(300);
+ok(/1\.000,00/.test(await S(()=>document.querySelector('#doc .tots .grand span:last-child').textContent)),'totale libero: invariato');
+// preventivo vecchio con righe variante: tolte
+const n=await S(()=>{const T=window.IECI_T;const st=JSON.parse(JSON.stringify(T.S()));st.lines.push({d:'Variante: X',u:'cad',q:2,p:80,vm:'a'});return T.normalize(st).lines.filter(l=>l.vm).length});
+ok(n===0,'righe variante dei preventivi vecchi tolte dal totale');
+console.log(fail?'FAIL '+fail:'FAIL 0','ERR',JSON.stringify(errs));await b.close()})();

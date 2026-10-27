@@ -117,9 +117,9 @@ function lineBrand(l){
   var nm=String(l.vmn||l.d||'').trim().toLowerCase(); if(!nm) return '';
   var p=null; if(l.pid) S.products.forEach(function(x){ if(x.id===l.pid) p=x; });
   if(!p) S.products.forEach(function(x){ if(!p&&String(x.name||'').trim().toLowerCase()===nm&&(!l.sy||!x.sys||x.sys===l.sy)) p=x; });
-  if((!p||!(p.brand||p.code))&&l.br) return '<div class="cap br">Marca: <b>'+esc(l.br)+'</b></div>';
-  if(!p||!(p.brand||p.code)) return '';
-  return '<div class="cap br">'+(p.brand?'Marca: <b>'+esc(p.brand)+'</b>':'')+(p.brand&&p.code?' · ':'')+(p.code?'Modello: '+esc(p.code):'')+'</div>';
+  var b=String(l.br||(p&&p.brand)||'').trim(), cd=p&&p.code?String(p.code):'';
+  if(!b&&!cd) return '';
+  return '<div class="cap br">'+(b?'Marca: <b>'+esc(b)+'</b>':'')+(b&&cd?' · ':'')+(cd?'Modello: '+esc(cd):'')+'</div>';
 }
 
 function vcBoxSys(j){

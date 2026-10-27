@@ -52,14 +52,39 @@ function autoProd(name,unit,extra){
   S.products.push({id:uid(),name:nm,brand:extra.brand||'',code:extra.code||'',desc:'',specs:'',link:'',tags:'',photos:[],sol:extra.sol||''});
   renderProducts(); return true;
 }
+// Preventivo → Prodotti: ricordo com'era la descrizione quando inizi a modificarla
+$('lines').addEventListener('focusin',function(e){ var t=e.target; if(t.getAttribute&&t.getAttribute('data-f')==='d'){ var row=t.closest('.line'), L=row&&S.lines[+row.getAttribute('data-i')]; if(L){ t.setAttribute('data-old',String(L.d||'')); var p0=prodOfLine(L); if(p0) L.pid=p0.id; } } });
 $('lines').addEventListener('change',function(e){
-  if(e.target.getAttribute('data-f')!=='d') return; var row=e.target.closest('.line'); if(!row) return;
+  var fb=e.target.getAttribute('data-f'); if(fb==='br'){ var rb=e.target.closest('.line'), Lb=rb&&S.lines[+rb.getAttribute('data-i')], pb=Lb&&prodOfLine(Lb); if(pb){ var nb=prodUsers(pb).length; toast('Marca «'+(Lb.br||'nessuna')+'» anche nella scheda «'+pb.name+'»'+(nb>1?' e nelle altre '+(nb-1)+' righe collegate':'')); } brDatalist(); return; }
+  if(fb!=='d') return; var row=e.target.closest('.line'); if(!row) return;
   var L=S.lines[+row.getAttribute('data-i')]; if(!L||!String(L.d||'').trim()) return;
-  var p=L.pid?prodById(L.pid):null;
+  var p=L.pid?prodById(L.pid):null, old=String(e.target.getAttribute('data-old')||'').trim(), nuovo=String(L.d).trim();
   var i=+row.getAttribute('data-i');
-  if(p&&!p.man&&prodUsers(p).length<=1){ if(p.name!==String(L.d).trim()){ p.name=String(L.d).trim(); libFill(p,L); renderProducts(); lineChip(i); touch(); toast('Scheda prodotto aggiornata: '+p.name); } return; }
+  if(p&&prodUsers(p).length<=1&&(!p.man||lcn(p.name)===lcn(old)||(old&&String(p.name).indexOf(old)>-1))){ if(p.name!==nuovo){ var pn=p.name; p.name=(lcn(pn)===lcn(old)||!p.man)?nuovo:String(pn).replace(old,nuovo); if(!p.man) libFill(p,L); renderProducts(); lineChip(i); touch(); toast('Anche la scheda in Prodotti ora si chiama «'+p.name+'»'); } e.target.setAttribute('data-old',nuovo); return; }
   var r=linkLine(L); if(r&&r.created){ renderProducts(); lineChip(i); touch(); toast('Scheda creata in Prodotti: '+r.p.name); } else lineChip(i);
 });
+/* Prodotti → Preventivo: cambiando nome o marca nella scheda, le righe collegate si correggono da sole */
+function prodLinkAll(p){ S.lines.forEach(function(l){ if(!l.vm&&prodOfLine(l)===p) l.pid=p.id; }); }
+// all'inizio della modifica fotografo come sono le righe collegate (testo prima e dopo il nome), così posso
+// riscriverle a ogni lettera senza perdere nulla, anche se cancelli tutto e riscrivi
+function prodSess(p,f,old){
+  var k=p.id+'|'+f; if(SYNC.sess&&SYNC.sess.k===k) return SYNC.sess;
+  old=String(old||''); var ov=lcn(old), R=[];
+  S.lines.forEach(function(l){ if(l.vm||l.pid!==p.id) return;
+    if(f==='name'){ ['d','vmn'].forEach(function(key){ if(l[key]==null) return; var t=String(l[key]), at=old?t.indexOf(old):-1;
+      if(lcn(t)===ov) R.push({l:l,key:key,pre:'',suf:''}); else if(at>-1) R.push({l:l,key:key,pre:t.slice(0,at),suf:t.slice(at+old.length)}); }); }
+    else if(!l.br||lcn(l.br)===ov) R.push({l:l,key:'br',pre:'',suf:''}); });
+  var V=[]; if(f==='name'&&old&&typeof vcOn==='function'&&vcOn()) vmKinds().forEach(function(kk){ vmData(kk).o.forEach(function(o){ if(vmHas(o)&&lcn(vmDn(o))===ov) V.push(o); }); });
+  SYNC.sess={k:k,r:R,v:V}; return SYNC.sess;
+}
+function prodSync(p,f,old,val){
+  var se=prodSess(p,f,old); val=String(val||'');
+  se.r.forEach(function(x){ x.l[x.key]=x.pre+val+x.suf; SYNC.set.add(x.l); }); SYNC.addT=Date.now();
+  if(se.v.length){ se.v.forEach(function(o){ o.n=val; }); vmSync(); }
+  var n=se.r.filter(function(x){ return x.key!=='vmn'; }).length+(se.v.length?1:0);
+  SYNC.n=n; if(n){ clearTimeout(SYNC.t); SYNC.t=setTimeout(function(){ renderLines(); },200); }
+  return n;
+}
 // aggiorna solo il collegamento alla scheda di quella riga: il resto dell'elenco (e il campo in cui stai scrivendo) non si tocca
 function lineChip(i){
   var row=$('lines').querySelector('.line[data-i="'+i+'"]'), L=S.lines[i]; if(!row||!L){ renderLines(); return; }
@@ -73,3 +98,11 @@ $('p-import').addEventListener('click',function(){
   toast(n?('Create '+n+' schede'+(lk?', '+lk+' già collegate':'')+': ordinate come le voci del preventivo'):'Tutte le voci con un prodotto hanno già la loro scheda');
 });
 
+// una marca per tutte le voci (materiali, non lavorazioni): righe e schede insieme
+$('l-brgo').addEventListener('click',function(){
+  var v=$('l-brall').value.trim(); if(!v){ toast('Scrivi la marca da applicare'); $('l-brall').focus(); return; }
+  var n=0, np=0, ps=[];
+  S.lines.forEach(function(l){ if(l.vm||l.off||(brOn()&&l.sy)) return; var p=prodOfLine(l); if(!p&&!prodWorthy(l)) return; l.br=v; n++; SYNC.set.add(l); SYNC.addT=Date.now(); if(p&&ps.indexOf(p)<0){ ps.push(p); p.brand=v; l.pid=p.id; np++; } });
+  if(!n){ toast(brOn()?'Nel confronto la marca si cambia nelle proposte qui sopra':'Nessuna voce di materiale a cui dare la marca'); return; }
+  $('l-brall').value=''; renderLines(); renderProducts(); touch(); toast('Marca «'+v+'» su '+n+' voci'+(np?' e '+np+' schede prodotto':''));
+});

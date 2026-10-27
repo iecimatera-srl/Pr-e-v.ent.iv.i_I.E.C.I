@@ -721,6 +721,17 @@ header.top{position:relative}
 .ma-t{flex:1;min-width:0;display:grid}.ma-t b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ma-t small{color:var(--muted);font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ma-t .ma-s{color:var(--accent)}
 .ma-b{display:flex;flex-direction:column;gap:4px}
 #ma-d .iw-q{flex-wrap:wrap}#ma-q{flex:1 1 200px}
+/* marca nelle righe */
+.lbr{display:flex;align-items:center;gap:8px;margin:6px 0 2px}
+.lbr input{flex:1 1 140px;min-width:0;max-width:260px;font:inherit;font-size:.88rem;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--field);color:var(--ink)}
+.lbr-lg{flex:none;display:flex;align-items:center;justify-content:center;height:26px;min-width:0}.lbr-lg:empty{display:none}
+.lbr-lg img{height:22px;max-width:76px;object-fit:contain;background:#fff;border-radius:6px;padding:2px 4px;border:1px solid var(--line)}
+.lbr-k{font-size:.7rem;color:var(--muted);white-space:nowrap}
+.lbulk{display:flex;flex-wrap:wrap;align-items:end;gap:8px;margin-bottom:8px}.lbulk .f{flex:1 1 200px;margin:0}
+.line.sync{animation:lsync 2.2s ease}
+@keyframes lsync{0%,40%{box-shadow:0 0 0 3px color-mix(in srgb,#15803D 55%,transparent);background:color-mix(in srgb,#15803D 8%,var(--surface))}100%{box-shadow:none}}
+@media (prefers-reduced-motion:reduce){.line.sync{animation:none;outline:2px solid #15803D}}
+.lbr-t{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
 </style>
 
 <div class="lock" id="lock" hidden role="dialog" aria-modal="true" aria-label="App bloccata">
@@ -1149,6 +1160,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
         <div class="cat" id="aq-list" style="max-height:230px"></div>
         </div></details>
         <details class="acc" id="acc-righe" open><summary><span>Righe del preventivo</span><em id="lines-count"></em></summary><div class="accb">
+        <div class="lbulk"><label class="f">Marca per tutte le voci<input type="text" id="l-brall" list="br-dl" placeholder="es. Vimar" autocomplete="off"></label><button class="btn ghost sm" id="l-brgo" type="button">Applica</button><datalist id="br-dl"></datalist></div>
         <div class="lines" id="lines"></div>
         <div class="row">
           <button class="btn ghost" id="add-free" type="button">+ Riga libera</button>
@@ -1489,7 +1501,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
 <script type="text/plain" id="pdfjs-wk" data-src="lib-pdfjs-worker.txt"></script>
 <script>
 var CAN_PRINT = true;
-var APP_VER = '2026.10.27.2';
+var APP_VER = '2026.10.27.3';
 (function(){
 'use strict';
 
@@ -2443,9 +2455,9 @@ function lineBrand(l){
   var nm=String(l.vmn||l.d||'').trim().toLowerCase(); if(!nm) return '';
   var p=null; if(l.pid) S.products.forEach(function(x){ if(x.id===l.pid) p=x; });
   if(!p) S.products.forEach(function(x){ if(!p&&String(x.name||'').trim().toLowerCase()===nm&&(!l.sy||!x.sys||x.sys===l.sy)) p=x; });
-  if((!p||!(p.brand||p.code))&&l.br) return '<div class="cap br">Marca: <b>'+esc(l.br)+'</b></div>';
-  if(!p||!(p.brand||p.code)) return '';
-  return '<div class="cap br">'+(p.brand?'Marca: <b>'+esc(p.brand)+'</b>':'')+(p.brand&&p.code?' · ':'')+(p.code?'Modello: '+esc(p.code):'')+'</div>';
+  var b=String(l.br||(p&&p.brand)||'').trim(), cd=p&&p.code?String(p.code):'';
+  if(!b&&!cd) return '';
+  return '<div class="cap br">'+(b?'Marca: <b>'+esc(b)+'</b>':'')+(b&&cd?' · ':'')+(cd?'Modello: '+esc(cd):'')+'</div>';
 }
 
 function vcBoxSys(j){
@@ -4100,7 +4112,7 @@ function renderLines0(){
     if(l.pc) extra+='<span class="hint">Per ogni condomino: la quantità segue il numero dei condomini ('+vcN()+')</span>';
     if(S.model==='app') extra+='<label class="f rsel">Stanza<select data-f="r">'+roomOpts(l.r)+'</select></label>';
     extra+=prodChip(l,i)+'</div>';
-    return '<div class="line'+(l.off?' off':'')+'" data-i="'+i+'"><div class="ltools"><span class="lnum">'+(i+1)+'</span><span class="sp"></span><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su"'+(i?'':' disabled')+'>▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù"'+(i<S.lines.length-1?'':' disabled')+'>▼</button><button type="button" class="lt" data-ldup="'+i+'">Duplica</button><button type="button" class="lt del" data-rm="'+i+'" aria-label="Rimuovi riga">Elimina</button></div><input type="text" data-f="d" value="'+esc(l.d)+'" aria-label="Descrizione"><div class="nums">'+
+    return '<div class="line'+(l.off?' off':'')+(SYNC.set.has(l)?' sync':'')+'" data-i="'+i+'"><div class="ltools"><span class="lnum">'+(i+1)+'</span><span class="sp"></span><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su"'+(i?'':' disabled')+'>▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù"'+(i<S.lines.length-1?'':' disabled')+'>▼</button><button type="button" class="lt" data-ldup="'+i+'">Duplica</button><button type="button" class="lt del" data-rm="'+i+'" aria-label="Rimuovi riga">Elimina</button></div><input type="text" data-f="d" value="'+esc(l.d)+'" aria-label="Descrizione">'+lineBrandHtml(l)+'<div class="nums">'+
       '<label class="f">Q.tà<input type="number" step="any" min="0" data-f="q" value="'+esc(l.q)+'"></label>'+
       '<label class="f">U.m.<input type="text" data-f="u" value="'+esc(l.u)+'"></label>'+
       (FREE()?'':'<label class="f">€ unit.<input type="number" step="any" min="0" data-f="p" value="'+esc(l.p)+'"></label>'+
@@ -4109,11 +4121,35 @@ function renderLines0(){
       (FREE()?'':'<span class="tot">'+eur(lineTotal(l))+'</span>')+
       '</div>'+extra+'</div>';
   };
+  brDatalist();
   if(S.model==='app'){
-    $('lines').innerHTML=groupLines(S.lines).map(function(g){
+    $('lines').innerHTML=docImgs(groupLines(S.lines).map(function(g){
       return '<div class="rgh"><span class="ri">'+roomSvg(g.room?g.room.kind:'ge','rsvg')+'</span><b>'+esc(groupName(g))+'</b><span class="rs">'+g.items.length+' · '+eur(groupSum(g))+'</span></div>'+g.items.map(function(x){ return lineHtml(x.l,x.i); }).join('');
-    }).join('');
-  } else $('lines').innerHTML=S.lines.map(lineHtml).join('');
+    }).join(''));
+  } else $('lines').innerHTML=docImgs(S.lines.map(lineHtml).join(''));
+  if(!$('lines').closest('[data-panel]').hidden) setTimeout(function(){ if(Date.now()-(SYNC.addT||0)>2400) SYNC.set=new WeakSet(); },2500);
+}
+/* marca nelle righe: si scrive qui oppure nella scheda Prodotti, e resta uguale nei due posti */
+var SYNC={set:new WeakSet(),t:0,n:0,rows:0};
+function lineBrandOf(l){ var p=prodOfLine(l); return String(l.br||(p&&p.brand)||'').trim(); }
+function lineBrandHtml(l){
+  if(l.vm) return ''; var p=prodOfLine(l), b=lineBrandOf(l); if(!b&&!p&&!prodWorthy(l)) return '';
+  var lg=b?brandLogo(b):'';
+  return '<div class="lbr"><span class="lbr-t">Marca</span><span class="lbr-lg">'+(lg?'<img src="'+lg+'" alt="">':'')+'</span><input type="text" data-f="br" value="'+esc(b)+'" placeholder="Marca (es. Bticino)" list="br-dl" aria-label="Marca" autocomplete="off">'+(p?'<span class="lbr-k" title="Nome e marca restano uguali a quelli della scheda in Prodotti">⇄ collegata alla scheda</span>':'')+'</div>';
+}
+var BRDL='';
+function brDatalist(){
+  var seen={}, L=[]; function add(b){ b=String(b||'').trim(); var k=b.toLowerCase(); if(b&&!seen[k]){ seen[k]=1; L.push(b); } }
+  S.lines.forEach(function(l){ add(l.br); }); S.products.forEach(function(p){ add(p.brand); }); (DB.logos||[]).forEach(function(x){ add(x.name); }); maVoci().forEach(function(m){ add(m.n); });
+  var h=L.map(function(b){ return '<option value="'+esc(b)+'">'; }).join(''); if(h!==BRDL){ BRDL=h; var dl=$('br-dl'); if(dl) dl.innerHTML=h; }
+}
+function lineBrandSet(L,v,row){
+  var ob=lineBrandOf(L); L.br=v; var p=prodOfLine(L), n=0;
+  if(p){ L.pid=p.id; var pb=p.brand||''; p.brand=v;
+    S.lines.forEach(function(x,k){ if(x===L||x.vm||prodOfLine(x)!==p) return; if(!x.br||lc(x.br)===lc(ob)||lc(x.br)===lc(pb)){ x.br=v; n++; var inp=$('lines').querySelector('.line[data-i="'+k+'"] [data-f="br"]'); if(inp&&inp!==document.activeElement) inp.value=v; } });
+    renderProducts(); }
+  var lg=row&&row.querySelector('.lbr-lg'); if(lg){ var u=v?brandLogo(v):''; lg.innerHTML=u?'<img src="'+imgBlob(u)+'" alt="">':''; }
+  return n;
 }
 var openP={}, MAXPH=6, MAXCP=4;
 // la scheda Prodotti (piena di foto) si ridisegna solo quando la guardi
@@ -4370,6 +4406,7 @@ $('lines').addEventListener('input',function(e){
     touch(); return;
   }
   var f=e.target.getAttribute('data-f'); if(!f) return;
+  if(f==='br'){ lineBrandSet(L,e.target.value,row); touch(); return; }
   if(f==='off'){ L.off=!e.target.checked; row.classList.toggle('off',!!L.off); touch(); return; }
   if(f==='r'){ if(e.target.value) L.r=e.target.value; else delete L.r; renderLines(); renderRooms(); touch(); return; }
   if(f==='opt'||f==='acc'){ L[f]=e.target.checked; if(f==='opt'&&!L.opt) delete L.acc; renderLines(); touch(); return; }
@@ -4454,10 +4491,23 @@ $('plist').addEventListener('input',function(e){
     touch(); return;
   }
   var f=e.target.getAttribute('data-pf'); if(!f) return;
-  var i=+e.target.getAttribute('data-pi'); S.products[i][f]=(f==='ps')?num(e.target.value):e.target.value;
+  var i=+e.target.getAttribute('data-pi'), pr0=S.products[i], old0=pr0[f];
+  if(f==='name'||f==='brand') prodLinkAll(pr0);
+  S.products[i][f]=(f==='ps')?num(e.target.value):e.target.value;
+  if(f==='name'||f==='brand') prodSync(pr0,f,old0,S.products[i][f]);
   if(f==='ps'){ var pv=e.target.closest('.pe').querySelector('.psv'); if(pv) pv.textContent=S.products[i].ps+'%'; }
   if(f==='name'){ S.products[i].man=true; var pn=e.target.closest('.pe').querySelector('.pn'); if(pn) pn.textContent=e.target.value||'Nuovo prodotto'; }
   touch();
+});
+// all'inizio della modifica: le righe collegate vengono «fotografate»
+$('plist').addEventListener('focusin',function(e){ var f=e.target.getAttribute&&e.target.getAttribute('data-pf'); if(f!=='name'&&f!=='brand') return; var p=S.products[+e.target.getAttribute('data-pi')]; if(!p) return; SYNC.sess=null; SYNC.n=0; prodLinkAll(p); prodSess(p,f,p[f]); });
+// a fine modifica: avviso di quante righe del preventivo sono state corrette, e il logo della marca aggiornato
+$('plist').addEventListener('change',function(e){
+  var f=e.target.getAttribute('data-pf'); if(f!=='name'&&f!=='brand') return;
+  var p=S.products[+e.target.getAttribute('data-pi')]; if(!p) return; var n=SYNC.n; SYNC.n=0; SYNC.sess=null;
+  if(n) toast((f==='name'?'Nome':'Marca')+' aggiornat'+(f==='name'?'o':'a')+' anche in '+n+(n===1?' riga':' righe')+' del preventivo');
+  if(f==='brand'){ renderProducts(); brDatalist(); }
+  else { var info=e.target.closest('.pe').querySelector('.plink'); if(info){ var t=document.createElement('template'); t.innerHTML=prodLinkInfo(p,+e.target.getAttribute('data-pi')); info.replaceWith(t.content.firstChild); } }
 });
 $('plist').addEventListener('click',function(e){
   var rp=e.target.closest('[data-rpdf]');
@@ -4651,14 +4701,39 @@ function autoProd(name,unit,extra){
   S.products.push({id:uid(),name:nm,brand:extra.brand||'',code:extra.code||'',desc:'',specs:'',link:'',tags:'',photos:[],sol:extra.sol||''});
   renderProducts(); return true;
 }
+// Preventivo → Prodotti: ricordo com'era la descrizione quando inizi a modificarla
+$('lines').addEventListener('focusin',function(e){ var t=e.target; if(t.getAttribute&&t.getAttribute('data-f')==='d'){ var row=t.closest('.line'), L=row&&S.lines[+row.getAttribute('data-i')]; if(L){ t.setAttribute('data-old',String(L.d||'')); var p0=prodOfLine(L); if(p0) L.pid=p0.id; } } });
 $('lines').addEventListener('change',function(e){
-  if(e.target.getAttribute('data-f')!=='d') return; var row=e.target.closest('.line'); if(!row) return;
+  var fb=e.target.getAttribute('data-f'); if(fb==='br'){ var rb=e.target.closest('.line'), Lb=rb&&S.lines[+rb.getAttribute('data-i')], pb=Lb&&prodOfLine(Lb); if(pb){ var nb=prodUsers(pb).length; toast('Marca «'+(Lb.br||'nessuna')+'» anche nella scheda «'+pb.name+'»'+(nb>1?' e nelle altre '+(nb-1)+' righe collegate':'')); } brDatalist(); return; }
+  if(fb!=='d') return; var row=e.target.closest('.line'); if(!row) return;
   var L=S.lines[+row.getAttribute('data-i')]; if(!L||!String(L.d||'').trim()) return;
-  var p=L.pid?prodById(L.pid):null;
+  var p=L.pid?prodById(L.pid):null, old=String(e.target.getAttribute('data-old')||'').trim(), nuovo=String(L.d).trim();
   var i=+row.getAttribute('data-i');
-  if(p&&!p.man&&prodUsers(p).length<=1){ if(p.name!==String(L.d).trim()){ p.name=String(L.d).trim(); libFill(p,L); renderProducts(); lineChip(i); touch(); toast('Scheda prodotto aggiornata: '+p.name); } return; }
+  if(p&&prodUsers(p).length<=1&&(!p.man||lcn(p.name)===lcn(old)||(old&&String(p.name).indexOf(old)>-1))){ if(p.name!==nuovo){ var pn=p.name; p.name=(lcn(pn)===lcn(old)||!p.man)?nuovo:String(pn).replace(old,nuovo); if(!p.man) libFill(p,L); renderProducts(); lineChip(i); touch(); toast('Anche la scheda in Prodotti ora si chiama «'+p.name+'»'); } e.target.setAttribute('data-old',nuovo); return; }
   var r=linkLine(L); if(r&&r.created){ renderProducts(); lineChip(i); touch(); toast('Scheda creata in Prodotti: '+r.p.name); } else lineChip(i);
 });
+/* Prodotti → Preventivo: cambiando nome o marca nella scheda, le righe collegate si correggono da sole */
+function prodLinkAll(p){ S.lines.forEach(function(l){ if(!l.vm&&prodOfLine(l)===p) l.pid=p.id; }); }
+// all'inizio della modifica fotografo come sono le righe collegate (testo prima e dopo il nome), così posso
+// riscriverle a ogni lettera senza perdere nulla, anche se cancelli tutto e riscrivi
+function prodSess(p,f,old){
+  var k=p.id+'|'+f; if(SYNC.sess&&SYNC.sess.k===k) return SYNC.sess;
+  old=String(old||''); var ov=lcn(old), R=[];
+  S.lines.forEach(function(l){ if(l.vm||l.pid!==p.id) return;
+    if(f==='name'){ ['d','vmn'].forEach(function(key){ if(l[key]==null) return; var t=String(l[key]), at=old?t.indexOf(old):-1;
+      if(lcn(t)===ov) R.push({l:l,key:key,pre:'',suf:''}); else if(at>-1) R.push({l:l,key:key,pre:t.slice(0,at),suf:t.slice(at+old.length)}); }); }
+    else if(!l.br||lcn(l.br)===ov) R.push({l:l,key:'br',pre:'',suf:''}); });
+  var V=[]; if(f==='name'&&old&&typeof vcOn==='function'&&vcOn()) vmKinds().forEach(function(kk){ vmData(kk).o.forEach(function(o){ if(vmHas(o)&&lcn(vmDn(o))===ov) V.push(o); }); });
+  SYNC.sess={k:k,r:R,v:V}; return SYNC.sess;
+}
+function prodSync(p,f,old,val){
+  var se=prodSess(p,f,old); val=String(val||'');
+  se.r.forEach(function(x){ x.l[x.key]=x.pre+val+x.suf; SYNC.set.add(x.l); }); SYNC.addT=Date.now();
+  if(se.v.length){ se.v.forEach(function(o){ o.n=val; }); vmSync(); }
+  var n=se.r.filter(function(x){ return x.key!=='vmn'; }).length+(se.v.length?1:0);
+  SYNC.n=n; if(n){ clearTimeout(SYNC.t); SYNC.t=setTimeout(function(){ renderLines(); },200); }
+  return n;
+}
 // aggiorna solo il collegamento alla scheda di quella riga: il resto dell'elenco (e il campo in cui stai scrivendo) non si tocca
 function lineChip(i){
   var row=$('lines').querySelector('.line[data-i="'+i+'"]'), L=S.lines[i]; if(!row||!L){ renderLines(); return; }
@@ -4672,6 +4747,14 @@ $('p-import').addEventListener('click',function(){
   toast(n?('Create '+n+' schede'+(lk?', '+lk+' già collegate':'')+': ordinate come le voci del preventivo'):'Tutte le voci con un prodotto hanno già la loro scheda');
 });
 
+// una marca per tutte le voci (materiali, non lavorazioni): righe e schede insieme
+$('l-brgo').addEventListener('click',function(){
+  var v=$('l-brall').value.trim(); if(!v){ toast('Scrivi la marca da applicare'); $('l-brall').focus(); return; }
+  var n=0, np=0, ps=[];
+  S.lines.forEach(function(l){ if(l.vm||l.off||(brOn()&&l.sy)) return; var p=prodOfLine(l); if(!p&&!prodWorthy(l)) return; l.br=v; n++; SYNC.set.add(l); SYNC.addT=Date.now(); if(p&&ps.indexOf(p)<0){ ps.push(p); p.brand=v; l.pid=p.id; np++; } });
+  if(!n){ toast(brOn()?'Nel confronto la marca si cambia nelle proposte qui sopra':'Nessuna voce di materiale a cui dare la marca'); return; }
+  $('l-brall').value=''; renderLines(); renderProducts(); touch(); toast('Marca «'+v+'» su '+n+' voci'+(np?' e '+np+' schede prodotto':''));
+});
 /* ---------- binder generico (data-b) ---------- */
 function getPath(p){ var a=p.split('.'),o=S,i; for(i=0;i<a.length;i++){ if(o==null) return ''; o=o[a[i]]; } return o; }
 function setPath(p,v){ var a=p.split('.'),o=S,i; for(i=0;i<a.length-1;i++){ if(o[a[i]]==null) o[a[i]]={}; o=o[a[i]]; } o[a[a.length-1]]=v; }
@@ -7378,7 +7461,7 @@ function ckDo(x){
   if($('ck-box')) $('ck-box').addEventListener('click',h);
   if($('sh-ck')) $('sh-ck').addEventListener('click',h);
 })();
-(function(T){ if(!T) return; T.DB=function(){ return DB; }; T.APP=function(){ return APP; }; T.iwScan=iwScan; T.iwProd=iwProd; T.iwFill=iwFill; T.linkLine=linkLine; T.ckList=ckList; T.asNorm=asNorm; T.asAnalizza=asAnalizza; T.prVoci=prVoci; T.prCerca=prCerca; T.maVoci=maVoci; T.buildPdf=buildPdf; T.prodotti=function(){ renderProducts(true); }; })(window.IECI_T);
+(function(T){ if(!T) return; T.DB=function(){ return DB; }; T.APP=function(){ return APP; }; T.iwScan=iwScan; T.iwProd=iwProd; T.iwFill=iwFill; T.linkLine=linkLine; T.ckList=ckList; T.asNorm=asNorm; T.asAnalizza=asAnalizza; T.prVoci=prVoci; T.prCerca=prCerca; T.maVoci=maVoci; T.buildPdf=buildPdf; T.prodotti=function(){ renderProducts(true); }; T.renderAll=renderAll; })(window.IECI_T);
 /* ---------- pubblicazione su GitHub (un solo tocco) ---------- */
 function zipRead(buf){
   var u=new Uint8Array(buf), dv=new DataView(buf), i, eocd=-1;

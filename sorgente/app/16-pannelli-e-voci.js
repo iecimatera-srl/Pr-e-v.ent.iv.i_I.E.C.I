@@ -49,7 +49,7 @@ function renderLines0(){
     if(l.pc) extra+='<span class="hint">Per ogni condomino: la quantità segue il numero dei condomini ('+vcN()+')</span>';
     if(S.model==='app') extra+='<label class="f rsel">Stanza<select data-f="r">'+roomOpts(l.r)+'</select></label>';
     extra+=prodChip(l,i)+'</div>';
-    return '<div class="line'+(l.off?' off':'')+'" data-i="'+i+'"><div class="ltools"><span class="lnum">'+(i+1)+'</span><span class="sp"></span><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su"'+(i?'':' disabled')+'>▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù"'+(i<S.lines.length-1?'':' disabled')+'>▼</button><button type="button" class="lt" data-ldup="'+i+'">Duplica</button><button type="button" class="lt del" data-rm="'+i+'" aria-label="Rimuovi riga">Elimina</button></div><input type="text" data-f="d" value="'+esc(l.d)+'" aria-label="Descrizione"><div class="nums">'+
+    return '<div class="line'+(l.off?' off':'')+(SYNC.set.has(l)?' sync':'')+'" data-i="'+i+'"><div class="ltools"><span class="lnum">'+(i+1)+'</span><span class="sp"></span><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su"'+(i?'':' disabled')+'>▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù"'+(i<S.lines.length-1?'':' disabled')+'>▼</button><button type="button" class="lt" data-ldup="'+i+'">Duplica</button><button type="button" class="lt del" data-rm="'+i+'" aria-label="Rimuovi riga">Elimina</button></div><input type="text" data-f="d" value="'+esc(l.d)+'" aria-label="Descrizione">'+lineBrandHtml(l)+'<div class="nums">'+
       '<label class="f">Q.tà<input type="number" step="any" min="0" data-f="q" value="'+esc(l.q)+'"></label>'+
       '<label class="f">U.m.<input type="text" data-f="u" value="'+esc(l.u)+'"></label>'+
       (FREE()?'':'<label class="f">€ unit.<input type="number" step="any" min="0" data-f="p" value="'+esc(l.p)+'"></label>'+
@@ -58,11 +58,35 @@ function renderLines0(){
       (FREE()?'':'<span class="tot">'+eur(lineTotal(l))+'</span>')+
       '</div>'+extra+'</div>';
   };
+  brDatalist();
   if(S.model==='app'){
-    $('lines').innerHTML=groupLines(S.lines).map(function(g){
+    $('lines').innerHTML=docImgs(groupLines(S.lines).map(function(g){
       return '<div class="rgh"><span class="ri">'+roomSvg(g.room?g.room.kind:'ge','rsvg')+'</span><b>'+esc(groupName(g))+'</b><span class="rs">'+g.items.length+' · '+eur(groupSum(g))+'</span></div>'+g.items.map(function(x){ return lineHtml(x.l,x.i); }).join('');
-    }).join('');
-  } else $('lines').innerHTML=S.lines.map(lineHtml).join('');
+    }).join(''));
+  } else $('lines').innerHTML=docImgs(S.lines.map(lineHtml).join(''));
+  if(!$('lines').closest('[data-panel]').hidden) setTimeout(function(){ if(Date.now()-(SYNC.addT||0)>2400) SYNC.set=new WeakSet(); },2500);
+}
+/* marca nelle righe: si scrive qui oppure nella scheda Prodotti, e resta uguale nei due posti */
+var SYNC={set:new WeakSet(),t:0,n:0,rows:0};
+function lineBrandOf(l){ var p=prodOfLine(l); return String(l.br||(p&&p.brand)||'').trim(); }
+function lineBrandHtml(l){
+  if(l.vm) return ''; var p=prodOfLine(l), b=lineBrandOf(l); if(!b&&!p&&!prodWorthy(l)) return '';
+  var lg=b?brandLogo(b):'';
+  return '<div class="lbr"><span class="lbr-t">Marca</span><span class="lbr-lg">'+(lg?'<img src="'+lg+'" alt="">':'')+'</span><input type="text" data-f="br" value="'+esc(b)+'" placeholder="Marca (es. Bticino)" list="br-dl" aria-label="Marca" autocomplete="off">'+(p?'<span class="lbr-k" title="Nome e marca restano uguali a quelli della scheda in Prodotti">⇄ collegata alla scheda</span>':'')+'</div>';
+}
+var BRDL='';
+function brDatalist(){
+  var seen={}, L=[]; function add(b){ b=String(b||'').trim(); var k=b.toLowerCase(); if(b&&!seen[k]){ seen[k]=1; L.push(b); } }
+  S.lines.forEach(function(l){ add(l.br); }); S.products.forEach(function(p){ add(p.brand); }); (DB.logos||[]).forEach(function(x){ add(x.name); }); maVoci().forEach(function(m){ add(m.n); });
+  var h=L.map(function(b){ return '<option value="'+esc(b)+'">'; }).join(''); if(h!==BRDL){ BRDL=h; var dl=$('br-dl'); if(dl) dl.innerHTML=h; }
+}
+function lineBrandSet(L,v,row){
+  var ob=lineBrandOf(L); L.br=v; var p=prodOfLine(L), n=0;
+  if(p){ L.pid=p.id; var pb=p.brand||''; p.brand=v;
+    S.lines.forEach(function(x,k){ if(x===L||x.vm||prodOfLine(x)!==p) return; if(!x.br||lc(x.br)===lc(ob)||lc(x.br)===lc(pb)){ x.br=v; n++; var inp=$('lines').querySelector('.line[data-i="'+k+'"] [data-f="br"]'); if(inp&&inp!==document.activeElement) inp.value=v; } });
+    renderProducts(); }
+  var lg=row&&row.querySelector('.lbr-lg'); if(lg){ var u=v?brandLogo(v):''; lg.innerHTML=u?'<img src="'+imgBlob(u)+'" alt="">':''; }
+  return n;
 }
 var openP={}, MAXPH=6, MAXCP=4;
 // la scheda Prodotti (piena di foto) si ridisegna solo quando la guardi
@@ -319,6 +343,7 @@ $('lines').addEventListener('input',function(e){
     touch(); return;
   }
   var f=e.target.getAttribute('data-f'); if(!f) return;
+  if(f==='br'){ lineBrandSet(L,e.target.value,row); touch(); return; }
   if(f==='off'){ L.off=!e.target.checked; row.classList.toggle('off',!!L.off); touch(); return; }
   if(f==='r'){ if(e.target.value) L.r=e.target.value; else delete L.r; renderLines(); renderRooms(); touch(); return; }
   if(f==='opt'||f==='acc'){ L[f]=e.target.checked; if(f==='opt'&&!L.opt) delete L.acc; renderLines(); touch(); return; }

@@ -89,3 +89,14 @@
 .ma-t{flex:1;min-width:0;display:grid}.ma-t b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ma-t small{color:var(--muted);font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ma-t .ma-s{color:var(--accent)}
 .ma-b{display:flex;flex-direction:column;gap:4px}
 #ma-d .iw-q{flex-wrap:wrap}#ma-q{flex:1 1 200px}
+/* marca nelle righe */
+.lbr{display:flex;align-items:center;gap:8px;margin:6px 0 2px}
+.lbr input{flex:1 1 140px;min-width:0;max-width:260px;font:inherit;font-size:.88rem;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--field);color:var(--ink)}
+.lbr-lg{flex:none;display:flex;align-items:center;justify-content:center;height:26px;min-width:0}.lbr-lg:empty{display:none}
+.lbr-lg img{height:22px;max-width:76px;object-fit:contain;background:#fff;border-radius:6px;padding:2px 4px;border:1px solid var(--line)}
+.lbr-k{font-size:.7rem;color:var(--muted);white-space:nowrap}
+.lbulk{display:flex;flex-wrap:wrap;align-items:end;gap:8px;margin-bottom:8px}.lbulk .f{flex:1 1 200px;margin:0}
+.line.sync{animation:lsync 2.2s ease}
+@keyframes lsync{0%,40%{box-shadow:0 0 0 3px color-mix(in srgb,#15803D 55%,transparent);background:color-mix(in srgb,#15803D 8%,var(--surface))}100%{box-shadow:none}}
+@media (prefers-reduced-motion:reduce){.line.sync{animation:none;outline:2px solid #15803D}}
+.lbr-t{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}

@@ -49,10 +49,23 @@ $('plist').addEventListener('input',function(e){
     touch(); return;
   }
   var f=e.target.getAttribute('data-pf'); if(!f) return;
-  var i=+e.target.getAttribute('data-pi'); S.products[i][f]=(f==='ps')?num(e.target.value):e.target.value;
+  var i=+e.target.getAttribute('data-pi'), pr0=S.products[i], old0=pr0[f];
+  if(f==='name'||f==='brand') prodLinkAll(pr0);
+  S.products[i][f]=(f==='ps')?num(e.target.value):e.target.value;
+  if(f==='name'||f==='brand') prodSync(pr0,f,old0,S.products[i][f]);
   if(f==='ps'){ var pv=e.target.closest('.pe').querySelector('.psv'); if(pv) pv.textContent=S.products[i].ps+'%'; }
   if(f==='name'){ S.products[i].man=true; var pn=e.target.closest('.pe').querySelector('.pn'); if(pn) pn.textContent=e.target.value||'Nuovo prodotto'; }
   touch();
+});
+// all'inizio della modifica: le righe collegate vengono «fotografate»
+$('plist').addEventListener('focusin',function(e){ var f=e.target.getAttribute&&e.target.getAttribute('data-pf'); if(f!=='name'&&f!=='brand') return; var p=S.products[+e.target.getAttribute('data-pi')]; if(!p) return; SYNC.sess=null; SYNC.n=0; prodLinkAll(p); prodSess(p,f,p[f]); });
+// a fine modifica: avviso di quante righe del preventivo sono state corrette, e il logo della marca aggiornato
+$('plist').addEventListener('change',function(e){
+  var f=e.target.getAttribute('data-pf'); if(f!=='name'&&f!=='brand') return;
+  var p=S.products[+e.target.getAttribute('data-pi')]; if(!p) return; var n=SYNC.n; SYNC.n=0; SYNC.sess=null;
+  if(n) toast((f==='name'?'Nome':'Marca')+' aggiornat'+(f==='name'?'o':'a')+' anche in '+n+(n===1?' riga':' righe')+' del preventivo');
+  if(f==='brand'){ renderProducts(); brDatalist(); }
+  else { var info=e.target.closest('.pe').querySelector('.plink'); if(info){ var t=document.createElement('template'); t.innerHTML=prodLinkInfo(p,+e.target.getAttribute('data-pi')); info.replaceWith(t.content.firstChild); } }
 });
 $('plist').addEventListener('click',function(e){
   var rp=e.target.closest('[data-rpdf]');

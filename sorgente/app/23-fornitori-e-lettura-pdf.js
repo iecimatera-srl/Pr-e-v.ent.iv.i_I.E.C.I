@@ -185,13 +185,14 @@ function parseLines(lines){
 var PDFJS=null;
 function loadPdfjs(cb){
   if(PDFJS){ cb(null,PDFJS); return; }
-  var a=document.getElementById('pdfjs-lib'), b=document.getElementById('pdfjs-wk');
-  if(!a||!b){ cb(new Error('Lettore PDF non incluso in questa versione.')); return; }
-  try{
-    var bytes=function(el){ var s=atob(el.textContent.replace(/\s+/g,'')), u=new Uint8Array(s.length); for(var i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; };
-    var lib=URL.createObjectURL(new Blob([bytes(a)],{type:'text/javascript'})), wk=URL.createObjectURL(new Blob([bytes(b)],{type:'text/javascript'}));
-    import(lib).then(function(m){ m.GlobalWorkerOptions.workerSrc=wk; PDFJS=m; cb(null,m); }).catch(function(e){ cb(e); });
-  }catch(e){ cb(e); }
+  Promise.all([libText('pdfjs-lib'),libText('pdfjs-wk')]).then(function(t){
+    if(!t[0]||!t[1]){ cb(new Error('Lettore PDF non disponibile: controlla la connessione e riprova.')); return; }
+    try{
+      var bytes=function(x){ var s=atob(x.replace(/\s+/g,'')), u=new Uint8Array(s.length); for(var i=0;i<s.length;i++) u[i]=s.charCodeAt(i); return u; };
+      var lib=URL.createObjectURL(new Blob([bytes(t[0])],{type:'text/javascript'})), wk=URL.createObjectURL(new Blob([bytes(t[1])],{type:'text/javascript'}));
+      import(lib).then(function(m){ m.GlobalWorkerOptions.workerSrc=wk; PDFJS=m; cb(null,m); }).catch(function(e){ cb(e); });
+    }catch(e){ cb(e); }
+  });
 }
 function loadTess(cb){
   if(window.Tesseract){ cb(); return; }

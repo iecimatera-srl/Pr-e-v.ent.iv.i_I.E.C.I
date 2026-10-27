@@ -69,7 +69,9 @@ export function costruisci({ pubblica = false } = {}) {
   if (nf !== 1) throw new Error('favicon non trovata');
   const pdfLib = rd('librerie/pdf-lib.min.js');
   const k = m.indexOf('<script>');
-  const body = m.slice(0, k) + '<script>' + pdfLib + '</script>\n' + m.slice(k);
+  // pdf-lib (oltre 500 KB) resta testo: si avvia solo quando serve un PDF, così l'app parte prima
+  if (pdfLib.includes('</script')) throw new Error('pdf-lib contiene </script>');
+  const body = m.slice(0, k) + '<script type="text/plain" id="pdflib-lib">' + pdfLib + '</script>\n' + m.slice(k);
   const head = vp => '<!doctype html>\n<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1' + vp + '">\n';
   const singolo = head('') + body + '</body></html>';
   const APPV = (m.match(/var APP_VER = '([^']+)'/) || [])[1];
@@ -97,7 +99,16 @@ pause
   const A = path.join(DIST, 'android', 'IECI preventivi app');
   const sw = "<script>if('serviceWorker' in navigator){var __had=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',function(){if(__had&&window.ieciUpdated)window.ieciUpdated();});window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').then(function(r){r.update();document.addEventListener('visibilitychange',function(){if(!document.hidden)r.update();});}).catch(function(){});});}</script>\n";
   const pwa = head(',viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest" crossorigin="use-credentials"><link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#2F65AE"><link rel="apple-touch-icon" href="icon-180.png') + body + sw + '</body></html>';
-  wr(path.join(A, 'index.html'), pwa);
+  // nell'app installata (PWA) le librerie PDF diventano file a parte: la pagina pesa un terzo e si apre prima
+  const LIBS = [['pdfjs-lib', 'lib-pdfjs.txt'], ['pdfjs-wk', 'lib-pdfjs-worker.txt'], ['pdflib-lib', 'lib-pdf.js']];
+  let pwaLeggera = pwa;
+  for (const [id, nome] of LIBS) {
+    const re = new RegExp('(<script type="text/plain" id="' + id + '">)([\\s\\S]*?)(</script>)');
+    const mm = pwaLeggera.match(re); if (!mm) throw new Error('libreria ' + id + ' non trovata');
+    wr(path.join(A, nome), mm[2]);
+    pwaLeggera = pwaLeggera.replace(re, () => '<script type="text/plain" id="' + id + '" data-src="' + nome + '"></script>');
+  }
+  wr(path.join(A, 'index.html'), pwaLeggera);
   wr(path.join(A, 'sw.js'), rd('statici/pwa/sw.js').replace('__VER__', APPV));
   wr(path.join(A, 'version.json'), pyJson({ v: APPV }));
   for (const [s, d] of [['any-192.png', 'icon-192.png'], ['any-512.png', 'icon-512.png'], ['mask-192.png', 'maskable-192.png'], ['mask-512.png', 'maskable-512.png'], ['apple-180.png', 'icon-180.png']]) fs.copyFileSync(path.join(ROOT, 'statici/icone', s), path.join(A, d));

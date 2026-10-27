@@ -13,9 +13,20 @@ function pinHash(txt,salt,mode,it,cb){
     }).then(function(b){ cb(lkHex(b)); }).catch(function(){ cb(''); });
   } else cb(pinWeak(txt,salt));
 }
+// quante iterazioni reggono ~250 ms su QUESTO dispositivo (minimo 150.000, massimo 600.000)
+function pinCalib(cb){
+  if(pinMode()!=='p') return cb(PIN_IT);
+  var t0=performance.now(); pinHash('000000','calibrazione','p',50000,function(){ var dt=Math.max(1,performance.now()-t0); cb(Math.max(150000,Math.min(PIN_IT,Math.round(50000*250/dt/10000)*10000))); });
+}
 function pinMode(){ return (window.crypto&&crypto.subtle&&window.TextEncoder)?'p':'w'; }
 function lkEq(a,b){ if(!a||!b||a.length!==b.length) return false; var d=0,i; for(i=0;i<a.length;i++) d|=a.charCodeAt(i)^b.charCodeAt(i); return d===0; }
-function pinCheck(code,cb){ pinHash(code,PIN.s,PIN.m,PIN.i,function(h){ cb(lkEq(h,PIN.h)); }); }
+function pinCheck(code,cb){ var d=$('lk-dots'); d.classList.add('wait'); pinHash(code,PIN.s,PIN.m,PIN.i,function(h){ d.classList.remove('wait'); var ok=lkEq(h,PIN.h); cb(ok); if(ok) pinTune(code); }); }
+// un PIN creato con troppe iterazioni per questo telefono viene ricifrato in silenzio: lo sblocco diventa immediato
+function pinTune(code){
+  if(!PIN||PIN.m!=='p'||PIN.tuned) return;
+  setTimeout(function(){ pinCalib(function(it){ if(!PIN) return; if(it>=PIN.i*0.8){ PIN.tuned=1; pinSave(); return; }
+    var salt=lkHex(lkRnd(16)); pinHash(code,salt,'p',it,function(h){ if(!h||!PIN) return; if(!PIN.ri){ PIN.ri=PIN.i; } PIN.h=h; PIN.s=salt; PIN.i=it; PIN.tuned=1; pinSave(); }); }); },1500);
+}
 function recNorm(t){ return String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
 function recGen(){ var al='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',a=lkRnd(12),r='',i; for(i=0;i<12;i++){ r+=al.charAt(a[i]%32); if(i%4===3&&i<11) r+='-'; } return r; }
 function lkInert(on){ var w=document.querySelector('.wrap'); if(!w) return; if(on) w.setAttribute('inert',''); else w.removeAttribute('inert'); }
@@ -49,6 +60,8 @@ function lkFail(rec){
 }
 function lkUnlock(){
   LK.on=false; LK.last=Date.now(); lkClose(); document.documentElement.classList.remove('locked'); lkInert(false); pinMark(true); pinUI();
+  if(DOCC.pend){ DOCC.pend=false; schedule(); }
+  if(typeof avvioInAttesa!=='undefined'&&avvioInAttesa) setTimeout(avvia,0);
 }
 function lkLock(){
   if(!PIN) return; LK.on=true; try{ sessionStorage.removeItem('ieci-pin-ok'); }catch(e){}
@@ -86,7 +99,9 @@ function pinUI(){
 function pinInit(){
   pinLoad(); pinUI();
   var recent=false; try{ recent=Date.now()-(+sessionStorage.getItem('ieci-pin-ok')||0)<120000; }catch(e){}
-  var pad=$('lk-pad'),k; for(k=1;k<=9;k++) pad.insertAdjacentHTML('beforeend','<button type="button" data-k="'+k+'" aria-label="'+k+'">'+k+'</button>');
+  var pad=$('lk-pad'),k, prima=window.__pinq||'';
+  if(window.__pinC){ pad.removeEventListener('click',window.__pinC); document.removeEventListener('keydown',window.__pinK,true); window.__pinC=window.__pinK=window.__pinH=null; }
+  pad.innerHTML=''; for(k=1;k<=9;k++) pad.insertAdjacentHTML('beforeend','<button type="button" data-k="'+k+'" aria-label="'+k+'">'+k+'</button>');
   pad.insertAdjacentHTML('beforeend','<button type="button" class="lk-ph" tabindex="-1" aria-hidden="true"></button><button type="button" data-k="0" aria-label="0">0</button><button type="button" data-k="del" aria-label="Cancella"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M17 9l-5 6M12 9l5 6"/></svg></button>');
   pad.addEventListener('click',function(e){ var b=e.target.closest('button[data-k]'); if(!b) return; var v=b.getAttribute('data-k'); if(v==='del') lkDel(); else lkPress(v); });
   document.addEventListener('keydown',function(e){
@@ -101,7 +116,7 @@ function pinInit(){
   function recGo(){
     if(PIN.u>Date.now()){ lkTickRec(); return; }
     var c=recNorm($('lk-recin').value); if(c.length!==12){ lkMsg('Il codice ha 12 caratteri (XXXX-XXXX-XXXX)',true); return; }
-    pinHash(c,PIN.rs,PIN.m,PIN.i,function(h){
+    pinHash(c,PIN.rs,PIN.m,PIN.ri||PIN.i,function(h){
       if(lkEq(h,PIN.rh)){ PIN=null; pinSave(); lkUnlock(); toast('PIN rimosso: impostane uno nuovo qui'); showPanel('app'); window.scrollTo(0,0); }
       else lkFail(true);
     });
@@ -114,9 +129,11 @@ function pinInit(){
   $('pn-set').addEventListener('click',function(){
     pinNew(function(code){
       var mode=pinMode(), salt=lkHex(lkRnd(16)), rs=lkHex(lkRnd(16)), rec=recGen();
-      pinHash(code,salt,mode,PIN_IT,function(h){ pinHash(recNorm(rec),rs,mode,PIN_IT,function(rh){
+      lkMsg('Proteggo il PIN…'); $('lk-dots').classList.add('wait');
+      pinCalib(function(it){ Promise.all([new Promise(function(r){ pinHash(code,salt,mode,it,r); }),new Promise(function(r){ pinHash(recNorm(rec),rs,mode,it,r); })]).then(function(v){
+        $('lk-dots').classList.remove('wait'); var h=v[0], rh=v[1];
         if(!h||!rh){ lkClose(); toast('Il browser non permette la cifratura: PIN non attivato'); return; }
-        PIN={h:h,s:salt,m:mode,i:PIN_IT,rh:rh,rs:rs,auto:5,f:0,u:0,r:0}; pinSave(); pinUI(); recShow(rec);
+        PIN={h:h,s:salt,m:mode,i:it,rh:rh,rs:rs,auto:5,f:0,u:0,r:0,tuned:1}; pinSave(); pinUI(); recShow(rec);
       }); });
     },lkClose);
   });
@@ -142,7 +159,7 @@ function pinInit(){
     if(LK.hid&&PIN.auto>=0&&Date.now()-LK.hid>=PIN.auto*60000&&!LK.ask) lkLock();
     LK.hid=0;
   });
-  if(PIN&&!recent) lkLock(); else { LK.on=false; lkClose(); pinMark(true); }
+  if(PIN&&!recent){ lkLock(); if(prima){ lkMsg(''); prima.split('').forEach(function(c){ lkPress(c); }); } } else { LK.on=false; lkClose(); pinMark(true); }
   if(PIN&&recent){ pinMark(true); }
   if(!PIN){ try{ sessionStorage.removeItem('ieci-pin-ok'); }catch(e){} }
   window.IECI_T.pin=function(){ return {PIN:PIN,LK:LK}; };

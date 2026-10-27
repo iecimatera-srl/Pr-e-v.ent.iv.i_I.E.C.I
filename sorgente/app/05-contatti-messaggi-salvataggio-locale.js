@@ -166,7 +166,11 @@ function doSave(){
   try{ localStorage.setItem(KEY,JSON.stringify(S)); }catch(e){ warnStore(); }
 }
 
-function save(){ clearTimeout(saveT); saveT=setTimeout(doSave,300); }
+// salvataggio quando smetti di scrivere, nei momenti liberi del telefono (e subito se chiudi o cambi app)
+function idle(fn,t){ if(window.requestIdleCallback) requestIdleCallback(fn,{timeout:t||1500}); else setTimeout(fn,1); }
+function save(){ clearTimeout(saveT); saveT=setTimeout(function(){ saveT=0; idle(doSave,1200); },600); }
+document.addEventListener('visibilitychange',function(){ if(document.hidden&&saveT){ clearTimeout(saveT); saveT=0; doSave(); } });
+window.addEventListener('pagehide',function(){ if(saveT){ clearTimeout(saveT); saveT=0; doSave(); } });
 S=normalize(readLocal());
 
 function $(id){ return document.getElementById(id); }

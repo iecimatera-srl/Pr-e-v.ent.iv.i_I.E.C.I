@@ -8,7 +8,7 @@ await p.click('[data-m="vcit"]');await p.waitForTimeout(400);
 await p.evaluate(()=>document.getElementById('clear-lines').click());
 await p.fill('#vc-n','10');
 await p.click('[data-vck="both"]');await p.waitForTimeout(600);
-await p.evaluate(()=>{const pe=[...document.querySelectorAll('#plist .pe')].find(x=>x.querySelector('[data-pf="name"]').value.startsWith('Monitor interno'));pe.open=true;const i=pe.querySelector('[data-pf="brand"]');i.value='Bticino';i.dispatchEvent(new Event('input',{bubbles:true}));const c=pe.querySelector('[data-pf="code"]');c.value='Classe 100X16E';c.dispatchEvent(new Event('input',{bubbles:true}));});
+await p.evaluate(()=>window.IECI_T.prodotti());await p.evaluate(()=>{const pe=[...document.querySelectorAll('#plist .pe')].find(x=>x.querySelector('[data-pf="name"]').value.startsWith('Monitor interno'));pe.open=true;const i=pe.querySelector('[data-pf="brand"]');i.value='Bticino';i.dispatchEvent(new Event('input',{bubbles:true}));const c=pe.querySelector('[data-pf="code"]');c.value='Classe 100X16E';c.dispatchEvent(new Event('input',{bubbles:true}));});
 await p.waitForTimeout(500);
 let d=await p.evaluate(()=>document.getElementById('doc').innerText);
 ok(/Marca: Bticino/.test(d)&&/Classe 100X16E/.test(d),'marca e modello dal prodotto nel preventivo (a livelli)');

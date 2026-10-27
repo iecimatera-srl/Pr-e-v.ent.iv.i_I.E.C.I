@@ -22,7 +22,8 @@ ck('riga libera con nome ma u.m. cad crea scheda (alla conferma nome)',await p.e
 // foto
 await p.click('#mn-btn');await p.click('.mit[data-p=prodotti]');
 await p.setInputFiles('#plist [data-pphoto]',require('./_amb.cjs').DATI+'/green.jpg');await p.waitForTimeout(3000);
-const src=()=>p.evaluate(()=>(document.querySelector('#plist .thumb img')||{}).src||'');
+// la foto salvata (nella pagina si vede come blob: decodificato una volta)
+const src=()=>p.evaluate(()=>{ const pr=window.IECI_T.S().products.find(x=>x.photos&&x.photos.length); return pr?pr.photos[0]:''; });
 const s1=await src();ck('foto senza sfondo (webp/png) '+s1.slice(0,22),/^data:image\/(webp|png)/.test(s1));
 const dim=await p.evaluate(()=>new Promise(r=>{const i=new Image();i.onload=()=>r([i.width,i.height]);i.src=(document.querySelector('#plist .thumb img')).src;}));
 await p.click('#plist [data-act=bgkeep]');await p.waitForTimeout(500);

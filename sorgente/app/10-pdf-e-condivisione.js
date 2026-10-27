@@ -6,9 +6,23 @@ function h2iLoad(){
   try{ var sc=document.createElement('script'); sc.textContent=el.textContent; document.head.appendChild(sc); }catch(e){}
   return !!window.htmlToImage;
 }
-function buildPdf(withAtt,prog){
+// librerie grandi incluse come testo: nell'app installata stanno in file a parte e si scaricano (una volta) solo quando servono
+function libText(id){
+  var el=document.getElementById(id); if(!el) return Promise.resolve('');
+  var t=el.textContent; if(t&&t.trim()) return Promise.resolve(t);
+  var src=el.getAttribute('data-src'); if(!src) return Promise.resolve('');
+  return fetch(src).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); }).catch(function(){ return ''; });
+}
+// pdf-lib si avvia solo la prima volta che serve un PDF
+function pdfLibLoad(){ return typeof PDFLib!=='undefined'; }
+function pdfLibReady(){
+  if(typeof PDFLib!=='undefined') return Promise.resolve(true);
+  return libText('pdflib-lib').then(function(t){ if(!t) return false; try{ var sc=document.createElement('script'); sc.textContent=t; document.head.appendChild(sc); var el=$('pdflib-lib'); if(el) el.textContent=''; }catch(e){} return typeof PDFLib!=='undefined'; });
+}
+function buildPdf(withAtt,prog){ return pdfLibReady().then(function(ok){ if(!ok) throw new Error('Creazione PDF non disponibile: controlla la connessione e riprova'); return buildPdf0(withAtt,prog); }); }
+function buildPdf0(withAtt,prog){
   return new Promise(function(resolve,reject){
-    if(typeof PDFLib==='undefined') return reject(new Error('Creazione PDF non disponibile in questa versione'));
+    if(!pdfLibLoad()) return reject(new Error('Creazione PDF non disponibile in questa versione'));
     if(!h2iLoad()) return reject(new Error('Motore immagini non disponibile'));
     var pages=Array.prototype.slice.call(document.querySelectorAll('#doc .page'));
     if(!pages.length) return reject(new Error('Nessuna pagina nel fascicolo: attiva almeno una sezione da Contenuto'));
@@ -138,7 +152,7 @@ function navIc(p){ return '<svg class="ni" viewBox="0 0 24 24" width="18" height
 function showPanel(p){
   panel=p; mnOpen=false;
   Array.prototype.forEach.call(document.querySelectorAll('[data-panel]'),function(s){ s.hidden=(s.getAttribute('data-panel')!==p); });
-  renderNav(); if(p==='menu') renderMenuEd(); if(p==='app') apUI(); if(p==='salva') svDash(); if(p==='messaggi') renderMt(); if(p==='listini'){ lsModel=S.model; renderListini(); } if(p==='invio') ckRender(); renderQbar();
+  renderNav(); if(p==='menu') renderMenuEd(); if(p==='app') apUI(); if(p==='salva') svDash(); if(p==='messaggi') renderMt(); if(p==='listini'){ lsModel=S.model; renderListini(); } if(p==='invio') ckRender(); if(p==='prodotti'&&PLAZY) renderProducts(); renderQbar();
 }
 $('ptabs').addEventListener('click',function(e){
   e.stopPropagation();

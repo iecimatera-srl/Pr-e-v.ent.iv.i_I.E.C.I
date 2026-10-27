@@ -65,7 +65,7 @@ await go('dati');const sl=await ev(()=>!!document.querySelector('[data-b="meta.s
 await go('prodotti');await p.click('#p-add');await p.waitForTimeout(300);
 const jpg=require('./_amb.cjs').DATI+'/red.jpg';
 const inp=await p.$('input[data-pphoto]');await inp.setInputFiles(jpg);await p.waitForTimeout(2500);
-const ph=await ev(()=>{const t=document.querySelector('#plist .thumb img');return t?t.src.slice(0,22):''});ok('foto prodotto tagliata',/webp|png/.test(ph),ph);
+const ph=await ev(()=>{const pr=window.IECI_T.S().products.find(x=>x.photos&&x.photos.length);return pr&&document.querySelector('#plist .thumb img')?pr.photos[0].slice(0,22):''});ok('foto prodotto tagliata',/webp|png/.test(ph),ph);
 // --- stile / logo / filigrana / personalizza app
 await go('stile');
 await ev(()=>{const c=document.querySelector('[data-b="style.wmOn"]');c.checked=false;c.dispatchEvent(new Event('input',{bubbles:true}));});await p.waitForTimeout(400);

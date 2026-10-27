@@ -12,7 +12,7 @@ await p.evaluate(()=>document.getElementById('clear-lines').click());
 for(const n of ['Wallbox trifase 11 kW','Differenziale tipo B','Posa e fissaggio','Manodopera oraria','Sopralluogo e progetto']){
  await p.evaluate(n=>{const r=[...document.querySelectorAll('#cat .crow')].find(x=>x.textContent.includes(n));r.querySelector('[data-add]').click();},n);await p.waitForTimeout(200);}
 ok((await p.$$('#lines .line')).length===5,'5 righe aggiunte');
-const prods=await p.$$eval('#plist .pn',e=>e.map(x=>x.textContent));console.log(prods.join(' | '));
+await p.evaluate(()=>window.IECI_T.prodotti());const prods=await p.$$eval('#plist .pn',e=>e.map(x=>x.textContent));console.log(prods.join(' | '));
 ok(prods.some(x=>/Wallbox/.test(x))&&prods.some(x=>/Differenziale/.test(x))&&!prods.some(x=>/Posa|Manodopera|Sopralluogo/.test(x)),'schede prodotto solo per i componenti');
 const cov=await p.evaluate(()=>{const c=document.querySelector('#doc .page.cover');return {kick:c.querySelector('.kicker').textContent,n:c.querySelector('svg.circuit').innerHTML.length}});
 ok(/WALLBOX/i.test(cov.kick)&&cov.n>800,'copertina con illustrazione');

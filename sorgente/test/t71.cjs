@@ -39,7 +39,7 @@ let st=await S(()=>{ const s=window.IECI_T.S(); return {mem:(window.IECI_T.DB().
 console.log(JSON.stringify(st));
 ok(/Bticino\|Logo ufficiale/.test(st.mem)&&/Vimar\|Logo ufficiale/.test(st.mem),'loghi Bticino e Vimar trovati su Wikidata e ricordati');
 ok(st.sys==='false,false','gli impianti usano il logo ricordato (nessuna copia nel preventivo)');
-ok(await S(()=>{ const im=[...document.querySelectorAll('#doc img')].filter(i=>/^data:image\/png/.test(i.src)); return im.length>=2; }),'loghi nel fascicolo');
+ok(await S(()=>{ const im=[...document.querySelectorAll('#doc img')].filter(i=>/^(data:image\/png|blob:)/.test(i.src)); return im.length>=2; }),'loghi nel fascicolo');
 ok(!visti.some(u=>/rossi|mario|333/i.test(decodeURIComponent(u))),'nessun dato del cliente nelle richieste ('+visti.length+' richieste)');
 ok(await S(()=>/Logo della marca salvato/.test(document.getElementById('br-sys').textContent)),'scheda dell\'impianto: logo salvato per tutti i preventivi');
 

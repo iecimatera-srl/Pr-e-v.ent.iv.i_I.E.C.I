@@ -28,7 +28,7 @@ jobs:
       - name: L'app pubblicata corrisponde al sorgente
         run: |
           node build.mjs
-          for f in index.html sw.js version.json manifest.webmanifest; do
+          for f in index.html sw.js version.json manifest.webmanifest lib-pdf.js lib-pdfjs.txt lib-pdfjs-worker.txt; do
             cmp "dist/android/IECI preventivi app/$f" "../$f" || { echo "::error::$f pubblicato diverso dal sorgente"; exit 1; }
           done
           echo "Pubblicazione allineata al sorgente"

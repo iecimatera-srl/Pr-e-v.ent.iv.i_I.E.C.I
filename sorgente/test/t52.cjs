@@ -14,7 +14,7 @@ await p.evaluate(()=>document.getElementById('clear-lines').click());
 await p.evaluate(()=>{const r=[...document.querySelectorAll('#cat .crow')].find(x=>x.textContent.includes('Interruttore magnetotermico'));r.querySelector('[data-add]').click();});await p.waitForTimeout(300);
 await p.evaluate(()=>{const r=[...document.querySelectorAll('#cat .crow')].find(x=>x.textContent.includes('Manodopera oraria'));r.querySelector('[data-add]').click();});await p.waitForTimeout(300);
 const lines=await p.$$eval('#lines .line',els=>els.map(e=>e.querySelector('[data-f="d"]').value));console.log(lines.join(' | '));ok(lines.length===2,'righe aggiunte');
-const prods=await p.$$eval('#plist .pn',e=>e.map(x=>x.textContent));console.log(prods.join(' | '));
+await p.evaluate(()=>window.IECI_T.prodotti());const prods=await p.$$eval('#plist .pn',e=>e.map(x=>x.textContent));console.log(prods.join(' | '));
 ok(prods.some(x=>x.includes('magnetotermico'))&&!prods.some(x=>/Manodopera/.test(x)),'scheda prodotto solo per il componente');
 const cov=await p.evaluate(()=>{const c=document.querySelector('#doc .page.cover');return {svg:!!c.querySelector('svg.circuit'),kick:c.querySelector('.kicker')&&c.querySelector('.kicker').textContent,n:c.querySelector('svg.circuit').innerHTML.length}});
 console.log(JSON.stringify(cov));ok(cov.svg&&/RIPARAZIONE ELETTRICA/i.test(cov.kick)&&cov.n>800,'copertina con illustrazione e tipo');

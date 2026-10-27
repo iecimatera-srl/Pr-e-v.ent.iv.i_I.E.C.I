@@ -57,7 +57,9 @@ for (const [k, v] of Object.entries(doppie)) if (v > 1) problemi.push('Funzione 
 const markup = lista.filter(p => p.startsWith('html/')).map(p => fs.readFileSync(path.join(ROOT, p), 'utf8')).join('');
 const ids = {}; for (const m of markup.matchAll(/\sid="([\w-]+)"/g)) ids[m[1]] = (ids[m[1]] || 0) + 1;
 for (const [k, v] of Object.entries(ids)) if (v > 1) problemi.push('id ripetuto ' + v + ' volte nella pagina: ' + k);
-const dinamici = new Set([...js.matchAll(/id=\\?"([\w-]+)\\?"/g)].map(m => m[1]).concat([...js.matchAll(/id='([\w-]+)'/g)].map(m => m[1])));
+// id aggiunti da build.mjs (librerie incluse come testo)
+const dallaBuild = ['pdflib-lib'];
+const dinamici = new Set(dallaBuild.concat([...js.matchAll(/id=\\?"([\w-]+)\\?"/g)].map(m => m[1]).concat([...js.matchAll(/id='([\w-]+)'/g)].map(m => m[1]))));
 const usati = new Set([...js.matchAll(/\$\('([\w-]+)'\)/g)].map(m => m[1]).concat([...js.matchAll(/getElementById\('([\w-]+)'\)/g)].map(m => m[1])));
 for (const u of usati) if (!ids[u] && !dinamici.has(u)) problemi.push('Il codice usa un elemento che non esiste: #' + u);
 

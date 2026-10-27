@@ -26,7 +26,19 @@ function renderCat(){
   var prh=q?prCatHtml(q,items):'';
   $('cat').innerHTML=(html||(prh?'':'<div class="empty">'+(q?'Nessuna voce trovata.':(items.length?'Nessuna voce per questo filtro: mostra tutte.':'Listino vuoto. Aggiungi una voce qui sotto.'))+'</div>'))+prh;
 }
-function renderLines(){
+/* ridisegnare un elenco senza perdere il campo in cui stai scrivendo (e la posizione del cursore) */
+function focusSel(a){
+  var own=Array.prototype.filter.call(a.attributes||[],function(x){ return /^data-/.test(x.name); }).map(function(x){ return '['+x.name+'="'+String(x.value).replace(/"/g,'\\"')+'"]'; }).join('');
+  if(!own) return ''; var row=a.parentElement&&a.parentElement.closest('[data-i]'); return (row?'[data-i="'+row.getAttribute('data-i')+'"] ':'')+own;
+}
+function keepFocus(box,fn){
+  var a=document.activeElement, k=null;
+  if(a&&box&&box.contains(a)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)){ k={sel:focusSel(a),s:null,e:null}; try{ k.s=a.selectionStart; k.e=a.selectionEnd; }catch(e){} }
+  fn();
+  if(k&&k.sel){ var n=null; try{ n=box.querySelector(k.sel); }catch(e){} if(n&&n!==document.activeElement){ try{ n.focus({preventScroll:true}); if(k.s!=null&&n.setSelectionRange) n.setSelectionRange(k.s,k.e); }catch(e){} } }
+}
+function renderLines(){ keepFocus($('lines'),renderLines0); }
+function renderLines0(){
   $('lines-count').textContent=S.lines.length?'· '+S.lines.length+' voci':'';
   if(!S.lines.length){ $('lines').innerHTML='<div class="empty">Nessuna riga. Aggiungi voci dal listino o crea una riga libera.</div>'; return; }
   var n=tierN();
@@ -53,9 +65,13 @@ function renderLines(){
   } else $('lines').innerHTML=S.lines.map(lineHtml).join('');
 }
 var openP={}, MAXPH=6, MAXCP=4;
-function renderProducts(){
+// la scheda Prodotti (piena di foto) si ridisegna solo quando la guardi
+var PLAZY=false;
+function renderProducts(force){ var sec=$('plist').closest('[data-panel]'); if(sec&&sec.hidden&&force!==true){ PLAZY=true; return; } PLAZY=false; keepFocus($('plist'),renderProducts0); }
+(function(){ var sec=$('plist').closest('[data-panel]'); if(sec&&window.MutationObserver) new MutationObserver(function(){ if(!sec.hidden&&PLAZY) renderProducts(); }).observe(sec,{attributes:true,attributeFilter:['hidden']}); })();
+function renderProducts0(){
   if(!S.products.length){ $('plist').innerHTML='<div class="empty">Nessun prodotto. Aggiungine uno o crealo dalle righe del preventivo.</div>'; return; }
-  $('plist').innerHTML=S.products.map(function(p,i){
+  $('plist').innerHTML=docImgs(S.products.map(function(p,i){
     var th=(p.photos||[]).map(function(u,j){ return '<div class="thumb"><img src="'+u+'" alt=""><button type="button" data-rph="'+i+':'+j+'" aria-label="Rimuovi foto">×</button>'+(j>0?'<button type="button" class="star" data-mph="'+i+':'+j+'" aria-label="Usa come foto principale" title="Foto principale">★</button>':'')+'</div>'; }).join('');
     return '<details class="pe" data-pid="'+esc(p.id)+'"'+(openP[p.id]?' open':'')+'><summary><span class="pn"'+(p.on===false?' style="opacity:.5"':'')+'>'+esc(p.name||'Nuovo prodotto')+'</span>'+(prodUsers(p).length?'':'<span class="pwarn">non nel preventivo</span>')+
       '<button type="button" class="btn ghost sm" data-act="up" data-pi="'+i+'" aria-label="Sposta su">▲</button>'+
@@ -79,7 +95,7 @@ function renderProducts(){
       '<div class="thumbs">'+th+'</div>'+
       ((p.photos||[]).length<MAXPH?'<div class="iw-ph"><button type="button" class="btn sm" data-act="iwph" data-pi="'+i+'">Trova foto sul web</button><label class="drop" data-drop="'+i+'">Trascina qui le foto oppure tocca per caricarle ('+(p.photos||[]).length+'/'+MAXPH+')<input type="file" accept="image/*" multiple hidden data-pphoto="'+i+'"></label></div>':'<p class="hint">Massimo '+MAXPH+' foto per prodotto.</p>')+
       '</div></details>';
-  }).join('');
+  }).join(''));
   iwRenderMem();
 }
 function syncFields(){
@@ -95,7 +111,7 @@ function syncFields(){
   renderLogoPrev(); syncB();
 }
 function renderLogoPrev(){ var u=S.style.logo; $('logo-prev').innerHTML=u?'<div class="lp"><small>Pagine interne</small><div class="lpb" style="background:#fff"><img src="'+logoSrcPage()+'" alt=""></div></div><div class="lp"><small>Copertina</small><div class="lpb" id="lp2" style="background:'+S.style.b1+'"><img src="'+logoSrcCover()+'" alt=""></div></div>':'<span>Nessun logo caricato</span>'; $('logo-rm').disabled=!S.style.logo; $('logo-pal').disabled=!S.style.logo; }
-function renderAll(){ try{ renderCondSave(); }catch(e){} if(S.products[0]&&openP[S.products[0].id]===undefined) openP[S.products[0].id]=true; renderTabs(); renderRooms(); renderVc(); renderCat(); renderLines(); renderProducts(); renderContent(); renderOrder(); renderCustom(); renderEcon(); renderTiers(); renderTrust(); renderIcons(); renderTpl(); syncFields(); sigDraw('cli'); sigDraw('dit'); renderStamp(); renderPlan(); renderFvRes(); renderInvio(); renderArchivio(); renderGd(); renderGh(); renderQbar(); renderAiSet(); renderImp(); renderArts(); renderAq(); renderDoc(); refreshVariants(); }
+function renderAll(){ try{ renderCondSave(); }catch(e){} if(S.products[0]&&openP[S.products[0].id]===undefined) openP[S.products[0].id]=true; renderTabs(); renderRooms(); renderVc(); renderCat(); renderLines(); renderProducts(); renderContent(); renderOrder(); renderCustom(); renderEcon(); renderTiers(); renderTrust(); renderIcons(); renderTpl(); syncFields(); sigDraw('cli'); sigDraw('dit'); renderStamp(); renderPlan(); renderFvRes(); renderInvio(); renderArchivio(); renderGd(); renderGh(); renderQbar(); renderAiSet(); renderImp(); renderArts(); renderAq(); schedule(); refreshVariants(); }
 var docVer=0;
 var lastEdit=0;
 function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); }

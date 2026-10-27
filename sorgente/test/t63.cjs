@@ -41,7 +41,7 @@ ok(await S(()=>!window.IECI_T.S().products.some(x=>x.name==='Manodopera oraria')
 await del(1);
 st=await S(()=>{const s=window.IECI_T.S();return {has:s.products.some(x=>/Termostato/.test(x.name))}});ok(st.has,'scheda con foto e dati conservata');
 await S(()=>{document.querySelectorAll('[data-panel]').forEach(s=>s.hidden=s.getAttribute('data-panel')!=='prodotti');});
-const warn=await S(()=>[...document.querySelectorAll('#plist .pwarn')].length);ok(warn===1,'segnata come non più nel preventivo');
+await require('./_amb.cjs').mostra(p,'#plist');const warn=await S(()=>[...document.querySelectorAll('#plist .pwarn')].length);ok(warn===1,'segnata come non più nel preventivo');
 // apri scheda dalla voce
 await S(()=>{document.querySelectorAll('[data-panel]').forEach(s=>s.hidden=s.getAttribute('data-panel')!=='prev');});
 // crea dalle righe: riga libera

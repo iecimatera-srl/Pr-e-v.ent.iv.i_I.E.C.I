@@ -287,3 +287,6 @@ header.top{position:relative}
 .vmp{margin:14px 0;display:grid;gap:10px}.vmp>b{font-size:1rem}.vmp>small{color:var(--muted)}.vms{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px}.vmt{font-weight:800;color:var(--brand)}.vmo{border:1px dashed var(--line);border-radius:12px;padding:10px;display:grid;gap:8px;background:color-mix(in srgb,var(--brand) 4%,var(--surface))}.vmb{border-style:solid;background:var(--surface)}.vmadv summary{cursor:pointer;color:var(--brand);font-weight:600;font-size:.9rem;padding:2px 0}.vmadv[open] summary{margin-bottom:6px}
 .vmo-h{display:flex;justify-content:space-between;align-items:center}
 .vcbox .vs{margin-top:4px;font-size:11.5px;opacity:.75}
+.lk-dots.wait i{animation:lkwait .9s ease-in-out infinite}.lk-dots.wait i:nth-child(2){animation-delay:.08s}.lk-dots.wait i:nth-child(3){animation-delay:.16s}.lk-dots.wait i:nth-child(4){animation-delay:.24s}.lk-dots.wait i:nth-child(5){animation-delay:.32s}.lk-dots.wait i:nth-child(6){animation-delay:.4s}
+@keyframes lkwait{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.7);opacity:.5}}
+@media (prefers-reduced-motion:reduce){.lk-dots.wait i{animation:none}}

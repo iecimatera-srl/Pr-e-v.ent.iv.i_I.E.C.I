@@ -57,13 +57,15 @@ function saveQuote(silent){
   }
   var meta={id:S.qid,num:S.meta.num,st:S.meta.status||'bozza',name:quoteName(),title:docTitle(),client:S.client.name,tot:acceptedCalc().tot,upd:Date.now(),model:S.model};
   var e=DB.quotes.filter(function(q){ return q.id===S.qid; })[0];
-  if(e&&!isNew&&e.data){ var d0=JSON.parse(JSON.stringify(S)); delete d0.cat; if(JSON.stringify(e.data)===JSON.stringify(d0)&&e.name===meta.name&&e.title===meta.title&&e.tot===meta.tot&&e.client===meta.client&&e.st===meta.st){ if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }
+  if(e&&!isNew&&e.data&&silent&&QDV[S.qid]===docVer&&e.tot===meta.tot&&e.name===meta.name) return;
+  if(e&&!isNew&&e.data&&QDV[S.qid]==null){ var d0=JSON.parse(JSON.stringify(S)); delete d0.cat; if(JSON.stringify(e.data)===JSON.stringify(d0)&&e.name===meta.name&&e.title===meta.title&&e.tot===meta.tot&&e.client===meta.client&&e.st===meta.st){ if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }
   if(!e){ e=meta; DB.quotes.push(e); } else { Object.keys(meta).forEach(function(k){ e[k]=meta[k]; }); }
-  var d=JSON.parse(JSON.stringify(S)); delete d.cat; e.data=d;
+  var d=JSON.parse(JSON.stringify(S)); delete d.cat; e.data=d; QDV[S.qid]=docVer;
   dbSave(); renderArchivio(); if(isNew) save();
   if(!silent) toast('Preventivo salvato nell\'archivio');
 }
-function syncQuoteSoon(){ clearTimeout(qT); qT=setTimeout(function(){ if(dbReady){ if(S.qid) saveQuote(true); else if(String(S.client.name||'').trim()&&S.client.name!=='Mario Rossi'&&S.lines.length) saveQuote(true); settingsStamp(); } },1500); }
+var QDV={};
+function syncQuoteSoon(){ clearTimeout(qT); qT=setTimeout(function(){ idle(function(){ if(dbReady){ if(S.qid) saveQuote(true); else if(String(S.client.name||'').trim()&&S.client.name!=='Mario Rossi'&&S.lines.length) saveQuote(true); settingsStamp(); } },3000); },2000); }
 function openQuote(id,asCopy){
   var e=DB.quotes.filter(function(q){ return q.id===id; })[0]; if(!e) return;
   if(S.qid&&S.qid!==id&&dbReady) saveQuote(true);

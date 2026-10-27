@@ -125,8 +125,8 @@ $('i-copy').addEventListener('click',function(){ copyText(fillMsg(S.msgs.wa),'Me
 function pdfProducts(){ return S.style.attachPdf?S.products.filter(function(p){ return p.on!==false&&p.pdf&&p.pdf.data&&!(p.x&&p.x.pdf); }):[]; }
 function b64bytes(u){ var b=atob(u.split(',')[1]), a=new Uint8Array(b.length), i; for(i=0;i<b.length;i++) a[i]=b.charCodeAt(i); return a; }
 function dlBlob(blob,name){ var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.parentNode&&a.parentNode.removeChild(a); },2000); }
-function mergePdf(mainFile){
-  if(typeof PDFLib==='undefined'){ toast('Unione PDF non disponibile in questa versione'); return; }
+function mergePdf(mainFile){ pdfLibReady().then(function(ok){ if(!ok){ toast('Unione PDF non disponibile: controlla la connessione e riprova'); return; } mergePdf0(mainFile); }); }
+function mergePdf0(mainFile){
   var list=pdfProducts(); if(!list.length&&!mainFile){ toast('Nessuna scheda PDF da accodare'); return; }
   var D=PDFLib.PDFDocument;
   D.create().then(function(out){

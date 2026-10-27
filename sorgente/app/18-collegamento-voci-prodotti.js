@@ -56,9 +56,17 @@ $('lines').addEventListener('change',function(e){
   if(e.target.getAttribute('data-f')!=='d') return; var row=e.target.closest('.line'); if(!row) return;
   var L=S.lines[+row.getAttribute('data-i')]; if(!L||!String(L.d||'').trim()) return;
   var p=L.pid?prodById(L.pid):null;
-  if(p&&!p.man&&prodUsers(p).length<=1){ if(p.name!==String(L.d).trim()){ p.name=String(L.d).trim(); libFill(p,L); renderProducts(); renderLines(); touch(); toast('Scheda prodotto aggiornata: '+p.name); } return; }
-  var r=linkLine(L); if(r&&r.created){ renderProducts(); renderLines(); touch(); toast('Scheda creata in Prodotti: '+r.p.name); } else { renderLines(); }
+  var i=+row.getAttribute('data-i');
+  if(p&&!p.man&&prodUsers(p).length<=1){ if(p.name!==String(L.d).trim()){ p.name=String(L.d).trim(); libFill(p,L); renderProducts(); lineChip(i); touch(); toast('Scheda prodotto aggiornata: '+p.name); } return; }
+  var r=linkLine(L); if(r&&r.created){ renderProducts(); lineChip(i); touch(); toast('Scheda creata in Prodotti: '+r.p.name); } else lineChip(i);
 });
+// aggiorna solo il collegamento alla scheda di quella riga: il resto dell'elenco (e il campo in cui stai scrivendo) non si tocca
+function lineChip(i){
+  var row=$('lines').querySelector('.line[data-i="'+i+'"]'), L=S.lines[i]; if(!row||!L){ renderLines(); return; }
+  var old=row.querySelector('.pchip'), h=prodChip(L,i), box=row.querySelector('.nums2');
+  if(old){ if(h){ var t=document.createElement('template'); t.innerHTML=h; old.replaceWith(t.content.firstChild); } else old.remove(); }
+  else if(h&&box){ box.insertAdjacentHTML('beforeend',h); }
+}
 $('p-import').addEventListener('click',function(){
   var n=0, lk=0; S.lines.forEach(function(l){ if(l.off||l.vm) return; var r=linkLine(l); if(r){ if(r.created){ n++; openP[r.p.id]=true; } else lk++; } });
   prodOrderLikeLines(); renderProducts(); renderLines(); touch();

@@ -243,13 +243,17 @@ window.addEventListener('afterprint',function(){ if(_ttl) document.title=_ttl; }
 try{ if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){ lastAppLogo=''; brandUI(); }); }catch(e){}
 COLL.app=COLL.dom; CRONO_DEF.app=CRONO_DEF.dom; MARKT.app=MARKT.dom;
 showPanel('prev');
-renderAll();
-apInit(); apApply(); apRefresh();
+// un solo disegno all'avvio, con i dati veri: prima si legge il preventivo salvato, poi si disegna (al massimo si aspetta 600 ms)
+// con il PIN attivo il disegno dell'app aspetta lo sblocco: il tastierino resta pronto a ogni tocco
+var avviato=false, avvioInAttesa=false;
+function avvia(){ if(avviato) return; if(document.documentElement.classList.contains('locked')&&LK.on){ avvioInAttesa=true; return; } avviato=true; avvioInAttesa=false; renderAll(); apInit(); apApply(); apRefresh(); }
+var tAvvio=setTimeout(avvia,600);
 idbOpen(function(ok){
-  if(!ok){ dbLoad(afterLoad); return; }
+  if(!ok){ clearTimeout(tAvvio); avvia(); dbLoad(afterLoad); return; }
   idbGet(function(st){
-    if(st&&st.meta){ S=normalize(st); renderAll(); }
-    else { doSave(); }
+    clearTimeout(tAvvio);
+    if(st&&st.meta){ S=normalize(st); if(avviato) renderAll(); else if(!avvioInAttesa) avvia(); }
+    else { avvia(); doSave(); }
     dbLoad(afterLoad);
   });
 });

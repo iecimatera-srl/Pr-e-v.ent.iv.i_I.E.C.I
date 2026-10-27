@@ -20,13 +20,23 @@ var AS_SIN=[[/\bluci\b/g,'punti luce'],[/\bspot\b/g,'faretti'],[/\btvcc\b|\bcam\
 var AS_TIPI=[['vcit',/videocitofon|citofon|posto esterno|pulsantier|condomin/g],['vid',/telecamer|videosorveglian|\bnvr\b|\bdvr\b/g],['all',/allarm|antifurt|antintrusion|volumetric|contatt[io] magnetic/g],['aut',/cancell|automazion|sbarr|basculant|sezional|dissuasor/g],['fv',/fotovoltaic|pannell[io] solar|\bkwp\b|accumul|inverter/g],['wb',/wallbox|colonnin[ae] di ricarica|ricarica (auto|veicol|dell)|auto elettric/g],['tv',/antenn|parabol|digitale terrestre|centralino tv|\bsat\b|^ tv\b|impianto tv/g],['ind',/capannon|industrial|officin|stabiliment|blindosbarr|\bcee\b/g],['sw',/\bplc\b|scada|\bhmi\b|\bknx\b|programmazion|firmware/g],['rip',/riparaz|guast|non funzion|salta|cortocircuit|scatta|emergenz|intervento/g],['app',/appartament|\bcamer[ae]\b|\bbagn[io]\b|\bcucin|soggiorn|ingress|corridoi|camerett|monolocal|bilocal|trilocal|quadrilocal|pentalocal|\bvilla\b|attico|mansard/g],['dom',/impianto elettrico|\bcasa\b|villett|abitazion|punti? luce|\bprese\b/g]];
 var AS_STANZE=[[/camerett[ae]/,'cm'],[/camer[ae](?: da letto| matrimonial[ei])?\b/,'ca'],[/bagn[io]|servizi igienici/,'ba'],[/cucin[ae]|angolo cottura/,'cu'],[/soggiorn[oi]|salon[ei]|salott[oi]|living(?! ?(?:now|light))/,'so'],[/ingress[oi]/,'in'],[/corridoi?o?|disimpegn[oi]/,'co'],[/studi[oi]/,'st'],[/lavanderi[ae]/,'la'],[/balcon[ei]|terrazz[oi]|giardin[oi]/,'bl'],[/\bbox\b|garage|cantin[ae]|autorimess[ae]/,'bx'],[/ripostigli[oi]/,'ri']];
 var AS_TAGLI={mono:[['so',1],['cu',1],['ba',1]],bi:[['in',1],['cu',1],['so',1],['ca',1],['ba',1]],tri:[['in',1],['cu',1],['so',1],['ca',2],['ba',1],['co',1]],quadri:[['in',1],['cu',1],['so',1],['ca',2],['cm',1],['ba',2],['co',1]],penta:[['in',1],['cu',1],['so',1],['ca',3],['cm',1],['ba',2],['co',1]]};
-var AS_MARCHE=['Bticino','Vimar','AVE','Gewiss','Schneider','Legrand','ABB','Hager','Siemens','Urmet','Comelit','Elvox','Fermax','Came','Nice','FAAC','BFT','Beninca','Fadini','RIB','Hikvision','Dahua','Uniview','Axis','Hanwha','Ajax','Tecnoalarm','EL.MO','Bentel','Inim','Huawei','SMA','Fronius','SolarEdge','SAJ','Sungrow','Zucchetti','Aiko','SunPower','Fibaro','Shelly','Fracarro','Emme Esse','Fte'];
+// tutte le marche della libreria (oltre 200), più i nomi brevi con cui le chiami
+var AS_MARCHE=maVoci().map(function(m){ return m.n; });
+var AS_ALIAS={schneider:'Schneider Electric',bentel:'Bentel Security',ksenia:'Ksenia Security',hanwha:'Hanwha Vision',wisenet:'Hanwha Vision',victron:'Victron Energy',mitsubishi:'Mitsubishi Electric',jinko:'Jinko Solar',trina:'Trina Solar',rockwell:'Rockwell Automation','allen bradley':'Rockwell Automation',erico:'nVent ERICO',phoenix:'Phoenix Contact',lovato:'Lovato Electric',emmeesse:'Emme Esse',fritz:'AVM',unifi:'Ubiquiti',elmo:'EL.MO',azzurro:'ZCS Azzurro',zcs:'ZCS Azzurro',fte:'Fte maximal','enel x':'Enel X Way',sunpower:'Maxeon',longi:'LONGi',hormann:'Hörmann',weidmuller:'Weidmüller',schreder:'Schréder',tado:'tado°',ledvance:'Ledvance'};
+// nomi che sono anche parole comuni: valgono solo scritti con la maiuscola
+var AS_AMBIGUE=/^(Sick|Genius|REC|SEA|LG|V2|2N|Simon|Gira|Signify|ifm|Delta Electronics|Home Assistant|Samsung|Panasonic|Toshiba|Bosch|Cisco|Optex|Imou|Philips|Osram)$/;
+function asRx(b){ return b.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 .\-]/g,'').replace(/[.\-]/g,function(c){ return '\\'+c; }); }
 // serie commerciali: riconosco la marca e, se serve, il tipo di lavoro
 var AS_SERIE=[[/\bliving ?now\b/,'Bticino','Living Now',''],[/\bliving ?light\b/,'Bticino','LivingLight',''],[/\baxolute\b/,'Bticino','Axolute',''],[/\bmatix\b/,'Bticino','Matix',''],[/\bmy ?home\b/,'Bticino','MyHOME',''],[/\bclasse ?100\b/,'Bticino','Classe 100','vcit'],[/\bclasse ?300\w*/,'Bticino','Classe 300','vcit'],[/\bclasse ?500\b/,'Bticino','Classe 500','vcit'],[/\blinea ?3000\b/,'Bticino','Linea 3000','vcit'],
   [/\bplana\b/,'Vimar','Plana',''],[/\beikon\b/,'Vimar','Eikon',''],[/\barke\b/,'Vimar','Arké',''],[/\bneve ?up\b/,'Vimar','Neve Up',''],[/\bk40\b/,'Vimar','K40','vcit'],[/\btab ?[57] ?s?\b/,'Vimar','Tab','vcit'],
   [/\bzenit\b/,'AVE','Zenit',''],[/\bchorus\w*/,'Gewiss','Chorus',''],[/\bvalena\b/,'Legrand','Valena',''],[/\barteor\b/,'Legrand','Arteor',''],[/\bmini ?note\b|\bnote ?2\b/,'Urmet','Note','vcit'],[/\bsimplebus\b/,'Comelit','Simplebus','vcit'],
   [/\brobus\b/,'Nice','Robus','aut'],[/\btoona\b/,'Nice','Toona','aut'],[/\bwingo\b/,'Nice','Wingo','aut'],[/\bkrono\b/,'Came','Krono','aut'],[/\bbxv?[ -]?\d{2,}/,'Came','BX','aut'],[/\bdeimos\b/,'BFT','Deimos','aut'],[/\bphobos\b/,'BFT','Phobos','aut'],
-  [/\bsun ?2000\b/,'Huawei','SUN2000','fv'],[/\bluna ?2000\b/,'Huawei','LUNA2000','fv'],[/\bsunny ?(?:boy|tripower)\b/,'SMA','Sunny','fv'],[/\bsymo\b|\bgen ?24\b/,'Fronius','Symo','fv'],[/\bax ?pro\b/,'Hikvision','AX PRO','all']];
+  [/\bsun ?2000\b/,'Huawei','SUN2000','fv'],[/\bluna ?2000\b/,'Huawei','LUNA2000','fv'],[/\bsunny ?(?:boy|tripower)\b/,'SMA','Sunny','fv'],[/\bsymo\b|\bgen ?24\b/,'Fronius','Symo','fv'],[/\bax ?pro\b/,'Hikvision','AX PRO','all'],
+  [/\bmylos\b/,'ABB','Mylos',''],[/\bodace\b/,'Schneider Electric','Odace',''],[/\bceliane\b/,'Legrand','Céliane',''],[/\bpulsar\b/,'Wallbox','Pulsar','wb'],[/\bpowerwall\b/,'Tesla','Powerwall','fv'],[/\bwall connector\b/,'Tesla','Wall Connector','wb'],
+  [/\bcolorvu\b/,'Hikvision','ColorVu','vid'],[/\bacusense\b/,'Hikvision','AcuSense','vid'],[/\bwizsense\b/,'Dahua','WizSense','vid'],[/\babsoluta\b/,'Bentel Security','Absoluta','all'],[/\bsmartliving\b/,'Inim','SmartLiving','all'],[/\blares\b/,'Ksenia Security','lares','all'],
+  [/\btahoma\b/,'Somfy','TaHoma',''],[/\bixengo\b|\belixo\b/,'Somfy','Elixo','aut'],[/\bdexxo\b/,'Somfy','Dexxo','aut'],[/\biq ?8\b/,'Enphase','IQ8','fv'],[/\btiger neo\b/,'Jinko Solar','Tiger Neo','fv'],[/\bbattery-?box\b/,'BYD','Battery-Box','fv'],
+  [/\bkecontact\b/,'KEBA','KeContact','wb'],[/\bjuicebox\b/,'Enel X Way','JuiceBox','wb'],[/\bamtron\b/,'Mennekes','Amtron','wb'],[/\bevlink\b/,'Schneider Electric','EVlink','wb'],[/\bterra ac\b/,'ABB','Terra AC','wb'],[/\bjoinon\b/,'Gewiss','Joinon','wb'],[/\bgreen ?'?up\b/,'Bticino','Green\'up','wb'],
+  [/\bunifi\b/,'Ubiquiti','UniFi',''],[/\bfritz ?!?box\b/,'AVM','FRITZ!Box',''],[/\bip verso\b/,'2N','IP Verso','vcit']];
 var AS_LESSICO='appartamento villetta villa casa abitazione ufficio negozio capannone magazzino officina laboratorio cucina soggiorno salone salotto ingresso corridoio camera camere cameretta camerette bagno bagni studio lavanderia balcone terrazzo terrazza giardino garage cantina ripostiglio taverna mansarda attico veranda portico monolocale bilocale trilocale quadrilocale pentalocale '+
   'videocitofono videocitofoni citofono citofoni condominio condomini condomino famiglie famiglia palazzina palazzo stabile edificio pulsantiera monitor interno esterno telecamera telecamere videosorveglianza allarme antifurto sensore sensori volumetrico volumetrici contatto contatti magnetico magnetici sirena tastiera '+
   'cancello cancelli scorrevole battente automazione motore motori basculante sezionale sbarra telecomando telecomandi radiocomando radiocomandi fotocellule lampeggiante fotovoltaico pannelli moduli inverter batteria batterie accumulo trifase monofase ibrido wallbox ricarica colonnina antenna parabola satellitare centralino '+
@@ -34,7 +44,7 @@ var AS_LESSICO='appartamento villetta villa casa abitazione ufficio negozio capa
   'sostituzione sostituire riparazione guasto cortocircuito domotica tapparelle tapparella termostato cronotermostato rilevatore fumo dati rete smartphone applicazione completo completa cavi cavo tubazione canalina linea dedicata condizionatore climatizzatore lampade lampadario plafoniera striscia strisce '+
   'irrigazione pompa caldaia forno cottura lavatrice lavastoviglie frigorifero cliente signor signora ditta sopra sotto dentro fuori porta porte cambia togli toglimi elimina rimuovi cancella aggiungi sconto acconto validita giorni prezzo prezzi totale marca marche modello serie colore bianco nero grigio argento '+
   'oppure confronto alternativa proposta proposte soluzione soluzioni entrambe almeno massimo primo secondo terzo telefono cellulare email indirizzo contatore potenza kilowatt urgente festivo domenica sabato notte sopralluogo verifica controllo certificazione dichiarazione conformita progetto pratica detrazione bonus '+
-  'ancora altri altre senza niente tranne escluso esclusa metti mettere porta portare imposta modifica aumenta diminuisci riduci raddoppia stanza stanze ambiente ambienti generale comuni wireless radio filare smart remoto vista cablaggio scavo interrato interrata ponteggio vita';
+  'ancora altri altre senza niente tranne escluso esclusa metti mettere porta portare imposta modifica aumenta diminuisci riduci raddoppia stanza stanze ambiente ambienti generale comuni wireless radio filare smart remoto vista cablaggio scavo interrato interrata ponteggio vita quanto quanta quanti quante quale quali come dove quando perche cosa costo costa serve sezione caduta tensione corrente potenza ampere produce produzione consiglio consigli differenziali dimensionare';
 
 function asDiz(){
   var key=ORDER.map(function(m){ return (S.cat[m]||[]).length; }).join(',')+'|'+((DB.parole||[]).length);
@@ -127,9 +137,15 @@ function asCliente(t){
   return o;
 }
 // marche e serie, nell'ordine in cui le hai scritte
-function asMarche(n){
-  var r=[];
-  AS_MARCHE.forEach(function(b){ var m=n.match(new RegExp('\\b'+b.toLowerCase().replace(/[.]/g,'\\.')+'\\b')); if(m) r.push({b:b,i:m.index,s:'',t:''}); });
+function asTipoMarca(b){ var m=maTrova(b), t=[]; if(m) m.a.forEach(function(a){ var x=MA_TIPO[a]; if(x&&t.indexOf(x)<0) t.push(x); }); return t.length===1?t[0]:''; }
+function asMarche(n,testo){
+  var r=[], visto={};
+  function push(b,i){ if(visto[b]) return; visto[b]=1; r.push({b:b,i:i,s:'',t:asTipoMarca(b)}); }
+  AS_MARCHE.forEach(function(b){ var m;
+    if(AS_AMBIGUE.test(b)) m=String(testo||'').match(new RegExp('(?:^|[^A-Za-z0-9])'+b.replace(/[.]/g,'\\.')+'(?![A-Za-z0-9])'));
+    else m=n.match(new RegExp('(?:^|[^a-z0-9])'+asRx(b)+'(?![a-z0-9])'));
+    if(m) push(b,m.index); });
+  Object.keys(AS_ALIAS).forEach(function(k){ var m=n.match(new RegExp('(?:^|[^a-z0-9])'+k+'(?![a-z0-9])')); if(m) push(AS_ALIAS[k],m.index); });
   AS_SERIE.forEach(function(s){ var m=n.match(s[0]); if(!m) return; var ex=r.filter(function(x){ return x.b===s[1]; })[0]; if(ex){ if(!ex.s){ ex.s=s[2]; ex.t=s[3]; } } else r.push({b:s[1],i:m.index,s:s[2],t:s[3]}); });
   return r.sort(function(a,b){ return a.i-b.i; });
 }
@@ -172,14 +188,86 @@ function asTrova(list,frase,dove,get){
   return list.filter(function(x){ var o=get(x); return o.d===bd&&ok(o); });
 }
 
+// la voce migliore: il tuo listino se la descrive bene, altrimenti il prontuario se la descrive meglio
+function asCopre(it,frase){ var ft=asToks(frase), t=asToksC(it[0]), h=0; ft.forEach(function(w){ if(t.indexOf(w)>-1) h++; }); return {h:h,n:ft.length}; }
+function asMigliore(model,frase){
+  var it=asBase(model,frase); if(it) return {it:it};
+  it=asMatch(model,frase,1); var pv=asProntuario(model,frase);
+  if(it&&pv){ var c=asCopre(it,frase); if(c.h<c.n){ var b=prCerca(frase,model,1)[0]; if(b&&b.hit>c.h) return {pv:pv}; } return {it:it}; }
+  return it?{it:it}:pv?{pv:pv}:null;
+}
+// la voce giusta dal prontuario IECI quando nel tuo listino non c'e'
+function asProntuario(model,frase){
+  var L=prCerca(frase,model,3); if(!L.length) return null;
+  var ft=prTok(frase), b=L[0]; if(b.hit<Math.max(1,Math.min(2,ft.length)*0.5)) return null;
+  if(b.v.m.indexOf(model)<0&&b.hit<2&&ft.length>1) return null;
+  return b.v;
+}
+function prById(id){ var r=null; prVoci().forEach(function(v){ if(v.id===id) r=v; }); return r; }
+/* ---------- calcoli da cantiere e indicazioni di buona pratica ---------- */
+var AS_PORT2={'1.5':16.5,'2.5':23,'4':30,'6':38,'10':52,'16':69,'25':90,'35':111,'50':133,'70':168,'95':201};
+var AS_PORT3={'1.5':15,'2.5':20,'4':27,'6':34,'10':46,'16':62,'25':80,'35':99,'50':118,'70':149,'95':179};
+var AS_SEZ=[1.5,2.5,4,6,10,16,25,35,50,70,95], AS_INT=[6,10,16,20,25,32,40,50,63,80,100,125];
+var AS_CONSIGLI=[
+ [/differenzial\w*.*(wallbox|ricarica|auto elettric|colonnin)|(wallbox|ricarica|colonnin)\w*.*differenzial/,'Ricarica auto: linea dedicata con differenziale di tipo B, oppure tipo A/F se la wallbox ha già la rilevazione delle correnti continue 6 mA (controlla la scheda). CEI 64-8 sezione 722.'],
+ [/differenzial\w*.*(lavatric|asciugatric|condizionat|climatizz|pompa di calore|induzion)/,'Apparecchi con inverter (lavatrice, climatizzatore, pompa di calore, piano a induzione): differenziale di tipo F, o almeno di tipo A. Il tipo AC non è adatto.'],
+ [/differenzial\w*.*fotovolt|fotovolt\w*.*differenzial/,'Fotovoltaico: lato AC di norma differenziale di tipo A; il tipo B serve solo se lo chiede il costruttore dell\'inverter (vedi il manuale).'],
+ [/(sezion|cavo|cavi)\w*.*(punti luce|luce|illuminazion)/,'Circuiti luce: cavo 1,5 mm² protetto con magnetotermico da 10 A.'],
+ [/(sezion|cavo|cavi)\w*.*(punti presa|prese)/,'Circuiti prese: cavo 2,5 mm² protetto con 16 A.'],
+ [/(sezion|cavo|cavi)\w*.*(induzion|piano cottura)/,'Piano a induzione: linea dedicata, di norma 6 mm² con 32 A (alcuni modelli 25 A con 4 mm²: vale la scheda tecnica).'],
+ [/(sezion|cavo|cavi)\w*.*(forno|lavastovigl|lavatric|boiler|scaldabagn)/,'Forno, lavatrice, lavastoviglie, boiler: linea dedicata 2,5 mm² con 16 A.'],
+ [/(sezion|cavo|cavi)\w*.*(climatizz|condizionat|split)/,'Climatizzatore domestico: 2,5 mm² con 16 A; per potenze maggiori vale la scheda tecnica dell\'unità esterna.'],
+ [/(sezion|cavo|cavi)\w*.*(wallbox|ricarica)/,'Wallbox: 7,4 kW monofase (32 A) di norma 6 mm²; 11 kW trifase (16 A) 5G4, o 5G6 sulle distanze lunghe; 22 kW trifase (32 A) 5G6 o 5G10 secondo la distanza. Per il calcolo preciso scrivi potenza e metri, es. «sezione 22 kw trifase 40 m».'],
+ [/(sezion|cavo|cavi)\w*.*(montante|contatore)/,'Montante dal contatore al quadro: 6 mm² per 3–4,5 kW; 10 mm² per 6 kW o tratti lunghi (oltre 15–20 m). Verifica sempre la caduta di tensione.'],
+ [/resistenza di terra|(terra|dispersor)\w*.*(quant|valore|resistenza)/,'Sistema TT: deve valere Rt × Idn ≤ 50 V. Con differenziali da 30 mA basterebbero 1.666 Ω, ma un buon impianto sta sotto i 100–200 Ω e va misurato a ogni verifica.'],
+ [/livell\w* (1|2|3|minimo)|64-8.*(punti|dotazion)|dotazioni minime/,'CEI 64-8 capitolo 37: nelle abitazioni nuove o ristrutturate il livello 1 è il minimo e fissa, per ogni locale in base alla superficie, il numero di punti presa, punti luce e prese TV/dati; i livelli 2 e 3 aggiungono dotazioni e domotica. Controlla la tabella aggiornata della norma.'],
+ [/che contatore|quale contatore|potenza (del )?contatore|quanti kw (di )?contatore/,'Potenze tipiche: 3 kW per una casa senza grandi carichi elettrici; 4,5 kW con piano a induzione; 6 kW o più con induzione, pompa di calore o wallbox. Fino a 30 kW la potenza disponibile è il 10% in più di quella impegnata.']
+];
+function asF(x,d){ var k=Math.pow(10,d==null?1:d); return String(Math.round(x*k)/k).replace('.',','); }
+function asCalcolo(n){
+  var dom=/\b(sezion\w*|dimension\w*|che cavo|quale cavo|caduta|quanti ampere|che corrente|quanta corrente|assorbe|quanti kw|che potenza|quanta potenza|quanto produce|produzione|produce|che differenziale|quale differenziale|che interruttore|quale interruttore|resistenza di terra|livello|livelli|che contatore|quale contatore|potenza (del )?contatore)\b/;
+  if(!dom.test(n)) return null;
+  var cards=[], righe=[], m;
+  var I=(m=n.match(/(\d+(?:\.\d+)?)\s*(?:a|amp|ampere)\b(?!\s*(?:incasso|parete|vista|terra|soffitto))/))?parseFloat(m[1]):0;
+  var P=(m=n.match(/(\d+(?:\.\d+)?)\s*kwp?\b/))?parseFloat(m[1]):0;
+  var L=(m=n.match(/(\d+(?:\.\d+)?)\s*(?:m|metri|mt|ml)\b(?!\s*q)/))?parseFloat(m[1]):0;
+  var SZ=(m=n.match(/(\d+(?:\.\d+)?)\s*(?:mm|mmq|mm2|mm²|quadri)\b/))?parseFloat(m[1]):0;
+  var tri=/trifase|400 ?v|\btri\b/.test(n), V=tri?400:230, cos=(m=n.match(/cos\D{0,6}(0\.\d+)/))?parseFloat(m[1]):(/wallbox|ricarica|colonnin|boiler|scaldabagn|forno|resistiv/.test(n)?1:0.9), rho=0.0225;
+  AS_CONSIGLI.forEach(function(c){ if(c[0].test(n)) cards.push({t:'Buona pratica',h:esc(c[1])}); });
+  if(/produc|produzion/.test(n)&&P&&!I){ var y=1400, e=P*y; cards.push({t:'Produzione fotovoltaica stimata',h:'Un impianto da <b>'+asF(P)+' kWp</b> nel Sud Italia produce circa <b>'+asF(e,0)+' kWh all\'anno</b> (≈ '+asF(e/12,0)+' kWh al mese in media, molto di più d\'estate). Con il 35–50% di autoconsumo e l\'energia a 0,30 €/kWh il risparmio è di circa <b>'+asF(e*0.35*0.3,0)+'–'+asF(e*0.5*0.3,0)+' € l\'anno</b>, più quanto ricevi per l\'energia ceduta. Per il fascicolo usa «Stime e tempi».'}); }
+  else if(P&&!L&&/ampere|corrente|assorbe/.test(n)){ var ib=tri?P*1000/(Math.sqrt(3)*400*cos):P*1000/(230*cos); cards.push({t:'Corrente assorbita',h:'<b>'+asF(P)+' kW</b> '+(tri?'trifase':'monofase')+' con cosφ '+asF(cos,2)+' assorbono circa <b>'+asF(ib)+' A</b>'+(tri?' per fase':'')+'. Interruttore consigliato: <b>'+(AS_INT.filter(function(x){ return x>=ib; })[0]||'>125')+' A</b>.'}); }
+  else if(I&&!L&&/quanti kw|potenza/.test(n)){ var pw=tri?Math.sqrt(3)*400*I*cos/1000:230*I*cos/1000; cards.push({t:'Potenza',h:'<b>'+asF(I)+' A</b> '+(tri?'trifase':'monofase')+' con cosφ '+asF(cos,2)+' corrispondono a circa <b>'+asF(pw,2)+' kW</b>.'}); }
+  if(L&&(I||P)){
+    var Ib=I||(tri?P*1000/(Math.sqrt(3)*400*cos):P*1000/(230*cos)), In=AS_INT.filter(function(x){ return x>=Ib*0.98; })[0]||0, K=tri?Math.sqrt(3):2, T=tri?AS_PORT3:AS_PORT2;
+    var dv=function(s){ return K*L*Ib*rho*cos/s/V*100; };
+    if(SZ){ var d1=dv(SZ), ok=d1<=4&&(T[String(SZ)]||0)>=In; cards.push({t:'Caduta di tensione',h:'Cavo <b>'+asF(SZ)+' mm²</b>, '+asF(L,0)+' m, '+asF(Ib)+' A '+(tri?'trifase':'monofase')+': caduta <b>'+asF(d1,2)+'%</b> ('+asF(d1*V/100,1)+' V). '+(d1<=4?'Entro il 4%':'<b>Oltre il 4%</b>: aumenta la sezione')+((T[String(SZ)]||0)<In?'; la portata del cavo ('+(T[String(SZ)]||'?')+' A) è inferiore all\'interruttore da '+In+' A':'')+(ok?'. Va bene.':'.')}); }
+    else if(In){
+      var Sx=0; AS_SEZ.forEach(function(s){ if(!Sx&&(T[String(s)]||0)>=In&&dv(s)<=4) Sx=s; });
+      if(Sx){ var Sp=AS_SEZ[AS_SEZ.indexOf(Sx)-1];
+        cards.push({t:'Sezione del cavo',h:'Corrente di impiego <b>'+asF(Ib)+' A</b> → magnetotermico <b>'+In+' A</b> → sezione minima <b>'+asF(Sx)+' mm²</b> '+(tri?'(5 conduttori)':'(3 conduttori)')+': portata circa '+T[String(Sx)]+' A, caduta di tensione <b>'+asF(dv(Sx),2)+'%</b> su '+asF(L,0)+' m.'+(Sp?' Con '+asF(Sp)+' mm² la caduta sarebbe '+asF(dv(Sp),2)+'%'+((T[String(Sp)]||0)<In?' e la portata non basta':'')+'.':'')});
+        var nc='Cavo FG16OR16 '+(tri?'5G':'3G')+asF(Sx)+' mm²', vc=null, vb=null; prVoci().forEach(function(v){ if(v.d===nc) vc=v; if(v.d==='Magnetotermico '+(tri?'4P':'1P+N')+' '+In+' A') vb=v; });
+        if(vc) righe.push({d:vc.d,u:vc.u,q:Math.ceil(L),p:vc.p,perche:'calcolo',stanza:'',pr:vc.id});
+        if(vb) righe.push({d:vb.d,u:vb.u,q:1,p:vb.p,perche:'calcolo',stanza:'',pr:vb.id});
+      } else cards.push({t:'Sezione del cavo',h:'Con '+asF(Ib)+' A su '+asF(L,0)+' m serve più di 95 mm²: conviene un progetto dedicato.'});
+    }
+  }
+  if(!cards.length) return null;
+  if(L&&(I||P)) cards.push({t:'',h:'<small>Valori indicativi: cavo in rame in tubo, 30 °C, caduta massima 4%. Verifica sempre con il progetto e la CEI 64-8.</small>'});
+  return {cards:cards,righe:righe};
+}
 // Analisi completa del testo: non cambia nulla, prepara una proposta da mostrare in anteprima
 function asAnalizza(testo){
-  var n=asNorm(testo), mk=asMarche(n), nPos=n.replace(/\b(?:senza|niente|tranne|escluso|esclusa|esclusi|no)\s+[^,;.]+/g,' ');
+  var n=asNorm(testo), mk=asMarche(n,testo), nPos=n.replace(/\b(?:senza|niente|tranne|escluso|esclusa|esclusi|no)\s+[^,;.]+/g,' ');
+  var calc=asCalcolo(n);
+  if(calc){ var m0=S.lines.length>0; return {model:S.model,mode:m0?'mod':'nuovo',cliente:{},marche:[],serie:[],righe:calc.righe,stanze:[],note:[],ignorate:[],mods:[],cond:null,titolo:m0?'':(S.meta.title||''),tipoTrovato:null,calc:calc.cards}; }
   var hint=mk.map(function(x){ return x.t; }), tipoTrovato=asTipo(nPos.replace(/presa tv sat/g,'presa tv'),hint);
   var verbo=AS_VERBO.test(n), mod=S.lines.length>0&&(verbo||!tipoTrovato);
   var model=mod?S.model:(tipoTrovato||S.model);
   var res={model:model,mode:mod?'mod':'nuovo',cliente:asCliente(testo),marche:mk.map(asMarcaNome),serie:mk.filter(function(x){ return x.s; }).map(function(x){ return x.b+' '+x.s; }),righe:[],stanze:[],note:[],ignorate:[],mods:[],cond:null,titolo:'',tipoTrovato:tipoTrovato};
   var esplicite={};
+  var senzaMarche=function(t){ mk.forEach(function(x){ t=t.replace(new RegExp('(^|[^a-z0-9])'+asRx(x.b)+'(?![a-z0-9])','g'),' '); }); Object.keys(AS_ALIAS).forEach(function(k){ t=t.replace(new RegExp('(^|[^a-z0-9])'+k+'(?![a-z0-9])','g'),' '); }); return t.replace(/\s+/g,' ').trim()||t; };
+  var addPr=function(v,q,sd,perche){ var st0=sd?sd.nome:'', ex=null; esplicite[v.d+'|'+st0]=q; res.righe.forEach(function(r){ if(r.d===v.d&&(r.stanza||'')===st0) ex=r; }); if(ex){ ex.q=q; return; }
+    res.righe.push({d:v.d,u:v.u,q:q,p:v.p,perche:perche||'prontuario',stanza:st0,kind:sd?sd.k:'',pr:v.id}); };
   var add=function(nome,q,perche,stanza,kind){ var it=asItem(model,nome); if(!it||!(q>0)) return; var k=it[0]+'|'+(stanza||''); if(esplicite[k]!=null&&perche!=='richiesta'&&perche!=='imparata') return;
     var ex=null; res.righe.forEach(function(r){ if(r.d===it[0]&&(r.stanza||'')===(stanza||'')) ex=r; });
     if(ex){ if(perche==='richiesta'||perche==='imparata'){ ex.q=q; ex.perche=perche; } return; }
@@ -214,12 +302,17 @@ function asAnalizza(testo){
     var dove=asDove(fr), base=dove?dove.rest:fr, q=asQta(base), sd=dove?stanzaDi(dove):curSt;
     var imp=asImparata(model,q?q.r:base);
     if(imp&&(q||!/\d/.test(base))){ esplicite[imp[0]+'|'+(sd?sd.nome:'')]=q?q.q:1; add(imp[0],q?q.q:1,'imparata',sd?sd.nome:'',sd?sd.k:''); return; }
-    if(!q){ libere.push(fr); return; }
+    if(!q){
+      var mv=base.match(/^(?:aggiungi|aggiungere|aggiungimi|metti|mettimi|inserisci|serve|servono|anche|poi|installa|monta|montare|installare)\s+(?:(?:il|lo|la|i|gli|le|l'|un|una|uno|anche|pure)\s*)?(.{3,})$/);
+      if(mv){ var b0=asMigliore(model,senzaMarche(mv[1])); if(b0&&b0.it){ esplicite[b0.it[0]+'|'+(sd?sd.nome:'')]=1; add(b0.it[0],1,'richiesta',sd?sd.nome:'',sd?sd.k:''); return; }
+        if(b0&&b0.pv){ addPr(b0.pv,1,sd); return; } }
+      libere.push(fr); return; }
     if(/^(mq|kwp?|kwh|condomin\w*|utenz\w*|famigli\w*|appartament\w*|interni|anni|giorni|mesi|m|metri|mt|ml|km|ore|h|tb|gb|mp|canali|porte|kw\w*|percento|per cento)\b/.test(q.r)) return;
     if(model==='app'&&stanzeRe.test(q.r)&&!/punt|pres|luc|faret|linea|rete|interrut|devia|tappar|termost/.test(q.r)) return;
-    var it=asBase(model,q.r)||asMatch(model,q.r,1);
-    if(it){ esplicite[it[0]+'|'+(sd?sd.nome:'')]=q.q; add(it[0],q.q,'richiesta',sd?sd.nome:'',sd?sd.k:''); }
-    else res.ignorate.push({f:fr.trim(),k:asChiave(q.r),q:q.q});
+    var bm=asMigliore(model,senzaMarche(q.r)), it=bm&&bm.it;
+    if(it){ esplicite[it[0]+'|'+(sd?sd.nome:'')]=q.q; add(it[0],q.q,'richiesta',sd?sd.nome:'',sd?sd.k:''); return; }
+    if(bm&&bm.pv){ addPr(bm.pv,q.q,sd); return; }
+    res.ignorate.push({f:fr.trim(),k:asChiave(q.r),q:q.q});
   });
   var nAdd=' '+libere.join(' , ')+' ';
   // 2. ricette per tipo (solo per un preventivo nuovo e se il testo dice che lavoro e')
@@ -274,7 +367,7 @@ function asAnalizza(testo){
     res.titolo=mot.replace(/^Motor[ei] (interrato )?per /,'Automazione ').replace(' (coppia)','');
   }
   else if(model==='all'){
-    add(has(/radio|senza fili|wireless|app\b/)?'Centrale di allarme radio con app':'Centrale di allarme ibrida filare / radio',1,'tipico');
+    add(has(/radio|senza fili|wireless|app\b/)||mk.some(function(x){ return /^(Ajax|Daitem)$/.test(x.b); })?'Centrale di allarme radio con app':'Centrale di allarme ibrida filare / radio',1,'tipico');
     add('Tastiera di comando',1,'tipico'); add('Sirena esterna autoalimentata con lampeggiante',1,'tipico'); add('Sirena interna',1,'tipico');
     if(!Object.keys(esplicite).some(function(k){ return /Sensore volumetrico/.test(k); })) add('Sensore volumetrico PIR',3,'stima');
     if(!Object.keys(esplicite).some(function(k){ return /Contatto magnetico/.test(k); })) add('Contatto magnetico porta / finestra',4,'stima');
@@ -355,6 +448,7 @@ function asDelta(res){
 }
 // «ho capito»: cosa ha letto l'assistente, mentre scrivi
 function asCapito(r){
+  if(r.calc) return r.calc.filter(function(x){ return x.t; }).map(function(x){ return [x.t,'m']; });
   var c=[], n=r.righe.filter(function(x){ return x.on!==false; }).length, tm=r.mods.filter(function(x){ return x.tipo==='t'; }).length, cm=r.mods.filter(function(x){ return x.tipo==='c'; }).length;
   if(r.mode==='mod') c.push(['Modifico il preventivo aperto','m']);
   else if(r.tipoTrovato) c.push([MODELS[r.model].short||MODELS[r.model].name,'']);
@@ -380,28 +474,31 @@ function asOpzioni(model,frase){
   var it=S.cat[model]||[], tk=asToks(frase).map(function(w){ return w.slice(0,4); });
   var sc=it.map(function(c,i){ var t=asToksC(c[0]), m=0; tk.forEach(function(w){ if(t.some(function(x){ return x.indexOf(w)===0||w.indexOf(x.slice(0,4))===0; })) m++; }); return {i:i,m:m}; }).filter(function(x){ return x.m>0; }).sort(function(a,b){ return b.m-a.m; }).slice(0,5);
   return '<option value="">Associa a una voce del listino…</option>'+(sc.length?'<optgroup label="Più simili">'+sc.map(function(x){ return '<option value="'+x.i+'">'+esc(it[x.i][0])+'</option>'; }).join('')+'</optgroup>':'')+
+    (function(){ var P=prCerca(frase,model,6).filter(function(x){ return !it.some(function(c){ return c[0]===x.v.d; }); }); return P.length?'<optgroup label="Dal prontuario IECI">'+P.map(function(x){ return '<option value="p:'+esc(x.v.id)+'">'+esc(x.v.d)+' · '+eur(x.v.p)+'/'+esc(x.v.u)+'</option>'; }).join('')+'</optgroup>':''; })()+
     '<optgroup label="Tutto il listino «'+esc(MODELS[model].short||MODELS[model].name)+'»">'+it.map(function(c,i){ return '<option value="'+i+'">'+esc(c[0])+'</option>'; }).join('')+'</optgroup>';
 }
 function asRender(){
   var box=$('as-out'); if(!box) return; var r=AS.res; asRenderParole(); if(!r){ box.innerHTML=''; return; }
-  var T=asTot(r), PER={richiesta:'chiesto',stanza:'stanza',tipico:'tipico',stima:'stimato',imparata:'imparata'}, mod=r.mode==='mod';
+  var T=asTot(r), PER={richiesta:'chiesto',stanza:'stanza',tipico:'tipico',stima:'stimato',imparata:'imparata',prontuario:'prontuario',calcolo:'calcolato'}, mod=r.mode==='mod';
   var gruppi={}, ord=[]; r.righe.forEach(function(x,i){ var g=x.stanza||(mod?'Voci da aggiungere':'Generale e parti comuni'); if(!gruppi[g]){ gruppi[g]=[]; ord.push(g); } gruppi[g].push(i); });
-  var h=mod?'<div class="as-sum"><div><small>Preventivo aperto</small><b>'+esc(MODELS[r.model].short||MODELS[r.model].name)+'</b></div><div><small>Modifiche</small><b>'+(r.righe.filter(function(x){ return x.on!==false; }).length+r.mods.filter(function(x){ return x.on!==false; }).length)+'</b></div><div><small>Variazione</small><b>'+(asDelta(r)>=0?'+':'−')+'\u00a0'+eur(Math.abs(asDelta(r)))+'</b></div></div>'
+  var h=r.calc&&!r.righe.length?'':mod?'<div class="as-sum"><div><small>Preventivo aperto</small><b>'+esc(MODELS[r.model].short||MODELS[r.model].name)+'</b></div><div><small>Modifiche</small><b>'+(r.righe.filter(function(x){ return x.on!==false; }).length+r.mods.filter(function(x){ return x.on!==false; }).length)+'</b></div><div><small>Variazione</small><b>'+(asDelta(r)>=0?'+':'−')+'\u00a0'+eur(Math.abs(asDelta(r)))+'</b></div></div>'
     :'<div class="as-sum"><div><small>Tipo</small><b>'+esc(MODELS[r.model].short||MODELS[r.model].name)+'</b></div><div><small>Voci</small><b>'+r.righe.filter(function(x){ return x.on!==false; }).length+'</b></div><div><small>Totale stimato</small><b>'+eur(T.tot)+'</b></div></div>'+
     '<label class="f">Titolo<input type="text" id="as-tit" value="'+esc(r.titolo)+'"></label>';
   var c=r.cliente; if(c.name||c.addr||c.tel||c.email) h+='<div class="as-cli"><b>Cliente</b> '+esc([c.name,c.addr,c.tel,c.email].filter(Boolean).join(' · '))+'</div>';
   if(r.cond) h+='<div class="as-cli"><b>Condomini</b> '+r.cond.n+' · '+(r.cond.kind==='cit'?'solo citofono':r.cond.kind==='both'?'videocitofono e citofono a confronto':'videocitofono')+'</div>';
   if(r.confronto) h+='<div class="as-cli"><b>Proposte a confronto</b> '+esc(r.marche.join(' · '))+'</div>'; else if(r.marca&&!r.mods.some(function(x){ return x.tipo==='b'; })) h+='<div class="as-cli"><b>Marca</b> '+esc(r.marca)+'</div>';
   r.note.forEach(function(x){ h+='<div class="as-note">'+esc(x)+'</div>'; });
+  if(r.calc) h+='<div class="as-calc">'+r.calc.map(function(c){ return '<div class="as-cc">'+(c.t?'<b>'+esc(c.t)+'</b>':'')+'<p>'+c.h+'</p></div>'; }).join('')+(r.righe.length?'<p class="hint">Se vuoi, aggiungo al preventivo il cavo e l\'interruttore calcolati:</p>':'')+'</div>';
   if(r.mods.length){ var TY={t:['t','togli'],c:['c','quantità'],s:['s','condizioni'],b:['s','marca']};
     h+='<div class="as-mods"><div class="as-mt">'+(mod?'Modifiche al preventivo aperto':'Condizioni')+'</div>'+r.mods.map(function(x,i){ return '<label class="as-mod'+(x.on===false?' off':'')+'"><input type="checkbox" data-asm="'+i+'"'+(x.on===false?'':' checked')+'><span class="as-ty '+TY[x.tipo][0]+'">'+TY[x.tipo][1]+'</span><span>'+esc(x.t)+'</span></label>'; }).join('')+'</div>'; }
   var molte=r.righe.length>15;
   if(r.righe.length) h+='<div class="as-righe">'+ord.map(function(g){ var sub=0, nv=0; gruppi[g].forEach(function(i){ var x=r.righe[i]; if(x.on!==false){ sub+=num(x.q)*num(x.p); nv++; } });
     return '<details class="as-gd" data-asg="'+esc(g)+'"'+((!molte||AS.aperti[g])?' open':'')+'><summary class="as-g"><span>'+esc(g)+'</span><span>'+nv+(nv===1?' voce':' voci')+' · '+eur(sub)+'</span></summary>'+gruppi[g].map(function(i){ var x=r.righe[i];
-    return '<label class="as-r'+(x.on===false?' off':'')+'"><input type="checkbox" data-asr="'+i+'"'+(x.on===false?'':' checked')+'><span class="as-d">'+esc(x.d)+((x.perche==='richiesta'||x.perche==='stima'||x.perche==='imparata')?'<small class="as-p '+x.perche+'">'+PER[x.perche]+'</small>':'')+'</span><input type="number" min="0" step="any" class="as-q" data-asq="'+i+'" value="'+x.q+'" aria-label="Quantità"><span class="as-u">'+esc(x.u)+'</span><span class="as-e">'+eur(num(x.q)*num(x.p))+'</span></label>'; }).join('')+'</details>'; }).join('')+'</div>'+(molte?'<p class="hint">Tocca una stanza per vedere e modificare le sue voci.</p>':'');
+    return '<label class="as-r'+(x.on===false?' off':'')+'"><input type="checkbox" data-asr="'+i+'"'+(x.on===false?'':' checked')+'><span class="as-d">'+esc(x.d)+((x.perche==='richiesta'||x.perche==='stima'||x.perche==='imparata'||x.perche==='prontuario'||x.perche==='calcolo')?'<small class="as-p '+x.perche+'">'+PER[x.perche]+'</small>':'')+'</span><input type="number" min="0" step="any" class="as-q" data-asq="'+i+'" value="'+x.q+'" aria-label="Quantità"><span class="as-u">'+esc(x.u)+'</span><span class="as-e">'+eur(num(x.q)*num(x.p))+'</span></label>'; }).join('')+'</details>'; }).join('')+'</div>'+(molte?'<p class="hint">Tocca una stanza per vedere e modificare le sue voci.</p>':'');
   if(r.ignorate.length) h+='<div class="as-note as-learn"><div>Non ho trovato nel listino: <b>'+esc(r.ignorate.map(function(f){ return f.f; }).join(' · '))+'</b>. Insegnamelo una volta e la prossima lo capisco da solo:</div>'+
     r.ignorate.map(function(f,i){ return '<div class="as-lr"><b>«'+esc(f.f)+'»</b><select data-asl="'+i+'" aria-label="Voce per «'+esc(f.f)+'»">'+asOpzioni(r.model,f.k||f.f)+'</select></div>'; }).join('')+'</div>';
   var vuoto=!S.lines.length;
+  if(r.calc&&!r.righe.length){ box.innerHTML=h+'<div class="row"><button type="button" class="btn ghost" id="as-x">Chiudi</button></div>'; return; }
   h+='<div class="row">'+(mod?'<button type="button" class="btn" id="as-add">Applica le modifiche</button>':'<button type="button" class="btn" id="as-ok">'+(vuoto?'Crea il preventivo':'Sostituisci le voci attuali')+'</button>'+(vuoto?'':'<button type="button" class="btn ghost" id="as-add">Aggiungi alle voci attuali</button>'))+'<button type="button" class="btn ghost" id="as-x">Annulla</button></div>'+
     '<p class="hint">'+(mod?'Le voci uguali già presenti aumentano di quantità. ':'')+'Prezzi del tuo listino. «Stimato» indica una quantità che ho calcolato io: controllala.</p>';
   box.innerHTML=h;
@@ -411,8 +508,10 @@ function asRenderParole(){
   $('as-par-n').textContent=L.length?'· '+L.length:''; $('as-par-d').hidden=!L.length;
   el.innerHTML=L.map(function(p){ return '<span class="chip" title="'+esc((MODELS[p.m]||{}).name||'')+'">«'+esc(p.k)+'» → '+esc(p.d)+'<button type="button" class="btn x" data-asdel="'+esc(p.id)+'" aria-label="Dimentica">×</button></span>'; }).join('');
 }
-function asImpara(i,idx){
-  var r=AS.res; if(!r) return; var f=r.ignorate[i], it=(S.cat[r.model]||[])[idx]; if(!f||!it) return;
+function asImpara(i,val){
+  var r=AS.res; if(!r) return; var idx=String(val);
+  if(idx.indexOf('p:')===0){ var v=prById(idx.slice(2)); if(!v) return; idx=prNelListino(v,r.model); save(); }
+  var f=r.ignorate[i], it=(S.cat[r.model]||[])[+idx]; if(!f||!it) return;
   var k=f.k||asChiave(f.f); if(!k) return;
   DB.parole=(DB.parole||[]).filter(function(p){ return !(p.m===r.model&&p.k===k); });
   DB.parole.push({id:uid(),m:r.model,k:k,d:it[0],upd:Date.now()}); dbSave();
@@ -445,7 +544,8 @@ function asApplica(sostituisci){
     if(S.rooms.length&&(nuove||!roomById(S.curRoom))) S.curRoom=S.rooms[0].id;
   }
   if(!mod&&r.model==='vcit'&&r.cond){ S.cond.n=r.cond.n; S.cond.kind=r.cond.kind==='both'?'both':r.cond.kind; if(r.cond.kind==='both'){ S.tiers.on=true; S.tiers.n=2; S.tiers.names=[vcSolTitle('cit'),vcSolTitle('video')]; S.tiers.rec=1; S.tiers.sel=-1; } }
-  var nn=0;
+  var nn=0, npr=0;
+  righe.forEach(function(x){ if(!x.pr) return; var v=prById(x.pr); if(!v) return; var L0=(S.cat[r.model]||[]).length; prNelListino(v,r.model); if((S.cat[r.model]||[]).length>L0) npr++; });
   righe.forEach(function(x){
     var rk=(r.model==='app'&&x.stanza)?mappa[x.stanza]:'';
     if(mod){ var ex=S.lines.filter(function(l){ return l.d===x.d&&!l.vm&&!l.off&&(l.r||'')===(rk||'')&&(!brOn()||l.sy===sysCur().id); })[0]; if(ex){ ex.q=num(ex.q)+num(x.q); nn++; return; } }
@@ -467,7 +567,7 @@ function asApplica(sostituisci){
   if(r.model==='vcit') vmSync();
   AS.res=null; asRender(); $('as-txt').value=''; asLive();
   renderAll(); touch();
-  toast(mod?'Fatto: '+[nn?nn+(nn===1?' voce aggiunta':' voci aggiunte'):'',nt?nt+' tolte':'',nc?nc+' quantità cambiate':'',ns?ns+(ns===1?' condizione':' condizioni'):''].filter(Boolean).join(', '):'Preventivo preparato: '+righe.length+' voci. Controllalo e completalo');
+  toast((mod?'Fatto: '+[nn?nn+(nn===1?' voce aggiunta':' voci aggiunte'):'',nt?nt+' tolte':'',nc?nc+' quantità cambiate':'',ns?ns+(ns===1?' condizione':' condizioni'):''].filter(Boolean).join(', '):'Preventivo preparato: '+righe.length+' voci. Controllalo e completalo')+(npr?' · '+npr+(npr===1?' voce nuova dal prontuario nel tuo listino':' voci nuove dal prontuario nel tuo listino'):''));
   try{ var lb=$('lines'); if(lb) lb.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
 }
 var AS_ESEMPI=[
@@ -501,7 +601,7 @@ var AS_ESEMPI=[
     if(i!=null){ r.righe[+i].on=t.checked; asRender(); }
     else if(q!=null){ r.righe[+q].q=Math.max(0,num(t.value)); asRender(); }
     else if(m!=null){ r.mods[+m].on=t.checked; asRender(); }
-    else if(l!=null&&t.value!==''){ asImpara(+l,+t.value); }
+    else if(l!=null&&t.value!==''){ asImpara(+l,t.value); }
   });
   var pd=$('as-par'); if(pd) pd.addEventListener('click',function(e){ var b=e.target.closest('[data-asdel]'); if(!b) return; var id=b.getAttribute('data-asdel'), p=(DB.parole||[]).filter(function(x){ return x.id===id; })[0]; if(!p) return; DB.parole=DB.parole.filter(function(x){ return x!==p; }); DB.del[id]=Date.now(); dbSave(); asRenderParole(); toast('Dimenticato «'+p.k+'»'); });
   var acc=$('acc-as'); if(acc) acc.addEventListener('toggle',asRenderParole);

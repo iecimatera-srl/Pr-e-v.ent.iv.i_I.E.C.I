@@ -17,7 +17,9 @@ function iwSmall(u){ return String(u||'').replace(/\/(\d+)px-/,'/250px-'); }
 function iwClaim(a){ var c=a&&a[0], v=c&&c.mainsnak&&c.mainsnak.datavalue&&c.mainsnak.datavalue.value; return typeof v==='string'?v:''; }
 function iwLab(o){ return o?((o.it||o.en||{}).value||''):''; }
 // "Bticino Living Now" -> "Bticino": il logo si cerca e si ricorda per la marca
-function iwBase(b){ b=String(b||'').trim(); var k=iwK(b), r=''; (typeof AS_MARCHE!=='undefined'?AS_MARCHE:[]).forEach(function(m){ var mk=iwK(m); if(!r&&mk.length>=2&&k.indexOf(mk)===0) r=m; }); return r||b; }
+function iwBase(b){ b=String(b||'').trim(); var lw=b.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''), r='', rl=0;
+  (typeof AS_MARCHE!=='undefined'?AS_MARCHE:[]).forEach(function(m){ var ml=m.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); if(ml.length>rl&&lw.indexOf(ml)===0&&!/[a-z0-9]/.test(lw.charAt(ml.length))){ r=m; rl=ml.length; } });
+  return r||b; }
 // i testi di esempio («Marca esempio», «Modello XX») non sono marche vere: non si cercano
 function iwVero(s){ s=String(s||'').trim(); return !!s&&!/esempio|\bxx\b|^xx|-xx|xx-/i.test(s); }
 function iwFree(lic){ return !lic||/public domain|pubblico dominio|^pd|cc0|pdm|no restrictions/i.test(lic); }
@@ -146,7 +148,7 @@ function iwBrands(){
   return out;
 }
 function iwBest(b){ return iwWdLogos(iwBase(b)).then(function(l){ return l.filter(function(x){ return x.exact&&x.co; })[0]||null; }); }
-function iwRefresh(){ [renderVc,renderProducts,renderTrust,renderDoc,iwRenderMem,ckRender].forEach(function(fn){ try{ fn(); }catch(e){} }); }
+function iwRefresh(){ [renderVc,renderProducts,renderTrust,renderDoc,iwRenderMem,ckRender,maRender].forEach(function(fn){ try{ fn(); }catch(e){} }); }
 // automatico: le marche nuove trovano il loro logo da sole, una volta sola, poi valgono per sempre
 function iwSoon(){ if(!IW||iwMode()!=='auto') return; clearTimeout(IW.t); IW.t=setTimeout(iwScan,2000); }
 function iwScan(){
@@ -173,7 +175,7 @@ function iwOpen(pk){
   iwSearch(); var tc=false; try{ tc=window.matchMedia('(pointer:coarse)').matches; }catch(e){} if(!tc) setTimeout(function(){ try{ $('iw-q').focus({preventScroll:true}); }catch(e){} },60);
 }
 function iwClose(){ $('iw-bg').hidden=true; if($('iwf-bg').hidden) document.body.style.overflow=''; var pk=IW.pk; IW.pk=null; IW.seq++; if(pk&&pk.after) pk.after(); }
-function iwSite(b){ var k=iwK(iwBase(b)), r=IW_SITI[k]||''; (DB.logos||[]).forEach(function(x){ if(!r&&iwK(x.name)===k&&x.site) r=String(x.site); }); return r.replace(/^https?:\/\/(www\.)?/,'').replace(/\/.*$/,''); }
+function iwSite(b){ var k=iwK(iwBase(b)), ma=maTrova(iwBase(b)), r=(ma&&ma.sito)||IW_SITI[k]||''; (DB.logos||[]).forEach(function(x){ if(!r&&iwK(x.name)===k&&x.site) r=String(x.site); }); return r.replace(/^https?:\/\/(www\.)?/,'').replace(/\/.*$/,''); }
 function iwLinks(){
   var pk=IW.pk; if(!pk) return; var q=$('iw-q').value.trim(), s=iwSite(pk.brand||q);
   $('iw-gimg').href='https://www.google.com/search?tbm=isch&q='+encodeURIComponent(q+(pk.kind==='logo'?' logo':''));
@@ -422,4 +424,49 @@ function iwFillApply(r,c,btn){
     else { var p=prodById(r2.pid); if(!p) return; iwOpen({kind:'foto',q:r2.q,brand:p.brand,self:p,after:back,label:'Per la scheda <b>'+esc(p.name||'prodotto')+'</b>.',apply:function(bl,c,cb){ iwAddAll(r2.pids||[r2.pid],bl,c,function(ok){ if(ok) r2.done=true; cb(ok); }); }}); }
   });
   var sel=$('ap-webimg'); if(sel){ sel.addEventListener('change',function(e){ apSet('webimg',e.target.value); if(e.target.value==='auto') iwSoon(); toast(e.target.value==='off'?'Ricerca di loghi e foto su internet spenta':e.target.value==='ask'?'Cerco loghi e foto solo quando premi «Trova»':'I loghi delle marche arrivano da soli'); }); }
+})();
+
+/* ---------- libreria marche per settore ---------- */
+var MA_UI={set:'',q:'',run:false};
+function maRender(){
+  var el=$('ma-grid'); if(!el) return; var V=maVoci();
+  $('ma-n').textContent=V.length+' marche in '+Object.keys(MA_SETTORI).length+' settori';
+  $('ma-set').innerHTML='<button type="button" class="chip'+(MA_UI.set?'':' on')+'" data-mas="">Tutte</button>'+Object.keys(MA_SETTORI).map(function(k){ var n=V.filter(function(m){ return m.a.indexOf(k)>-1; }).length; return '<button type="button" class="chip'+(MA_UI.set===k?' on':'')+'" data-mas="'+k+'">'+esc(MA_SETTORI[k])+' <em>'+n+'</em></button>'; }).join('');
+  var q=String(MA_UI.q||'').toLowerCase().trim();
+  var L=V.filter(function(m){ return (q||!MA_UI.set||m.a.indexOf(MA_UI.set)>-1)&&(!q||(m.n+' '+m.serie.join(' ')).toLowerCase().indexOf(q)>-1); });
+  var nl=L.filter(function(m){ return brandLogo(m.n); }).length;
+  $('ma-all').textContent=nl<L.length?'Prendi i loghi '+(MA_UI.set?'del settore':'di questo elenco')+' ('+(L.length-nl)+')':'✓ Tutti i loghi presi'; $('ma-all').disabled=nl>=L.length||MA_UI.run;
+  el.innerHTML=L.map(function(m){ var lg=brandLogo(m.n);
+    return '<div class="ma-c'+(lg?' has':'')+'"><span class="iw-mi">'+(lg?'<img src="'+lg+'" alt="">':'<i>'+esc(m.n.replace(/[^A-Za-z0-9]/g,'').slice(0,2).toUpperCase())+'</i>')+'</span><span class="ma-t"><b>'+esc(m.n)+'</b><small>'+esc(m.a.map(function(a){ return MA_SETTORI[a]; }).join(' · '))+'</small>'+(m.serie.length?'<small class="ma-s">'+esc(m.serie.join(', '))+'</small>':'')+'</span>'+
+      '<span class="ma-b"><button type="button" class="btn ghost sm" data-mal="'+esc(m.n)+'">'+(lg?'Cambia':'Logo')+'</button>'+(m.sito?'<a class="btn ghost sm" href="https://'+esc(m.sito)+'" target="_blank" rel="noopener">Sito</a>':'')+'</span></div>'; }).join('')||'<div class="empty">Nessuna marca trovata: aggiungila in «Loghi delle marche» qui sotto.</div>';
+}
+function maLogo(n){
+  if(brandLogo(n)){ iwBrandLogo(n,maRender); return; }
+  if(!iwNet()){ iwBrandLogo(n,maRender); return; }
+  toast('Cerco il logo di '+n+'…');
+  iwBest(n).then(function(c){ if(!c){ iwBrandLogo(n,maRender); return; }
+    iwBlobOf(c).then(function(bl){ iwLogoData(bl,function(d){ if(!d){ iwBrandLogo(n,maRender); return; } iwSaveLogo(n,d,c.src,c.site); iwRefresh(); maRender(); toast('Logo «'+n+'» trovato e salvato'); }); },function(){ iwBrandLogo(n,maRender); });
+  },function(){ iwBrandLogo(n,maRender); });
+}
+function maTutti(){
+  if(MA_UI.run) return; if(!iwNet()){ toast('Serve internet per cercare i loghi'); return; }
+  var q=String(MA_UI.q||'').toLowerCase().trim(), L=maVoci().filter(function(m){ return (q||!MA_UI.set||m.a.indexOf(MA_UI.set)>-1)&&(!q||(m.n+' '+m.serie.join(' ')).toLowerCase().indexOf(q)>-1)&&!brandLogo(m.n); }).map(function(m){ return m.n; });
+  if(!L.length) return; MA_UI.run=true; var ok=[], no=[], tot=L.length, act=0;
+  function fine(){ MA_UI.run=false; iwRefresh(); maRender(); toast('Loghi trovati: '+ok.length+' su '+tot+(no.length?'. Senza logo ufficiale: '+no.slice(0,6).join(', ')+(no.length>6?'…':'')+' (tocca «Logo» per sceglierlo tu)':'')); }
+  function next(){
+    if(!L.length){ if(act===0) fine(); return; }
+    var n=L.shift(); act++; $('ma-all').textContent='Cerco… '+(tot-L.length)+'/'+tot;
+    var done=function(){ act--; next(); };
+    iwBest(n).then(function(c){ if(!c){ no.push(n); done(); return; } iwBlobOf(c).then(function(bl){ iwLogoData(bl,function(d){ if(d){ iwSaveLogo(n,d,c.src,c.site); ok.push(n); } else no.push(n); done(); }); },function(){ no.push(n); done(); }); },function(){ no.push(n); done(); });
+  }
+  next(); next(); next();
+}
+(function(){
+  var g=$('ma-grid'); if(!g) return;
+  $('ma-d').addEventListener('toggle',function(){ if($('ma-d').open) maRender(); });
+  $('ma-set').addEventListener('click',function(e){ var b=e.target.closest('[data-mas]'); if(!b) return; MA_UI.set=b.getAttribute('data-mas'); maRender(); });
+  $('ma-q').addEventListener('input',function(e){ MA_UI.q=e.target.value; maRender(); });
+  $('ma-all').addEventListener('click',maTutti);
+  g.addEventListener('click',function(e){ var b=e.target.closest('[data-mal]'); if(b) maLogo(b.getAttribute('data-mal')); });
+  setTimeout(function(){ try{ $('ma-n').textContent=maVoci().length+' marche in '+Object.keys(MA_SETTORI).length+' settori'; }catch(e){} },0);
 })();

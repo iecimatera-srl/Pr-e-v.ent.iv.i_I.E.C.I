@@ -71,3 +71,21 @@
 .as-learn{display:grid;gap:6px}.as-lr{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.85rem}.as-lr b{flex:1 1 140px}.as-lr select{flex:2 1 200px;min-width:0;font:inherit;padding:6px 8px;border-radius:8px;border:1px solid var(--line);background:var(--field);color:var(--ink)}
 .as-p.imparata{background:#E0F2FE;color:#075985}
 .as-par{display:flex;flex-wrap:wrap;gap:6px}.as-par .chip{display:inline-flex;gap:6px;align-items:center}
+.as-calc{display:grid;gap:8px}
+.as-cc{border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-left:4px solid var(--accent);border-radius:12px;padding:10px 12px;background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.as-cc b{display:block;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--accent);margin-bottom:3px}.as-cc p{margin:0;font-size:.92rem}.as-cc p b{display:inline;font-size:inherit;text-transform:none;letter-spacing:0;color:inherit}
+.as-p.prontuario{background:#EDE9FE;color:#5B21B6}.as-p.calcolo{background:#E0F2FE;color:#075985}
+/* prontuario e libreria marche */
+.cgh.prh{color:#5B21B6}
+.crow.pr .d small{display:block;color:var(--muted);font-size:.7rem}.crow.pr .prp{font-size:.85rem;white-space:nowrap}
+.prbox{border:1px solid color-mix(in srgb,#7C3AED 30%,var(--line));border-radius:14px;padding:10px 12px;background:color-mix(in srgb,#7C3AED 5%,var(--surface))}
+.prlist{display:grid;gap:10px;margin-top:8px}.prg{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.prgh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 10px;background:color-mix(in srgb,var(--brand) 5%,var(--surface))}.prgh b{flex:1 1 140px}.prgh span{color:var(--muted);font-size:.8rem}
+.prr{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:7px 10px;border-top:1px solid var(--line);font-size:.88rem}.prr .d{flex:1 1 180px;min-width:0}.prr .d small{display:block;color:var(--muted);font-size:.7rem}.prr .u{white-space:nowrap;font-weight:700}
+.prr.in{opacity:.75}.ok{color:#15803D;font-weight:700;font-size:.8rem;white-space:nowrap}
+.ma-set{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.ma-set .chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}.ma-set em{font-style:normal;opacity:.7;font-size:.75em}
+.ma-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:8px;margin-top:8px;max-height:70vh;overflow:auto}
+.ma-c{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:8px;background:var(--surface)}.ma-c.has{border-color:color-mix(in srgb,#15803D 40%,var(--line))}
+.ma-t{flex:1;min-width:0;display:grid}.ma-t b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ma-t small{color:var(--muted);font-size:.68rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ma-t .ma-s{color:var(--accent)}
+.ma-b{display:flex;flex-direction:column;gap:4px}
+#ma-d .iw-q{flex-wrap:wrap}#ma-q{flex:1 1 200px}

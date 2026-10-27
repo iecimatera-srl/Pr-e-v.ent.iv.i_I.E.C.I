@@ -23,7 +23,8 @@ function renderCat(){
       '<button type="button" class="btn x" data-del="'+i+'" aria-label="Elimina dal listino">×</button></div>';
   });
   if($('n-g')){ var cv=$('n-g').value; $('n-g').innerHTML=groupOpts(S.model,cv,'Categoria…'); $('n-g').value=cgSync(S.model).indexOf(cv)>-1?cv:''; }
-  $('cat').innerHTML=html||'<div class="empty">'+(q?'Nessuna voce trovata.':(items.length?'Nessuna voce per questo filtro: mostra tutte.':'Listino vuoto. Aggiungi una voce qui sotto.'))+'</div>';
+  var prh=q?prCatHtml(q,items):'';
+  $('cat').innerHTML=(html||(prh?'':'<div class="empty">'+(q?'Nessuna voce trovata.':(items.length?'Nessuna voce per questo filtro: mostra tutte.':'Listino vuoto. Aggiungi una voce qui sotto.'))+'</div>'))+prh;
 }
 function renderLines(){
   $('lines-count').textContent=S.lines.length?'· '+S.lines.length+' voci':'';
@@ -138,18 +139,23 @@ $('logo-pal').addEventListener('click',function(){
 
 $('cat').addEventListener('input',function(e){ var i=e.target.getAttribute('data-cp'); if(i==null) return; S.cat[S.model][+i][2]=num(e.target.value); save(); });
 $('cat').addEventListener('click',function(e){
-  var a=e.target.closest('[data-add]'), d=e.target.closest('[data-del]');
-  if(a){
-    var it=S.cat[S.model][+a.getAttribute('data-add')];
+  var a=e.target.closest('[data-add]'), d=e.target.closest('[data-del]'), pr=e.target.closest('[data-prn]');
+  if(pr){ var pv=prById(pr.getAttribute('data-prn')); if(!pv) return; var ni=prNelListino(pv,S.model); catAdd(ni,' · entrata nel tuo listino'); renderCat(); return; }
+  if(a) catAdd(+a.getAttribute('data-add'));
+  else if(d){ S.cat[S.model].splice(+d.getAttribute('data-del'),1); renderCat(); save(); }
+});
+function catAdd(ix,extra){
+  {
+    var it=S.cat[S.model][ix];
     var ad=addToRoom(it,1), np=false;
     if(S.model==='vcit'&&it[3]===VCG){ ad.pc=1; ad.q=vcN(); }
     if(brOn()){ var sy=sysCur(), pn=S.products.length; ad.tm=[brS().cur]; ad.sy=sy.id; ad.br=sy.b||''; linkLine(ad); np=S.products.length>pn; if(np) renderProducts(); }
     else if(S.model==='vcit'){
       { if(vcMode()==='both'&&vcSolOf(it)) ad.tm=[vcSolOf(it)==='cit'?0:1]; var lk=linkLine(ad,{sol:vcSolOf(it)}); np=!!(lk&&lk.created); if(np) renderProducts(); }
     } else { var lk2=linkLine(ad); np=!!(lk2&&lk2.created); if(np) renderProducts(); }
-    renderLines(); renderRooms(); touch(); toast('Aggiunto: '+it[0]+(S.model==='app'?' → '+curRoomName():'')+(np?' · scheda creata in Prodotti':''));
-  } else if(d){ S.cat[S.model].splice(+d.getAttribute('data-del'),1); renderCat(); save(); }
-});
+    renderLines(); renderRooms(); touch(); toast('Aggiunto: '+it[0]+(S.model==='app'?' → '+curRoomName():'')+(np?' · scheda creata in Prodotti':'')+(extra||''));
+  }
+}
 $('cat-q').addEventListener('input',renderCat);
 $('cat-f').addEventListener('click',function(){ catAll=!catAll; renderCat(); });
 $('rooms').addEventListener('click',function(e){

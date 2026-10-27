@@ -722,8 +722,10 @@ header.top{position:relative}
 .ma-b{display:flex;flex-direction:column;gap:4px}
 #ma-d .iw-q{flex-wrap:wrap}#ma-q{flex:1 1 200px}
 /* marca nelle righe */
-.lbr{display:flex;align-items:center;gap:8px;margin:6px 0 2px}
-.lbr input{flex:1 1 140px;min-width:0;max-width:260px;font:inherit;font-size:.88rem;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--field);color:var(--ink)}
+.lbr{position:relative;display:grid;gap:4px;margin:8px 0 4px}
+.lbr-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lbr-r{display:flex;align-items:center;gap:8px}
+.lbr input{flex:1 1 auto;width:100%;min-width:0;font:inherit;font-size:16px;padding:10px 12px;min-height:44px;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
 .lbr-lg{flex:none;display:flex;align-items:center;justify-content:center;height:26px;min-width:0}.lbr-lg:empty{display:none}
 .lbr-lg img{height:22px;max-width:76px;object-fit:contain;background:#fff;border-radius:6px;padding:2px 4px;border:1px solid var(--line)}
 .lbr-k{font-size:.7rem;color:var(--muted);white-space:nowrap}
@@ -732,6 +734,14 @@ header.top{position:relative}
 @keyframes lsync{0%,40%{box-shadow:0 0 0 3px color-mix(in srgb,#15803D 55%,transparent);background:color-mix(in srgb,#15803D 8%,var(--surface))}100%{box-shadow:none}}
 @media (prefers-reduced-motion:reduce){.line.sync{animation:none;outline:2px solid #15803D}}
 .lbr-t{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+.lbulk{position:relative}.lbulk input{font-size:16px;min-height:44px}
+.brsug{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;padding:6px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:5}
+.lbulk .brsug{flex-basis:100%}
+.brsug button{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--field);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.brsug button img{height:18px;max-width:54px;object-fit:contain;background:#fff;border-radius:4px}
+/* telefoni: campi a 16px (sotto questa misura iPhone ingrandisce la pagina a ogni tocco e i riquadri saltano) */
+@media (pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px}}
 </style>
 
 <div class="lock" id="lock" hidden role="dialog" aria-modal="true" aria-label="App bloccata">
@@ -1160,7 +1170,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
         <div class="cat" id="aq-list" style="max-height:230px"></div>
         </div></details>
         <details class="acc" id="acc-righe" open><summary><span>Righe del preventivo</span><em id="lines-count"></em></summary><div class="accb">
-        <div class="lbulk"><label class="f">Marca per tutte le voci<input type="text" id="l-brall" list="br-dl" placeholder="es. Vimar" autocomplete="off"></label><button class="btn ghost sm" id="l-brgo" type="button">Applica</button><datalist id="br-dl"></datalist></div>
+        <div class="lbulk"><label class="f">Marca per tutte le voci<input type="text" id="l-brall" data-brsug placeholder="es. Vimar" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done"></label><button class="btn ghost sm" id="l-brgo" type="button">Applica</button></div>
         <div class="lines" id="lines"></div>
         <div class="row">
           <button class="btn ghost" id="add-free" type="button">+ Riga libera</button>
@@ -1501,7 +1511,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
 <script type="text/plain" id="pdfjs-wk" data-src="lib-pdfjs-worker.txt"></script>
 <script>
 var CAN_PRINT = true;
-var APP_VER = '2026.10.27.3';
+var APP_VER = '2026.10.27.4';
 (function(){
 'use strict';
 
@@ -2029,6 +2039,36 @@ window.addEventListener('pagehide',function(){ if(saveT){ clearTimeout(saveT); s
 S=normalize(readLocal());
 
 function $(id){ return document.getElementById(id); }
+/* Aggiorna un riquadro SENZA sostituirlo: si cambiano solo testi, attributi e valori diversi.
+   Così il campo che stai toccando, la tastiera del telefono e il cursore restano dove sono. */
+function morph(box,html){ var t=document.createElement('template'); t.innerHTML=html; morphKids(box,t.content); }
+function morphKids(a,b){
+  var an=a.childNodes, bn=b.childNodes, i, x, y;
+  for(i=0;i<bn.length;i++){
+    x=an[i]; y=bn[i];
+    if(!x){ a.appendChild(y.cloneNode(true)); continue; }
+    if(x.nodeType!==y.nodeType||x.nodeName!==y.nodeName){ a.replaceChild(y.cloneNode(true),x); continue; }
+    if(x.nodeType!==1){ if(x.nodeValue!==y.nodeValue) x.nodeValue=y.nodeValue; continue; }
+    if((x.getAttribute('data-pid')||'')!==(y.getAttribute('data-pid')||'')){ a.replaceChild(y.cloneNode(true),x); continue; }
+    morphAttrs(x,y);
+    var tg=x.tagName;
+    if(tg==='INPUT'){ morphVal(x,y); continue; }
+    if(tg==='TEXTAREA'){ if(document.activeElement!==x&&x.value!==y.textContent) x.value=y.textContent; continue; }
+    morphKids(x,y);
+    if(tg==='SELECT'&&document.activeElement!==x){ var so=y.querySelector('option[selected]'); var v=so?so.getAttribute('value'):null; if(v==null&&so) v=so.textContent; if(v!=null&&x.value!==v) x.value=v; else if(!so&&x.selectedIndex<0&&x.options.length) x.selectedIndex=0; }
+  }
+  while(an.length>bn.length) a.removeChild(a.lastChild);
+}
+function morphAttrs(x,y){
+  var i, at;
+  for(i=x.attributes.length-1;i>=0;i--){ at=x.attributes[i].name; if(!y.hasAttribute(at)&&!(at==='open'&&x.tagName==='DETAILS')) x.removeAttribute(at); }
+  for(i=0;i<y.attributes.length;i++){ at=y.attributes[i]; if(x.getAttribute(at.name)!==at.value&&!(at.name==='value'&&x.tagName==='INPUT')) x.setAttribute(at.name,at.value); }
+}
+function morphVal(x,y){
+  if(x.type==='checkbox'||x.type==='radio'){ var c=y.hasAttribute('checked'); if(x.checked!==c) x.checked=c; return; }
+  if(x.type==='file') return;
+  var v=y.getAttribute('value')||''; if(document.activeElement===x) return; if(x.value!==v) x.value=v;
+}
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function num(v){ var n=parseFloat(String(v).replace(',','.')); return isFinite(n)?n:0; }
 function r2(x){ return Math.round(x*100)/100; }
@@ -3425,13 +3465,12 @@ function renderSys(){
   var vc=vcOn(), el=$(vc?'vc-sys':'br-sys'); if(!el) return;
   var other=$(vc?'br-sys':'vc-sys'); if(other&&other.innerHTML){ other.innerHTML=''; other.removeAttribute('data-k'); }
   if(!brOn()){ el.innerHTML=''; el.removeAttribute('data-k'); return; }
-  var ae=document.activeElement; if(ae&&ae!==document.body&&el.contains(ae)&&el.getAttribute('data-k')){ try{ ae.blur(); }catch(e){} }
   sysEnsure(); sysTiers(); var l=sysList(), cur=brS().cur, W=brW(), Wl=W.toLowerCase();
   var h='<div class="vmp"><b>'+(vc?'Impianti a confronto':'Proposte a confronto')+'</b><small>Fino a tre '+brWp()+' di marche diverse nello stesso preventivo. '+(vc?'Ognuno ha le sue voci, il suo totale e la sua quota a condomino.':'Ognuna ha le sue voci, il suo totale e le sue schede prodotto.')+'</small>';
   l.forEach(function(x,i){
     var T=totals(i), lg=sysLogo(x), src=i===0?1:0, nv=S.lines.filter(function(ln){ return ln.sy===x.id&&!ln.vm; }).length;
     h+='<div class="vms sysc'+(i===cur?' cur':'')+'"><div class="vmo-h"><b class="vmt">'+W+' '+String.fromCharCode(65+i)+'</b><span>'+(l.length>2?'<button type="button" class="btn ghost sm" data-sy="del:'+i+'" aria-label="Elimina">Elimina</button>':'')+'</span></div>'+
-      '<div class="grid2"><label class="f">Marca<input type="text" data-syf="b:'+i+'" value="'+esc(x.b||'')+'" placeholder="es. '+(i===0?'Bticino':i===1?'Vimar':'AVE')+'"></label>'+
+      '<div class="grid2"><label class="f">Marca<input type="text" data-syf="b:'+i+'" data-brsug autocomplete="off" autocapitalize="words" spellcheck="false" value="'+esc(x.b||'')+'" placeholder="es. '+(i===0?'Bticino':i===1?'Vimar':'AVE')+'"></label>'+
       '<label class="f">Nome '+(vc?'dell\'impianto':'della proposta')+'<input type="text" data-syf="n:'+i+'" value="'+esc(x.n||'')+'" placeholder="'+esc(sysName({n:'',b:x.b},i))+'"></label></div>'+
       '<div class="sylg"><div class="sylg-p">'+(lg?'<img src="'+lg+'" alt="">':'<span>'+esc(String(x.b||W).slice(0,2).toUpperCase())+'</span>')+'</div><div class="sylg-t"><b>Logo</b><small>'+(x.logo?'Il tuo logo caricato.':lg?(iwLogoSrc(x.b)==='trust'?'Preso dai «Marchi che installiamo».':'Logo della marca salvato: vale per tutti i preventivi.'):(x.b&&iwMode()==='auto'&&iwNet()&&!iwTried(x.b)?'Cerco il logo di '+esc(iwBase(x.b))+'… oppure scegli tu.':'Per ora le iniziali: trova o carica il logo.'))+'</small><div class="row"><button type="button" class="btn ghost sm" data-sy="iwlogo:'+i+'">'+(lg?'Cambia dal web':'Trova il logo')+'</button><label class="btn ghost sm">'+(x.logo?'Cambia file':'Carica file')+'<input type="file" accept="image/*" hidden data-sylogo="'+i+'"></label>'+(x.logo?'<button type="button" class="btn ghost sm" data-sy="nologo:'+i+'">Rimuovi</button>':'')+'</div></div></div>'+
       (vc?'<label class="f">Tipo<select data-syf="k:'+i+'"><option value="video"'+(x.k==='cit'?'':' selected')+'>Videocitofono</option><option value="cit"'+(x.k==='cit'?' selected':'')+'>Solo citofono</option></select></label>':'')+
@@ -3443,7 +3482,7 @@ function renderSys(){
   h+=(l.length<3?'<div class="row"><button type="button" class="btn ghost" data-sy="add:0">+ Aggiungi '+(vc?'un terzo impianto':'una terza proposta')+'</button></div>':'');
   if(!vc) h+='<div class="vms brk"><b>Chiudi il confronto</b><small>Quando il cliente ha scelto, tieni solo quella proposta: le altre voci e schede vengono rimosse.</small><div class="row">'+l.map(function(x,i){ return '<button type="button" class="btn ghost sm" data-sy="keep:'+i+'">Tieni solo «'+esc(sysName(x,i))+'»</button>'; }).join('')+'</div></div>';
   h+='</div>';
-  if(el.getAttribute('data-k')!==h){ el.innerHTML=h; el.setAttribute('data-k',h); }
+  if(el.getAttribute('data-k')!==h){ morph(el,docImgs(h)); el.setAttribute('data-k',h); }
 }
 (function(){
   function after(){ sysTiers(); vmClamp(); vmSync(); renderLines(); renderCat(); renderTiers(); renderEcon(); renderProducts(); renderVc(); renderRooms(); touch(); }
@@ -3496,7 +3535,6 @@ function tierLogo(k){ if(vcOn()&&vcMode()==='both'&&S.tiers.on) return vcSolLogo
 function renderSol(){
   var el=$('vc-sol'); if(!el) return;
   if(!(vcOn()&&vcMode()==='both')){ if(el.innerHTML){ el.innerHTML=''; el.removeAttribute('data-k'); } return; }
-  var ae=document.activeElement; if(ae&&ae!==document.body&&el.contains(ae)&&el.getAttribute('data-k')){ try{ ae.blur(); }catch(e){} }
   vcSolSync();
   var h='<div class="vmp"><b>Le due soluzioni</b><small>Dai a ciascuna il nome e il logo che vuoi: compaiono nel preventivo economico, nella quota a condomino e nella sezione Prodotti.</small>';
   [['video',1,'Videocitofono','es. Videocitofono Bticino Classe 100'],['cit',0,'Solo citofono','es. Citofono Urmet Mod. 1150']].forEach(function(a){
@@ -3507,7 +3545,7 @@ function renderSol(){
       '<div class="hint">'+(T.tot>0?'Totale '+eur(T.tot)+' IVA inclusa · '+eur(vcQuota(T,a[1]))+' a condomino':'Nessuna voce ancora')+'</div></div>';
   });
   h+='</div>';
-  if(el.getAttribute('data-k')!==h){ el.innerHTML=h; el.setAttribute('data-k',h); }
+  if(el.getAttribute('data-k')!==h){ morph(el,docImgs(h)); el.setAttribute('data-k',h); }
 }
 (function(){
   var w=$('vc-sol'); if(!w) return;
@@ -3696,7 +3734,7 @@ function vmBox(onlyK){
   return out;
 }
 function renderVm(){
-  var el=$('vc-vm'); if(!el) return; var ae=document.activeElement; if(ae&&ae!==document.body&&el.contains(ae)&&el.getAttribute('data-k')) { try{ ae.blur(); }catch(e){} }
+  var el=$('vc-vm'); if(!el) return; 
   if(!vcOn()){ el.innerHTML=''; el.removeAttribute('data-k'); return; }
   var sg=function(v){ return v>0?'+ ':(v<0?'− ':''); };
   var h='<div class="vmp"><b>Modelli del posto interno</b><small>Crei tu i modelli da proporre, con nome, prezzo e caratteristiche. Il totale resta quello del modello base; per gli altri modelli il preventivo indica a parte il surplus.</small>';
@@ -3727,7 +3765,7 @@ function renderVm(){
       (d.o.length?'<div class="hint">Nel preventivo i modelli alternativi compaiono in una voce a parte con il loro surplus: il totale resta quello del modello base.</div>':'')+'</div>';
   });
   h+='<label class="chk"><input type="checkbox" id="vm-show"'+(S.cond.vm&&S.cond.vm.show===false?'':' checked')+'>Mostra la scelta dei modelli nel preventivo</label></div>';
-  if(el.getAttribute('data-k')!==h){ el.innerHTML=h; el.setAttribute('data-k',h); }
+  if(el.getAttribute('data-k')!==h){ morph(el,docImgs(h)); el.setAttribute('data-k',h); }
 }
 (function(){
   var w=$('vc-vm'); if(!w) return;
@@ -3792,7 +3830,7 @@ function renderCondSave(){
   var h='<div class="ccst">'+st+'</div><div class="row"><button class="btn sm" type="button" data-cc="save">Salva come mie condizioni per «'+esc(nm)+'»</button>'+
     (c?'<button class="btn ghost sm" type="button" data-cc="use">Usa le mie condizioni</button><button class="btn ghost sm" type="button" data-cc="del">Elimina le mie condizioni</button>':'')+'</div>'+
     '<p class="hint">Pagamento e clausole salvati valgono per ogni nuovo preventivo di tipo «'+esc(nm)+'» e quando passi a questo tipo. I preventivi già fatti tengono le loro condizioni.'+(saved.length?' Tipi con condizioni tue: <b>'+esc(saved.join(', '))+'</b>.':'')+'</p>';
-  if(el.getAttribute('data-k')!==h){ el.innerHTML=h; el.setAttribute('data-k',h); }
+  if(el.getAttribute('data-k')!==h){ morph(el,h); el.setAttribute('data-k',h); }
 }
 (function(){
   var w=$('cc-box'); if(!w) return;
@@ -4123,10 +4161,10 @@ function renderLines0(){
   };
   brDatalist();
   if(S.model==='app'){
-    $('lines').innerHTML=docImgs(groupLines(S.lines).map(function(g){
+    morph($('lines'),docImgs(groupLines(S.lines).map(function(g){
       return '<div class="rgh"><span class="ri">'+roomSvg(g.room?g.room.kind:'ge','rsvg')+'</span><b>'+esc(groupName(g))+'</b><span class="rs">'+g.items.length+' · '+eur(groupSum(g))+'</span></div>'+g.items.map(function(x){ return lineHtml(x.l,x.i); }).join('');
-    }).join(''));
-  } else $('lines').innerHTML=docImgs(S.lines.map(lineHtml).join(''));
+    }).join('')));
+  } else morph($('lines'),docImgs(S.lines.map(lineHtml).join('')));
   if(!$('lines').closest('[data-panel]').hidden) setTimeout(function(){ if(Date.now()-(SYNC.addT||0)>2400) SYNC.set=new WeakSet(); },2500);
 }
 /* marca nelle righe: si scrive qui oppure nella scheda Prodotti, e resta uguale nei due posti */
@@ -4135,14 +4173,32 @@ function lineBrandOf(l){ var p=prodOfLine(l); return String(l.br||(p&&p.brand)||
 function lineBrandHtml(l){
   if(l.vm) return ''; var p=prodOfLine(l), b=lineBrandOf(l); if(!b&&!p&&!prodWorthy(l)) return '';
   var lg=b?brandLogo(b):'';
-  return '<div class="lbr"><span class="lbr-t">Marca</span><span class="lbr-lg">'+(lg?'<img src="'+lg+'" alt="">':'')+'</span><input type="text" data-f="br" value="'+esc(b)+'" placeholder="Marca (es. Bticino)" list="br-dl" aria-label="Marca" autocomplete="off">'+(p?'<span class="lbr-k" title="Nome e marca restano uguali a quelli della scheda in Prodotti">⇄ collegata alla scheda</span>':'')+'</div>';
+  return '<div class="lbr"><div class="lbr-h"><span class="lbr-t">Marca</span>'+(p?'<span class="lbr-k" title="Nome e marca restano uguali a quelli della scheda in Prodotti">⇄ collegata alla scheda</span>':'')+'</div><div class="lbr-r"><span class="lbr-lg">'+(lg?'<img src="'+lg+'" alt="">':'')+'</span><input type="text" data-f="br" data-brsug value="'+esc(b)+'" placeholder="es. Bticino" aria-label="Marca" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done"></div></div>';
 }
-var BRDL='';
 function brDatalist(){
   var seen={}, L=[]; function add(b){ b=String(b||'').trim(); var k=b.toLowerCase(); if(b&&!seen[k]){ seen[k]=1; L.push(b); } }
   S.lines.forEach(function(l){ add(l.br); }); S.products.forEach(function(p){ add(p.brand); }); (DB.logos||[]).forEach(function(x){ add(x.name); }); maVoci().forEach(function(m){ add(m.n); });
-  var h=L.map(function(b){ return '<option value="'+esc(b)+'">'; }).join(''); if(h!==BRDL){ BRDL=h; var dl=$('br-dl'); if(dl) dl.innerHTML=h; }
+  BRL=L;
 }
+/* suggerimenti delle marche mentre scrivi: chip grandi da toccare (l'elenco nativo del browser sui telefoni copre la tastiera) */
+var BRL=[];
+function brSugHide(){ var x=document.getElementById('br-sug'); if(x) x.remove(); }
+function brSugShow(inp){
+  var q=String(inp.value||'').trim().toLowerCase(); brSugHide(); if(!q) return; if(!BRL.length) brDatalist();
+  var M=BRL.filter(function(b){ var l=b.toLowerCase(); return l!==q&&(l.indexOf(q)===0||l.indexOf(' '+q)>-1); }).slice(0,6); if(!M.length) return;
+  var box=document.createElement('div'); box.id='br-sug'; box.className='brsug'; box.setAttribute('role','listbox');
+  box.innerHTML=M.map(function(b){ var lg=brandLogo(b); return '<button type="button" role="option" data-brs="'+esc(b)+'">'+(lg?'<img src="'+imgBlob(lg)+'" alt="">':'')+esc(b)+'</button>'; }).join('');
+  var host=inp.closest('.lbr')||inp.closest('.lbulk')||inp.parentElement; host.appendChild(box);
+}
+document.addEventListener('input',function(e){ var t=e.target; if(t&&t.hasAttribute&&t.hasAttribute('data-brsug')) brSugShow(t); },true);
+document.addEventListener('focusout',function(e){ var t=e.target; if(t&&t.hasAttribute&&t.hasAttribute('data-brsug')) setTimeout(function(){ var a=document.activeElement; if(!a||!a.hasAttribute||!a.hasAttribute('data-brsug')) brSugHide(); },180); },true);
+// il tocco sul suggerimento non deve togliere il fuoco al campo (tastiera aperta)
+document.addEventListener('pointerdown',function(e){ if(e.target.closest&&e.target.closest('#br-sug')) e.preventDefault(); },true);
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-brs]'); if(!b) return;
+  var box=b.closest('#br-sug'), host=box&&box.parentElement, inp=host&&host.querySelector('[data-brsug]'); if(!inp) return;
+  inp.value=b.getAttribute('data-brs'); brSugHide(); inp.dispatchEvent(new Event('input',{bubbles:true})); inp.dispatchEvent(new Event('change',{bubbles:true})); try{ inp.focus({preventScroll:true}); }catch(x){}
+});
 function lineBrandSet(L,v,row){
   var ob=lineBrandOf(L); L.br=v; var p=prodOfLine(L), n=0;
   if(p){ L.pid=p.id; var pb=p.brand||''; p.brand=v;
@@ -4158,7 +4214,7 @@ function renderProducts(force){ var sec=$('plist').closest('[data-panel]'); if(s
 (function(){ var sec=$('plist').closest('[data-panel]'); if(sec&&window.MutationObserver) new MutationObserver(function(){ if(!sec.hidden&&PLAZY) renderProducts(); }).observe(sec,{attributes:true,attributeFilter:['hidden']}); })();
 function renderProducts0(){
   if(!S.products.length){ $('plist').innerHTML='<div class="empty">Nessun prodotto. Aggiungine uno o crealo dalle righe del preventivo.</div>'; return; }
-  $('plist').innerHTML=docImgs(S.products.map(function(p,i){
+  morph($('plist'),docImgs(S.products.map(function(p,i){
     var th=(p.photos||[]).map(function(u,j){ return '<div class="thumb"><img src="'+u+'" alt=""><button type="button" data-rph="'+i+':'+j+'" aria-label="Rimuovi foto">×</button>'+(j>0?'<button type="button" class="star" data-mph="'+i+':'+j+'" aria-label="Usa come foto principale" title="Foto principale">★</button>':'')+'</div>'; }).join('');
     return '<details class="pe" data-pid="'+esc(p.id)+'"'+(openP[p.id]?' open':'')+'><summary><span class="pn"'+(p.on===false?' style="opacity:.5"':'')+'>'+esc(p.name||'Nuovo prodotto')+'</span>'+(prodUsers(p).length?'':'<span class="pwarn">non nel preventivo</span>')+
       '<button type="button" class="btn ghost sm" data-act="up" data-pi="'+i+'" aria-label="Sposta su">▲</button>'+
@@ -4168,7 +4224,7 @@ function renderProducts0(){
       [['photos','Foto'],['desc','Descrizione'],['specs','Caratteristiche'],['tags','Etichette'],['link','Link scheda'],['pdf','PDF allegato']].map(function(o){ return '<label class="chk sub"><input type="checkbox" data-px="'+o[0]+'" data-pi="'+i+'"'+((p.x&&p.x[o[0]])?'':' checked')+'>'+o[1]+'</label>'; }).join('')+'</div>'+
       (brOn()?prodSysSel(p,i):S.model==='vcit'?'<label class="f">Questo prodotto fa parte di<select data-pf="sol" data-pi="'+i+'"><option value=""'+(p.sol?'':' selected')+'>Tutte le soluzioni</option><option value="video"'+(p.sol==='video'?' selected':'')+'>Solo soluzione videocitofono</option><option value="cit"'+(p.sol==='cit'?' selected':'')+'>Solo soluzione citofono</option></select></label>':'')+
       '<div class="grid2"><label class="f">Nome prodotto<input type="text" data-pf="name" data-pi="'+i+'" value="'+esc(p.name)+'"></label>'+
-      '<label class="f">Marca<input type="text" data-pf="brand" data-pi="'+i+'" value="'+esc(p.brand)+'"></label>'+
+      '<label class="f">Marca<input type="text" data-pf="brand" data-pi="'+i+'" data-brsug autocomplete="off" autocapitalize="words" spellcheck="false" value="'+esc(p.brand)+'"></label>'+
       '<label class="f">Modello / codice<input type="text" data-pf="code" data-pi="'+i+'" value="'+esc(p.code)+'"></label>'+
       '<label class="f">Etichette (separate da virgola)<input type="text" data-pf="tags" data-pi="'+i+'" value="'+esc(p.tags)+'"></label></div>'+
       '<label class="f">Descrizione<textarea data-pf="desc" data-pi="'+i+'">'+esc(p.desc)+'</textarea></label>'+
@@ -4182,7 +4238,7 @@ function renderProducts0(){
       '<div class="thumbs">'+th+'</div>'+
       ((p.photos||[]).length<MAXPH?'<div class="iw-ph"><button type="button" class="btn sm" data-act="iwph" data-pi="'+i+'">Trova foto sul web</button><label class="drop" data-drop="'+i+'">Trascina qui le foto oppure tocca per caricarle ('+(p.photos||[]).length+'/'+MAXPH+')<input type="file" accept="image/*" multiple hidden data-pphoto="'+i+'"></label></div>':'<p class="hint">Massimo '+MAXPH+' foto per prodotto.</p>')+
       '</div></details>';
-  }).join(''));
+  }).join('')));
   iwRenderMem();
 }
 function syncFields(){

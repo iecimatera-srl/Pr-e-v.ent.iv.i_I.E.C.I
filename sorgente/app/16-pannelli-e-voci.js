@@ -60,10 +60,10 @@ function renderLines0(){
   };
   brDatalist();
   if(S.model==='app'){
-    $('lines').innerHTML=docImgs(groupLines(S.lines).map(function(g){
+    morph($('lines'),docImgs(groupLines(S.lines).map(function(g){
       return '<div class="rgh"><span class="ri">'+roomSvg(g.room?g.room.kind:'ge','rsvg')+'</span><b>'+esc(groupName(g))+'</b><span class="rs">'+g.items.length+' · '+eur(groupSum(g))+'</span></div>'+g.items.map(function(x){ return lineHtml(x.l,x.i); }).join('');
-    }).join(''));
-  } else $('lines').innerHTML=docImgs(S.lines.map(lineHtml).join(''));
+    }).join('')));
+  } else morph($('lines'),docImgs(S.lines.map(lineHtml).join('')));
   if(!$('lines').closest('[data-panel]').hidden) setTimeout(function(){ if(Date.now()-(SYNC.addT||0)>2400) SYNC.set=new WeakSet(); },2500);
 }
 /* marca nelle righe: si scrive qui oppure nella scheda Prodotti, e resta uguale nei due posti */
@@ -72,14 +72,32 @@ function lineBrandOf(l){ var p=prodOfLine(l); return String(l.br||(p&&p.brand)||
 function lineBrandHtml(l){
   if(l.vm) return ''; var p=prodOfLine(l), b=lineBrandOf(l); if(!b&&!p&&!prodWorthy(l)) return '';
   var lg=b?brandLogo(b):'';
-  return '<div class="lbr"><span class="lbr-t">Marca</span><span class="lbr-lg">'+(lg?'<img src="'+lg+'" alt="">':'')+'</span><input type="text" data-f="br" value="'+esc(b)+'" placeholder="Marca (es. Bticino)" list="br-dl" aria-label="Marca" autocomplete="off">'+(p?'<span class="lbr-k" title="Nome e marca restano uguali a quelli della scheda in Prodotti">⇄ collegata alla scheda</span>':'')+'</div>';
+  return '<div class="lbr"><div class="lbr-h"><span class="lbr-t">Marca</span>'+(p?'<span class="lbr-k" title="Nome e marca restano uguali a quelli della scheda in Prodotti">⇄ collegata alla scheda</span>':'')+'</div><div class="lbr-r"><span class="lbr-lg">'+(lg?'<img src="'+lg+'" alt="">':'')+'</span><input type="text" data-f="br" data-brsug value="'+esc(b)+'" placeholder="es. Bticino" aria-label="Marca" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done"></div></div>';
 }
-var BRDL='';
 function brDatalist(){
   var seen={}, L=[]; function add(b){ b=String(b||'').trim(); var k=b.toLowerCase(); if(b&&!seen[k]){ seen[k]=1; L.push(b); } }
   S.lines.forEach(function(l){ add(l.br); }); S.products.forEach(function(p){ add(p.brand); }); (DB.logos||[]).forEach(function(x){ add(x.name); }); maVoci().forEach(function(m){ add(m.n); });
-  var h=L.map(function(b){ return '<option value="'+esc(b)+'">'; }).join(''); if(h!==BRDL){ BRDL=h; var dl=$('br-dl'); if(dl) dl.innerHTML=h; }
+  BRL=L;
 }
+/* suggerimenti delle marche mentre scrivi: chip grandi da toccare (l'elenco nativo del browser sui telefoni copre la tastiera) */
+var BRL=[];
+function brSugHide(){ var x=document.getElementById('br-sug'); if(x) x.remove(); }
+function brSugShow(inp){
+  var q=String(inp.value||'').trim().toLowerCase(); brSugHide(); if(!q) return; if(!BRL.length) brDatalist();
+  var M=BRL.filter(function(b){ var l=b.toLowerCase(); return l!==q&&(l.indexOf(q)===0||l.indexOf(' '+q)>-1); }).slice(0,6); if(!M.length) return;
+  var box=document.createElement('div'); box.id='br-sug'; box.className='brsug'; box.setAttribute('role','listbox');
+  box.innerHTML=M.map(function(b){ var lg=brandLogo(b); return '<button type="button" role="option" data-brs="'+esc(b)+'">'+(lg?'<img src="'+imgBlob(lg)+'" alt="">':'')+esc(b)+'</button>'; }).join('');
+  var host=inp.closest('.lbr')||inp.closest('.lbulk')||inp.parentElement; host.appendChild(box);
+}
+document.addEventListener('input',function(e){ var t=e.target; if(t&&t.hasAttribute&&t.hasAttribute('data-brsug')) brSugShow(t); },true);
+document.addEventListener('focusout',function(e){ var t=e.target; if(t&&t.hasAttribute&&t.hasAttribute('data-brsug')) setTimeout(function(){ var a=document.activeElement; if(!a||!a.hasAttribute||!a.hasAttribute('data-brsug')) brSugHide(); },180); },true);
+// il tocco sul suggerimento non deve togliere il fuoco al campo (tastiera aperta)
+document.addEventListener('pointerdown',function(e){ if(e.target.closest&&e.target.closest('#br-sug')) e.preventDefault(); },true);
+document.addEventListener('click',function(e){
+  var b=e.target.closest&&e.target.closest('[data-brs]'); if(!b) return;
+  var box=b.closest('#br-sug'), host=box&&box.parentElement, inp=host&&host.querySelector('[data-brsug]'); if(!inp) return;
+  inp.value=b.getAttribute('data-brs'); brSugHide(); inp.dispatchEvent(new Event('input',{bubbles:true})); inp.dispatchEvent(new Event('change',{bubbles:true})); try{ inp.focus({preventScroll:true}); }catch(x){}
+});
 function lineBrandSet(L,v,row){
   var ob=lineBrandOf(L); L.br=v; var p=prodOfLine(L), n=0;
   if(p){ L.pid=p.id; var pb=p.brand||''; p.brand=v;
@@ -95,7 +113,7 @@ function renderProducts(force){ var sec=$('plist').closest('[data-panel]'); if(s
 (function(){ var sec=$('plist').closest('[data-panel]'); if(sec&&window.MutationObserver) new MutationObserver(function(){ if(!sec.hidden&&PLAZY) renderProducts(); }).observe(sec,{attributes:true,attributeFilter:['hidden']}); })();
 function renderProducts0(){
   if(!S.products.length){ $('plist').innerHTML='<div class="empty">Nessun prodotto. Aggiungine uno o crealo dalle righe del preventivo.</div>'; return; }
-  $('plist').innerHTML=docImgs(S.products.map(function(p,i){
+  morph($('plist'),docImgs(S.products.map(function(p,i){
     var th=(p.photos||[]).map(function(u,j){ return '<div class="thumb"><img src="'+u+'" alt=""><button type="button" data-rph="'+i+':'+j+'" aria-label="Rimuovi foto">×</button>'+(j>0?'<button type="button" class="star" data-mph="'+i+':'+j+'" aria-label="Usa come foto principale" title="Foto principale">★</button>':'')+'</div>'; }).join('');
     return '<details class="pe" data-pid="'+esc(p.id)+'"'+(openP[p.id]?' open':'')+'><summary><span class="pn"'+(p.on===false?' style="opacity:.5"':'')+'>'+esc(p.name||'Nuovo prodotto')+'</span>'+(prodUsers(p).length?'':'<span class="pwarn">non nel preventivo</span>')+
       '<button type="button" class="btn ghost sm" data-act="up" data-pi="'+i+'" aria-label="Sposta su">▲</button>'+
@@ -105,7 +123,7 @@ function renderProducts0(){
       [['photos','Foto'],['desc','Descrizione'],['specs','Caratteristiche'],['tags','Etichette'],['link','Link scheda'],['pdf','PDF allegato']].map(function(o){ return '<label class="chk sub"><input type="checkbox" data-px="'+o[0]+'" data-pi="'+i+'"'+((p.x&&p.x[o[0]])?'':' checked')+'>'+o[1]+'</label>'; }).join('')+'</div>'+
       (brOn()?prodSysSel(p,i):S.model==='vcit'?'<label class="f">Questo prodotto fa parte di<select data-pf="sol" data-pi="'+i+'"><option value=""'+(p.sol?'':' selected')+'>Tutte le soluzioni</option><option value="video"'+(p.sol==='video'?' selected':'')+'>Solo soluzione videocitofono</option><option value="cit"'+(p.sol==='cit'?' selected':'')+'>Solo soluzione citofono</option></select></label>':'')+
       '<div class="grid2"><label class="f">Nome prodotto<input type="text" data-pf="name" data-pi="'+i+'" value="'+esc(p.name)+'"></label>'+
-      '<label class="f">Marca<input type="text" data-pf="brand" data-pi="'+i+'" value="'+esc(p.brand)+'"></label>'+
+      '<label class="f">Marca<input type="text" data-pf="brand" data-pi="'+i+'" data-brsug autocomplete="off" autocapitalize="words" spellcheck="false" value="'+esc(p.brand)+'"></label>'+
       '<label class="f">Modello / codice<input type="text" data-pf="code" data-pi="'+i+'" value="'+esc(p.code)+'"></label>'+
       '<label class="f">Etichette (separate da virgola)<input type="text" data-pf="tags" data-pi="'+i+'" value="'+esc(p.tags)+'"></label></div>'+
       '<label class="f">Descrizione<textarea data-pf="desc" data-pi="'+i+'">'+esc(p.desc)+'</textarea></label>'+
@@ -119,7 +137,7 @@ function renderProducts0(){
       '<div class="thumbs">'+th+'</div>'+
       ((p.photos||[]).length<MAXPH?'<div class="iw-ph"><button type="button" class="btn sm" data-act="iwph" data-pi="'+i+'">Trova foto sul web</button><label class="drop" data-drop="'+i+'">Trascina qui le foto oppure tocca per caricarle ('+(p.photos||[]).length+'/'+MAXPH+')<input type="file" accept="image/*" multiple hidden data-pphoto="'+i+'"></label></div>':'<p class="hint">Massimo '+MAXPH+' foto per prodotto.</p>')+
       '</div></details>';
-  }).join(''));
+  }).join('')));
   iwRenderMem();
 }
 function syncFields(){

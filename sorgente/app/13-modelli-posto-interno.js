@@ -55,7 +55,7 @@ function vmBox(onlyK){
   return out;
 }
 function renderVm(){
-  var el=$('vc-vm'); if(!el) return; var ae=document.activeElement; if(ae&&ae!==document.body&&el.contains(ae)&&el.getAttribute('data-k')) { try{ ae.blur(); }catch(e){} }
+  var el=$('vc-vm'); if(!el) return; 
   if(!vcOn()){ el.innerHTML=''; el.removeAttribute('data-k'); return; }
   var sg=function(v){ return v>0?'+ ':(v<0?'− ':''); };
   var h='<div class="vmp"><b>Modelli del posto interno</b><small>Crei tu i modelli da proporre, con nome, prezzo e caratteristiche. Il totale resta quello del modello base; per gli altri modelli il preventivo indica a parte il surplus.</small>';
@@ -86,7 +86,7 @@ function renderVm(){
       (d.o.length?'<div class="hint">Nel preventivo i modelli alternativi compaiono in una voce a parte con il loro surplus: il totale resta quello del modello base.</div>':'')+'</div>';
   });
   h+='<label class="chk"><input type="checkbox" id="vm-show"'+(S.cond.vm&&S.cond.vm.show===false?'':' checked')+'>Mostra la scelta dei modelli nel preventivo</label></div>';
-  if(el.getAttribute('data-k')!==h){ el.innerHTML=h; el.setAttribute('data-k',h); }
+  if(el.getAttribute('data-k')!==h){ morph(el,docImgs(h)); el.setAttribute('data-k',h); }
 }
 (function(){
   var w=$('vc-vm'); if(!w) return;

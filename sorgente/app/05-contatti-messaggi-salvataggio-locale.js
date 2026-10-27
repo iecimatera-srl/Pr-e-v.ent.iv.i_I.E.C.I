@@ -174,6 +174,36 @@ window.addEventListener('pagehide',function(){ if(saveT){ clearTimeout(saveT); s
 S=normalize(readLocal());
 
 function $(id){ return document.getElementById(id); }
+/* Aggiorna un riquadro SENZA sostituirlo: si cambiano solo testi, attributi e valori diversi.
+   Così il campo che stai toccando, la tastiera del telefono e il cursore restano dove sono. */
+function morph(box,html){ var t=document.createElement('template'); t.innerHTML=html; morphKids(box,t.content); }
+function morphKids(a,b){
+  var an=a.childNodes, bn=b.childNodes, i, x, y;
+  for(i=0;i<bn.length;i++){
+    x=an[i]; y=bn[i];
+    if(!x){ a.appendChild(y.cloneNode(true)); continue; }
+    if(x.nodeType!==y.nodeType||x.nodeName!==y.nodeName){ a.replaceChild(y.cloneNode(true),x); continue; }
+    if(x.nodeType!==1){ if(x.nodeValue!==y.nodeValue) x.nodeValue=y.nodeValue; continue; }
+    if((x.getAttribute('data-pid')||'')!==(y.getAttribute('data-pid')||'')){ a.replaceChild(y.cloneNode(true),x); continue; }
+    morphAttrs(x,y);
+    var tg=x.tagName;
+    if(tg==='INPUT'){ morphVal(x,y); continue; }
+    if(tg==='TEXTAREA'){ if(document.activeElement!==x&&x.value!==y.textContent) x.value=y.textContent; continue; }
+    morphKids(x,y);
+    if(tg==='SELECT'&&document.activeElement!==x){ var so=y.querySelector('option[selected]'); var v=so?so.getAttribute('value'):null; if(v==null&&so) v=so.textContent; if(v!=null&&x.value!==v) x.value=v; else if(!so&&x.selectedIndex<0&&x.options.length) x.selectedIndex=0; }
+  }
+  while(an.length>bn.length) a.removeChild(a.lastChild);
+}
+function morphAttrs(x,y){
+  var i, at;
+  for(i=x.attributes.length-1;i>=0;i--){ at=x.attributes[i].name; if(!y.hasAttribute(at)&&!(at==='open'&&x.tagName==='DETAILS')) x.removeAttribute(at); }
+  for(i=0;i<y.attributes.length;i++){ at=y.attributes[i]; if(x.getAttribute(at.name)!==at.value&&!(at.name==='value'&&x.tagName==='INPUT')) x.setAttribute(at.name,at.value); }
+}
+function morphVal(x,y){
+  if(x.type==='checkbox'||x.type==='radio'){ var c=y.hasAttribute('checked'); if(x.checked!==c) x.checked=c; return; }
+  if(x.type==='file') return;
+  var v=y.getAttribute('value')||''; if(document.activeElement===x) return; if(x.value!==v) x.value=v;
+}
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function num(v){ var n=parseFloat(String(v).replace(',','.')); return isFinite(n)?n:0; }
 function r2(x){ return Math.round(x*100)/100; }

@@ -24,7 +24,7 @@ function renderCondSave(){
   var h='<div class="ccst">'+st+'</div><div class="row"><button class="btn sm" type="button" data-cc="save">Salva come mie condizioni per «'+esc(nm)+'»</button>'+
     (c?'<button class="btn ghost sm" type="button" data-cc="use">Usa le mie condizioni</button><button class="btn ghost sm" type="button" data-cc="del">Elimina le mie condizioni</button>':'')+'</div>'+
     '<p class="hint">Pagamento e clausole salvati valgono per ogni nuovo preventivo di tipo «'+esc(nm)+'» e quando passi a questo tipo. I preventivi già fatti tengono le loro condizioni.'+(saved.length?' Tipi con condizioni tue: <b>'+esc(saved.join(', '))+'</b>.':'')+'</p>';
-  if(el.getAttribute('data-k')!==h){ el.innerHTML=h; el.setAttribute('data-k',h); }
+  if(el.getAttribute('data-k')!==h){ morph(el,h); el.setAttribute('data-k',h); }
 }
 (function(){
   var w=$('cc-box'); if(!w) return;

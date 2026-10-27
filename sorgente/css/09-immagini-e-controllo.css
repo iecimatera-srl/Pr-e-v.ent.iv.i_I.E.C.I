@@ -90,8 +90,10 @@
 .ma-b{display:flex;flex-direction:column;gap:4px}
 #ma-d .iw-q{flex-wrap:wrap}#ma-q{flex:1 1 200px}
 /* marca nelle righe */
-.lbr{display:flex;align-items:center;gap:8px;margin:6px 0 2px}
-.lbr input{flex:1 1 140px;min-width:0;max-width:260px;font:inherit;font-size:.88rem;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--field);color:var(--ink)}
+.lbr{position:relative;display:grid;gap:4px;margin:8px 0 4px}
+.lbr-h{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lbr-r{display:flex;align-items:center;gap:8px}
+.lbr input{flex:1 1 auto;width:100%;min-width:0;font:inherit;font-size:16px;padding:10px 12px;min-height:44px;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
 .lbr-lg{flex:none;display:flex;align-items:center;justify-content:center;height:26px;min-width:0}.lbr-lg:empty{display:none}
 .lbr-lg img{height:22px;max-width:76px;object-fit:contain;background:#fff;border-radius:6px;padding:2px 4px;border:1px solid var(--line)}
 .lbr-k{font-size:.7rem;color:var(--muted);white-space:nowrap}
@@ -100,3 +102,11 @@
 @keyframes lsync{0%,40%{box-shadow:0 0 0 3px color-mix(in srgb,#15803D 55%,transparent);background:color-mix(in srgb,#15803D 8%,var(--surface))}100%{box-shadow:none}}
 @media (prefers-reduced-motion:reduce){.line.sync{animation:none;outline:2px solid #15803D}}
 .lbr-t{font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+
+.lbulk{position:relative}.lbulk input{font-size:16px;min-height:44px}
+.brsug{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;padding:6px;border:1px solid var(--line);border-radius:12px;background:var(--surface);box-shadow:0 8px 24px rgba(0,0,0,.14);z-index:5}
+.lbulk .brsug{flex-basis:100%}
+.brsug button{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:var(--field);color:var(--ink);font:inherit;font-weight:600;cursor:pointer}
+.brsug button img{height:18px;max-width:54px;object-fit:contain;background:#fff;border-radius:4px}
+/* telefoni: campi a 16px (sotto questa misura iPhone ingrandisce la pagina a ogni tocco e i riquadri saltano) */
+@media (pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px}}

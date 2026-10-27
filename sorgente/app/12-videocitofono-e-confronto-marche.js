@@ -84,13 +84,12 @@ function renderSys(){
   var vc=vcOn(), el=$(vc?'vc-sys':'br-sys'); if(!el) return;
   var other=$(vc?'br-sys':'vc-sys'); if(other&&other.innerHTML){ other.innerHTML=''; other.removeAttribute('data-k'); }
   if(!brOn()){ el.innerHTML=''; el.removeAttribute('data-k'); return; }
-  var ae=document.activeElement; if(ae&&ae!==document.body&&el.contains(ae)&&el.getAttribute('data-k')){ try{ ae.blur(); }catch(e){} }
   sysEnsure(); sysTiers(); var l=sysList(), cur=brS().cur, W=brW(), Wl=W.toLowerCase();
   var h='<div class="vmp"><b>'+(vc?'Impianti a confronto':'Proposte a confronto')+'</b><small>Fino a tre '+brWp()+' di marche diverse nello stesso preventivo. '+(vc?'Ognuno ha le sue voci, il suo totale e la sua quota a condomino.':'Ognuna ha le sue voci, il suo totale e le sue schede prodotto.')+'</small>';
   l.forEach(function(x,i){
     var T=totals(i), lg=sysLogo(x), src=i===0?1:0, nv=S.lines.filter(function(ln){ return ln.sy===x.id&&!ln.vm; }).length;
     h+='<div class="vms sysc'+(i===cur?' cur':'')+'"><div class="vmo-h"><b class="vmt">'+W+' '+String.fromCharCode(65+i)+'</b><span>'+(l.length>2?'<button type="button" class="btn ghost sm" data-sy="del:'+i+'" aria-label="Elimina">Elimina</button>':'')+'</span></div>'+
-      '<div class="grid2"><label class="f">Marca<input type="text" data-syf="b:'+i+'" value="'+esc(x.b||'')+'" placeholder="es. '+(i===0?'Bticino':i===1?'Vimar':'AVE')+'"></label>'+
+      '<div class="grid2"><label class="f">Marca<input type="text" data-syf="b:'+i+'" data-brsug autocomplete="off" autocapitalize="words" spellcheck="false" value="'+esc(x.b||'')+'" placeholder="es. '+(i===0?'Bticino':i===1?'Vimar':'AVE')+'"></label>'+
       '<label class="f">Nome '+(vc?'dell\'impianto':'della proposta')+'<input type="text" data-syf="n:'+i+'" value="'+esc(x.n||'')+'" placeholder="'+esc(sysName({n:'',b:x.b},i))+'"></label></div>'+
       '<div class="sylg"><div class="sylg-p">'+(lg?'<img src="'+lg+'" alt="">':'<span>'+esc(String(x.b||W).slice(0,2).toUpperCase())+'</span>')+'</div><div class="sylg-t"><b>Logo</b><small>'+(x.logo?'Il tuo logo caricato.':lg?(iwLogoSrc(x.b)==='trust'?'Preso dai «Marchi che installiamo».':'Logo della marca salvato: vale per tutti i preventivi.'):(x.b&&iwMode()==='auto'&&iwNet()&&!iwTried(x.b)?'Cerco il logo di '+esc(iwBase(x.b))+'… oppure scegli tu.':'Per ora le iniziali: trova o carica il logo.'))+'</small><div class="row"><button type="button" class="btn ghost sm" data-sy="iwlogo:'+i+'">'+(lg?'Cambia dal web':'Trova il logo')+'</button><label class="btn ghost sm">'+(x.logo?'Cambia file':'Carica file')+'<input type="file" accept="image/*" hidden data-sylogo="'+i+'"></label>'+(x.logo?'<button type="button" class="btn ghost sm" data-sy="nologo:'+i+'">Rimuovi</button>':'')+'</div></div></div>'+
       (vc?'<label class="f">Tipo<select data-syf="k:'+i+'"><option value="video"'+(x.k==='cit'?'':' selected')+'>Videocitofono</option><option value="cit"'+(x.k==='cit'?' selected':'')+'>Solo citofono</option></select></label>':'')+
@@ -102,7 +101,7 @@ function renderSys(){
   h+=(l.length<3?'<div class="row"><button type="button" class="btn ghost" data-sy="add:0">+ Aggiungi '+(vc?'un terzo impianto':'una terza proposta')+'</button></div>':'');
   if(!vc) h+='<div class="vms brk"><b>Chiudi il confronto</b><small>Quando il cliente ha scelto, tieni solo quella proposta: le altre voci e schede vengono rimosse.</small><div class="row">'+l.map(function(x,i){ return '<button type="button" class="btn ghost sm" data-sy="keep:'+i+'">Tieni solo «'+esc(sysName(x,i))+'»</button>'; }).join('')+'</div></div>';
   h+='</div>';
-  if(el.getAttribute('data-k')!==h){ el.innerHTML=h; el.setAttribute('data-k',h); }
+  if(el.getAttribute('data-k')!==h){ morph(el,docImgs(h)); el.setAttribute('data-k',h); }
 }
 (function(){
   function after(){ sysTiers(); vmClamp(); vmSync(); renderLines(); renderCat(); renderTiers(); renderEcon(); renderProducts(); renderVc(); renderRooms(); touch(); }
@@ -155,7 +154,6 @@ function tierLogo(k){ if(vcOn()&&vcMode()==='both'&&S.tiers.on) return vcSolLogo
 function renderSol(){
   var el=$('vc-sol'); if(!el) return;
   if(!(vcOn()&&vcMode()==='both')){ if(el.innerHTML){ el.innerHTML=''; el.removeAttribute('data-k'); } return; }
-  var ae=document.activeElement; if(ae&&ae!==document.body&&el.contains(ae)&&el.getAttribute('data-k')){ try{ ae.blur(); }catch(e){} }
   vcSolSync();
   var h='<div class="vmp"><b>Le due soluzioni</b><small>Dai a ciascuna il nome e il logo che vuoi: compaiono nel preventivo economico, nella quota a condomino e nella sezione Prodotti.</small>';
   [['video',1,'Videocitofono','es. Videocitofono Bticino Classe 100'],['cit',0,'Solo citofono','es. Citofono Urmet Mod. 1150']].forEach(function(a){
@@ -166,7 +164,7 @@ function renderSol(){
       '<div class="hint">'+(T.tot>0?'Totale '+eur(T.tot)+' IVA inclusa · '+eur(vcQuota(T,a[1]))+' a condomino':'Nessuna voce ancora')+'</div></div>';
   });
   h+='</div>';
-  if(el.getAttribute('data-k')!==h){ el.innerHTML=h; el.setAttribute('data-k',h); }
+  if(el.getAttribute('data-k')!==h){ morph(el,docImgs(h)); el.setAttribute('data-k',h); }
 }
 (function(){
   var w=$('vc-sol'); if(!w) return;

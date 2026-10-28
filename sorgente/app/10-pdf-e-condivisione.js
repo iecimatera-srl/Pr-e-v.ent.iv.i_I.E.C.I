@@ -75,30 +75,37 @@ function shSubj(){ var t=$('sh-subj'); return t&&!$('sh-bg').hidden?t.value:fill
 function shBody(){ var t=$('sh-body'); return t&&!$('sh-bg').hidden?t.value:fillMsg(S.msgs.body); }
 function shLinks(){
   var txt=shTxt(), d=waDigits(S.client.tel);
-  $('sh-wat').href='https://wa.me/'+d+'?text='+encodeURIComponent(txt); if($('sh-wa2')) $('sh-wa2').href=$('sh-wat').href;
+  $('sh-wat').href='https://wa.me/'+d+'?text='+encodeURIComponent(txt);
   $('sh-mlt').href='mailto:'+encodeURIComponent(S.client.email||'').replace('%40','@')+'?subject='+encodeURIComponent(shSubj())+'&body='+encodeURIComponent(shBody());
 }
 function markSent(){ if((S.meta.status||'bozza')==='bozza'){ S.meta.status='inviato'; syncB(); touch(); if(dbReady) saveQuote(true); } }
+// iPhone/iPad: se alla condivisione si passa anche il testo, Safari scarta il file (bug WebKit 251500).
+// Lì si condivide solo il PDF e il messaggio va negli appunti, pronto come didascalia.
+function shIOS(){ var u=navigator.userAgent||''; return /iP(hone|ad|od)/.test(u)||(/Macintosh/.test(u)&&(navigator.maxTouchPoints||0)>1); }
 function shSend(kind){
   var f=shFile(); if(!f) return;
-  var txt=shTxt(), subj=shSubj(), body=shBody();
-  var data={files:[f],title:kind==='ml'?subj:fileBase(),text:kind==='ml'?body:txt};
+  var txt=shTxt(), subj=shSubj(), body=shBody(), msg=kind==='ml'?body:txt, ios=shIOS();
+  var data={files:[f],title:kind==='ml'?subj:fileBase()};
+  if(!ios) data.text=msg;
   function fallback(){
     dlBlob(pdfCache.blob,fileBase()+'.pdf');
-    if(kind==='wa'){ window.open('https://wa.me/'+waDigits(S.client.tel)+'?text='+encodeURIComponent(txt),'_blank'); toast('PDF salvato: allegalo nella chat di WhatsApp'); }
-    else { window.location.href=$('sh-mlt').href; toast('PDF salvato: allegalo all\'email'); }
+    if(kind==='wa'){ window.open('https://wa.me/'+waDigits(S.client.tel)+'?text='+encodeURIComponent(txt),'_blank'); toast('Chat aperta con il messaggio · PDF salvato: trascinalo nella chat'); }
+    else { window.location.href=$('sh-mlt').href; toast('Email pronta con il testo · PDF salvato: allegalo'); }
     markSent();
   }
-  if(navigator.canShare&&navigator.share&&navigator.canShare({files:[f]})){
-    if(kind==='wa'){ copySilent(txt); shLinks(); $('sh-step').hidden=false; }
-    navigator.share(data).then(function(){ markSent(); toast(kind==='wa'?'PDF inviato. Ora invia il messaggio: è già copiato':'Condiviso'); }).catch(function(e){ if(e&&e.name==='AbortError') return; fallback(); });
+  var ok=navigator.canShare&&navigator.share; try{ ok=ok&&navigator.canShare(data); }catch(e){ ok=false; }
+  if(!ok&&data.text&&navigator.canShare&&navigator.share){ try{ if(navigator.canShare({files:[f]})){ delete data.text; ios=true; ok=true; } }catch(e){} }
+  if(ok){
+    if(ios) copySilent(msg);
+    navigator.share(data).then(function(){ markSent(); toast(ios?(kind==='wa'?'PDF inviato · il messaggio è negli appunti: incollalo come didascalia':'PDF condiviso · il testo è negli appunti: incollalo nell\'email'):(kind==='wa'?'PDF e messaggio inviati insieme':'PDF e testo condivisi')); })
+    .catch(function(e){ if(e&&e.name==='AbortError') return; fallback(); });
   } else fallback();
 }
 function openShare(){
   if(S.qid===''&&dbReady&&(String(S.client.name||'').trim()||S.lines.length)) saveQuote(true);
   $('sh-doc').textContent=quoteName()+' · '+headTotal();
   var np=pdfProducts().length; $('sh-att-w').hidden=!np; $('sh-att').checked=np>0;
-  $('sh-bg').hidden=false; $('sh-step').hidden=true; shMsgFill(); shLinks(); ckShare(); document.body.style.overflow='hidden';
+  $('sh-bg').hidden=false; shMsgFill(); shLinks(); ckShare(); document.body.style.overflow='hidden';
   setTimeout(shPrepare,50);
 }
 function closeShare(){ $('sh-bg').hidden=true; document.body.style.overflow=''; }
@@ -111,7 +118,7 @@ $('sh-wa').addEventListener('click',function(){ shSend('wa'); });
 $('sh-ml').addEventListener('click',function(){ shSend('ml'); });
 $('sh-dl').addEventListener('click',function(){ if(pdfCache){ dlBlob(pdfCache.blob,fileBase()+'.pdf'); markSent(); toast('PDF salvato'); } });
 $('sh-cp').addEventListener('click',function(){ copyText(shTxt(),'Messaggio copiato'); });
-$('sh-wat').addEventListener('click',function(){ markSent(); }); $('sh-wa2').addEventListener('click',function(){ markSent(); }); $('sh-cp3').addEventListener('click',function(){ copyText(shTxt(),'Messaggio copiato: incollalo nella chat'); }); $('sh-mlt').addEventListener('click',function(){ markSent(); });
+$('sh-wat').addEventListener('click',function(){ markSent(); }); $('sh-mlt').addEventListener('click',function(){ markSent(); });
 function openSaved(){ showPanel('prev'); var a=$('acc-save'); if(a) a.open=true; setTimeout(function(){ var t=$('acc-save'); if(t) t.scrollIntoView({behavior:'smooth',block:'start'}); },60); }
 $('qb-list').addEventListener('click',openSaved);
 $('go-prev').addEventListener('click',openSaved);

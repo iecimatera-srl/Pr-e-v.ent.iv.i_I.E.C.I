@@ -18,14 +18,14 @@ function saveClient(silent){
   var c=S.client, nm=(c.name||'').trim();
   if(!nm){ if(!silent) toast('Scrivi prima il nome del cliente'); return; }
   var ex=DB.clients.filter(function(x){ return lc(x.name)===lc(nm); })[0];
-  if(ex){ ex.addr=c.addr||''; ex.tel=c.tel||''; ex.email=c.email||''; }
-  else DB.clients.push({id:uid(),name:nm,addr:c.addr||'',tel:c.tel||'',email:c.email||''});
+  if(ex){ ex.addr=c.addr||''; ex.tel=c.tel||''; ex.email=c.email||''; ex.cf=c.cf||''; }
+  else DB.clients.push({id:uid(),name:nm,addr:c.addr||'',tel:c.tel||'',email:c.email||'',cf:c.cf||''});
   DB.clients.sort(byName); dbSave(); renderArchivio();
   if(!silent) toast(ex?'Cliente aggiornato':'Cliente salvato in rubrica');
 }
 function useClient(id){
   var c=DB.clients.filter(function(x){ return x.id===id; })[0]; if(!c) return;
-  S.client={name:c.name,addr:c.addr,tel:c.tel,email:c.email}; syncFields(); renderInvio(); touch(); toast('Cliente inserito: '+c.name);
+  S.client={name:c.name,addr:c.addr,tel:c.tel,email:c.email,cf:c.cf||''}; syncFields(); renderInvio(); touch(); toast('Cliente inserito: '+c.name);
 }
 function saveProd(i,silent){
   var p=copy(S.products[i]); if(!p||!(p.name||'').trim()){ if(!silent) toast('Dai prima un nome al prodotto'); return false; }
@@ -83,7 +83,7 @@ function newQuote(){
   var base=fresh();
   S=base; Object.keys(keep).forEach(function(k){ S[k]=keep[k]; });
   ['planimetria','fv','crono','conferma','lavoro','collaudo'].forEach(function(k){ S.show[k]=false; });
-  condApplyNew(); (function(){ var t=mtDef(); if(t) S.msgs={tpl:t.id,wa:t.wa,subj:t.subj,body:t.body}; })(); S.products=[]; S.lines=[]; S.client={name:'',addr:'',tel:'',email:''}; S.meta.title=''; S.meta.num=nextNum(); S.meta.date=today(); S.meta.slogan=''; S.qid='';
+  condApplyNew(); (function(){ var t=mtDef(); if(t) S.msgs={tpl:t.id,wa:t.wa,subj:t.subj,body:t.body}; })(); S.products=[]; S.lines=[]; S.client={name:'',addr:'',tel:'',email:'',cf:''}; S.meta.title=''; S.meta.num=nextNum(); S.meta.date=today(); S.meta.slogan=''; S.qid='';
   doSave(); renderAll(); showPanel('dati'); try{ window.scrollTo(0,0); }catch(e){}
   toast('Nuovo preventivo vuoto n. '+S.meta.num+': ditta, stile e listino mantenuti');
 }

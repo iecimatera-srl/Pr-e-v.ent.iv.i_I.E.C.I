@@ -3,7 +3,7 @@ const A=require('./_amb.cjs');
 let fail=0;const ok=(c,m)=>{console.log((c?'OK   ':'FAIL ')+m);if(!c)fail++;};
 (async()=>{const b=await A.chromium.launch();
 const p=await (await b.newContext({viewport:{width:430,height:900}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('dialog',d=>d.accept());
-await p.goto(A.SRC);await p.waitForTimeout(1500);
+await p.goto(A.SRC);await p.waitForTimeout(1500);await p.waitForFunction(()=>window.IECI_T&&window.IECI_T.S,null,{timeout:20000}).catch(()=>{});
 const S=(f,a)=>p.evaluate(f,a);
 await S(()=>{ const s=window.IECI_T.S(); s.model='dom'; s.products=[]; s.lines=[{d:'Presa con USB',u:'cad',q:2,p:58,s:0},{d:'Presa con USB (Sala)',u:'cad',q:1,p:58,s:0},{d:'Manodopera oraria',u:'h',q:4,p:38,s:0}];
   window.IECI_T.linkLine(s.lines[0],{force:true}); s.lines[1].pid=s.lines[0].pid; window.IECI_T.touch(); });

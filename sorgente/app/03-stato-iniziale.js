@@ -45,7 +45,7 @@ function fresh(){
     model:'dom',
     rooms:[],curRoom:'',cgroups:{},cond:{n:6,kind:'video',show:true,tc:'',tv:'',cur:0,sys:[],sol:{cit:{n:'',logo:''},video:{n:'',logo:''}},vm:{show:true,video:{b:'',o:[]},cit:{b:'',o:[]}}},
     company:defaultCompany(),
-    client:{name:'Mario Rossi',addr:'Via Verdi 12, appartamento 3',tel:'',email:''},
+    client:{name:'Mario Rossi',addr:'Via Verdi 12, appartamento 3',tel:'',email:'',cf:''},
     meta:{title:'Rifacimento impianto appartamento',num:'2026/001',date:today(),val:30,iva:22,disc:0,dep:30,slogan:'',status:'bozza'},
     econ:{mode:'righe',total:'',vat:'incl',label:'',breakdown:true,note:'',agreed:''},
     pay:payText(30), notes:MODELS.dom.notes, ccond:{}, cmp:{on:false,cur:0,sys:[]}, mtpl:mtFactory(), mdef:'m0',

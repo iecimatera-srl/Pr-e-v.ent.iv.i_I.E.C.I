@@ -1,5 +1,5 @@
 var CAN_PRINT = false;
-var APP_VER = '2026.10.28.1';
+var APP_VER = '2026.10.29.1';
 (function(){
 'use strict';
 

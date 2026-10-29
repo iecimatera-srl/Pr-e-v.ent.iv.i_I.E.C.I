@@ -4,7 +4,7 @@ let fail=0;const ok=(c,m)=>{console.log((c?'OK   ':'FAIL ')+m);if(!c)fail++;};
 (async()=>{const b=await A.chromium.launch();
 const p=await (await b.newContext({viewport:{width:420,height:900}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
 p.on('dialog',d=>d.accept());
-await p.goto(A.SRC);await p.waitForTimeout(1500);
+await p.goto(A.SRC);await p.waitForTimeout(1500);await p.waitForFunction(()=>window.IECI_T&&window.IECI_T.S,null,{timeout:20000}).catch(()=>{});
 const S=(f,a)=>p.evaluate(f,a);
 const lista=()=>S(()=>window.IECI_T.ckList().map(x=>x.l+':'+x.t));
 await S(()=>{ const s=window.IECI_T.S(); s.model='dom'; s.lines=[{d:'Punto luce semplice',u:'cad',q:4,p:45,s:0},{d:'Quadro elettrico',u:'cad',q:1,p:0,s:0},{d:'Manodopera',u:'h',q:8,p:35,s:0}];

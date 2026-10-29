@@ -4,7 +4,7 @@ let fail=0;const ok=(c,m)=>{console.log((c?'OK   ':'FAIL ')+m);if(!c)fail++;};
 (async()=>{const b=await A.chromium.launch();
 const p=await (await b.newContext({viewport:{width:420,height:900}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
 p.on('dialog',d=>d.accept());
-await p.goto(A.SRC);await p.waitForTimeout(1500);
+await p.goto(A.SRC);await p.waitForTimeout(1500);await p.waitForFunction(()=>window.IECI_T&&window.IECI_T.S,null,{timeout:20000}).catch(()=>{});
 const S=(f,a)=>p.evaluate(f,a);
 const prepara=async t=>{ await A.mostra(p,'#as-txt'); await p.fill('#as-txt',t); await p.click('#as-go'); await p.waitForTimeout(150); return S(()=>{ const o=document.getElementById('as-out'); return {txt:o.innerText,tit:(document.getElementById('as-tit')||{}).value||'',righe:[...o.querySelectorAll('.as-r')].map(r=>({d:r.querySelector('.as-d').childNodes[0].textContent,q:+r.querySelector('.as-q').value,p:(r.querySelector('.as-p')||{}).textContent||''}))}; }); };
 const riga=(r,re)=>r.righe.find(x=>re.test(x.d));
@@ -13,14 +13,14 @@ ok(await S(()=>document.querySelectorAll('#as-ex [data-asex]').length>=6),'esemp
 
 // --- appartamento con stanze, cliente e marca
 let r=await prepara('Rifacimento impianto appartamento 95 mq per Rossi Mario, via Roma 3, Matera: ingresso, cucina, soggiorno, 2 camere, 2 bagni, Bticino');
-ok(/Appartamento/.test(r.txt)&&/Rossi Mario/.test(r.txt)&&/via Roma 3, Matera/.test(r.txt)&&/Marca Bticino/.test(r.txt),'appartamento: tipo, cliente, indirizzo, marca');
+ok(/Appartamento/.test(r.txt)&&/Rossi Mario/.test(r.txt)&&/Via Roma 3, Matera/.test(r.txt)&&/Marca Bticino/.test(r.txt),'appartamento: tipo, cliente, indirizzo, marca');
 ok(/CAMERA DA LETTO 2/i.test(r.txt)&&/BAGNO 2/i.test(r.txt)&&/CUCINA/i.test(r.txt),'appartamento: stanze con le quantità');
 ok(r.tit==='Rifacimento impianto elettrico appartamento di 95 mq','appartamento: titolo');
 await p.click('#as-ok');await p.waitForTimeout(400);
 let st=await S(()=>{const s=window.IECI_T.S();return {model:s.model,rooms:s.rooms.map(x=>x.name),cli:s.client.name+'|'+s.client.addr,tit:s.meta.title,n:s.lines.length,r:s.lines.filter(l=>l.r).length,br:s.lines.filter(l=>l.br==='Bticino').length,pb:s.products.filter(p=>p.brand==='Bticino').length}});
 console.log(JSON.stringify(st));
 ok(st.model==='app'&&st.rooms.length===7&&st.rooms.includes('Camera da letto 2')&&st.rooms.includes('Bagno 2'),'applicato: stanze create');
-ok(st.cli==='Rossi Mario|via Roma 3, Matera'&&st.tit==='Rifacimento impianto elettrico appartamento di 95 mq','applicato: cliente e titolo');
+ok(st.cli==='Rossi Mario|Via Roma 3, Matera'&&st.tit==='Rifacimento impianto elettrico appartamento di 95 mq','applicato: cliente e titolo');
 ok(st.n>40&&st.r>30&&st.br===st.n&&st.pb>0,'applicato: voci nelle stanze, con marca e schede prodotto');
 ok(await S(()=>/Camera da letto 2/i.test(document.querySelector('#doc').innerText)),'nel fascicolo, divise per stanza');
 

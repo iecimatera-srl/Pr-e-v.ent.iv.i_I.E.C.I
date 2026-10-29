@@ -3,7 +3,7 @@ const A=require('./_amb.cjs');
 let fail=0;const ok=(c,m)=>{console.log((c?'OK   ':'FAIL ')+m);if(!c)fail++;};
 (async()=>{const b=await A.chromium.launch();
 const p=await (await b.newContext({viewport:{width:430,height:900}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('dialog',d=>d.accept());
-await p.goto(A.SRC);await p.waitForTimeout(1500);
+await p.goto(A.SRC);await p.waitForTimeout(1500);await p.waitForFunction(()=>window.IECI_T&&window.IECI_T.S,null,{timeout:20000}).catch(()=>{});
 const S=(f,a)=>p.evaluate(f,a);
 await A.mostra(p,'#as-txt'); await p.fill('#as-txt','Bilocale per Rossi Mario, Bticino'); await p.click('#as-go'); await p.waitForTimeout(200); await p.click('#as-ok'); await p.waitForTimeout(800);
 await S(()=>{ const c=document.createElement('canvas'); c.width=400; c.height=300; const x=c.getContext('2d'); x.fillStyle='#c33'; x.fillRect(0,0,400,300); x.fillStyle='#fff'; x.fillRect(50,50,120,90); const u=c.toDataURL('image/jpeg',0.9); const s=window.IECI_T.S(); s.products.slice(0,3).forEach(p=>p.photos=[u]); window.IECI_T.touch(); });

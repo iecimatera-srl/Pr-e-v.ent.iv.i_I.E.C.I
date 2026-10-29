@@ -4,7 +4,7 @@ let fail=0;const ok=(c,m)=>{console.log((c?'OK   ':'FAIL ')+m);if(!c)fail++;};
 (async()=>{const b=await A.chromium.launch();
 const p=await (await b.newContext({viewport:{width:420,height:900}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
 p.on('dialog',d=>d.accept());
-await p.goto(A.SRC);await p.waitForTimeout(1500);
+await p.goto(A.SRC);await p.waitForTimeout(1500);await p.waitForFunction(()=>window.IECI_T&&window.IECI_T.S,null,{timeout:20000}).catch(()=>{});
 const S=(f,a)=>p.evaluate(f,a);
 const vuoto=()=>S(()=>{ const s=window.IECI_T.S(); s.lines=[]; });
 const prepara=async t=>{ await A.mostra(p,'#as-txt'); await p.fill('#as-txt',t); await p.click('#as-go'); await p.waitForTimeout(150); return S(()=>{ const o=document.getElementById('as-out'); return {txt:o.innerText,tit:(document.getElementById('as-tit')||{}).value||'',righe:[...o.querySelectorAll('.as-r')].map(r=>({d:r.querySelector('.as-d').childNodes[0].textContent,q:+r.querySelector('.as-q').value,p:(r.querySelector('.as-p')||{}).textContent||''})),mods:[...o.querySelectorAll('.as-mod')].map(m=>m.innerText.replace(/\s+/g,' ').trim())}; }); };

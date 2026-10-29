@@ -27,7 +27,7 @@ async function rotte(ctx){
 (async()=>{const b=await A.chromium.launch();
 const ctx=await b.newContext({viewport:{width:430,height:900}}); await rotte(ctx);
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('dialog',d=>d.accept());
-await p.goto(A.SRC);await p.waitForTimeout(1500);
+await p.goto(A.SRC);await p.waitForTimeout(1500);await p.waitForFunction(()=>window.IECI_T&&window.IECI_T.S,null,{timeout:20000}).catch(()=>{});
 const S=(f,a)=>p.evaluate(f,a);
 ok(await S(()=>!!document.getElementById('iw-fill')&&!!document.getElementById('iw-mem')),'Prodotti: «Trova foto e loghi mancanti» e «Loghi delle marche»');
 

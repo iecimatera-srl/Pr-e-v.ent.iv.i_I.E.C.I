@@ -195,7 +195,7 @@ function secCover(){
   if(sh.cvSocial){ var ci=contactItems(); if(ci.length) soc='<div class="cv-soc">'+ci.map(function(c){ return '<a class="cs" href="'+esc(c.url)+'" target="_blank" rel="noopener">'+iconHtml(c)+'<span>'+esc(c.sub)+'</span></a>'; }).join('')+'</div>'; }
   var plain=(S.style.coverLogo!=='plate'||S.style.cover==='line');
   var cols=[];
-  if(sh.cvClient) cols.push('<div><small>Preparato per</small><b>'+esc(k.name)+'</b>'+esc(k.addr)+'</div>');
+  if(sh.cvClient) cols.push('<div><small>Preparato per</small><b>'+esc(k.name)+'</b>'+esc(k.addr)+(k.cf?'<br>'+esc(/^[A-Z]{6}\d/.test(k.cf)?'C.F. '+k.cf:k.cf):'')+'</div>');
   if(sh.cvValid) cols.push('<div><small>Validità offerta</small><b>'+(v?'fino al '+esc(v):'—')+'</b>'+(num(m.val)>0?esc(String(num(m.val)))+' giorni':'')+'</div>');
   if(sh.cvCompany) cols.push('<div><small>La tua ditta di fiducia</small><b>'+esc(c.name)+'</b>'+esc(c.addr)+'<br>'+esc(c.tel)+(c.email?'<br>'+esc(c.email):'')+(c.web?' · '+esc(String(c.web).replace(/^https?:\/\//i,'')):'')+'</div>');
   return '<section class="page cover cv-'+S.style.cover+'">'+

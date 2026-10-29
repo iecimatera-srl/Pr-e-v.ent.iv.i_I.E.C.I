@@ -42,8 +42,8 @@ function impState(t,warn){ var el=$('im-state'); el.hidden=!t; el.textContent=t|
 /* ===== lettura gratuita dei preventivi: testo del PDF, OCR per le foto, testo incollato ===== */
 var BRANDS=['Bticino','BTicino','Vimar','Gewiss','Schneider','ABB','Legrand','Siemens','Hager','Ave','Beghelli','Philips','Osram','Ledvance','Fibaro','Huawei','SolarEdge','Fronius','SMA','Victron','Eaton','Finder','Lovato','Prysmian','Nexans','General Cavi','Fratelli Beneduce','Cemb','Elettrocanali','Palazzoli','Thorn','Disano','Fael','Ekoenergy','Sonoff','Shelly','Ring','Comelit','Urmet','Hikvision','Dahua','Ajax','Bpt','Came','Nice','Faac','Zucchetti','Enphase','Jinko','Trina','Longi','Canadian Solar','Daikin','Mitsubishi','Samsung','Pce','Wallbox','Easee','Ecoflow'];
 function inferBrand(t){ var s=' '+t.toLowerCase()+' '; for(var i=0;i<BRANDS.length;i++){ if(s.indexOf(' '+BRANDS[i].toLowerCase()+' ')>=0||s.indexOf(' '+BRANDS[i].toLowerCase()+'-')>=0) return BRANDS[i]; } return ''; }
-var LH={pos:/^(pos\.?|n\.|nr\.?|n°|#|rig[ah]?)$/i,code:/^(cod\.?|codice|cod\.?\s*art\.?|art\.?|cod\.?\s*prod\.?)/i,um:/^(u\.?\s?m\.?|um|unit[aà]\s*(di\s*)?(misura)?)$/i,qta:/^(q\.?t[aà]\.?|quant|n\.?\s?pz|pezzi|pz\.?)/i,listino:/listino|lordo/i,sconto:/^sc|sconto|^%/i,importo:/import|^totale|valore|^tot\.?$/i,netto:/netto|prezzo|unitario|p\.?\s?u\.?$|^€/i,descr:/descr|denominaz|articolo|prodotto|oggetto|materiale/i};
-var LHO=['listino','sconto','importo','qta','um','pos','code','netto','descr'];
+var LH={pos:/^(pos\.?|n\.|nr\.?|n°|#|rig[ah]?|rif\.?)$/i,code:/^(cod\.?|codice|cod\.?\s*art\.?|art\.?|cod\.?\s*prod\.?)/i,um:/^(u\.?\s?m\.?|um|unit[aà]\s*(di\s*)?(misura)?)$/i,qta:/^(q\.?t[aà]\.?|quant|n\.?\s?pz|pezzi|pz\.?)/i,listino:/listino|lordo/i,sconto:/^sc|sconto|^%/i,importo:/import|^totale|valore|^tot\.?$/i,netto:/netto|prezzo|unitario|p\.?\s?u\.?$|^€/i,descr:/descr|denominaz|articolo|prodotto|oggetto|materiale/i,marca:/^(marca|produttore|costruttore|brand|marchio)$/i};
+var LHO=['marca','listino','sconto','importo','qta','um','pos','code','netto','descr'];
 function hdrKind(s){ s=s.trim(); for(var i=0;i<LHO.length;i++){ if(LH[LHO[i]].test(s)) return LHO[i]; } return ''; }
 var NUMRE=/^[-+]?(?:€\s*)?\d{1,3}(?:\.\d{3})*(?:,\d+)?\s*(?:€|%)?$|^[-+]?(?:€\s*)?\d+(?:[.,]\d+)?\s*(?:€|%)?$/;
 var DISCRE=/^\d{1,2}(?:[.,]\d+)?\s*(?:[+\/]\s*\d{1,2}(?:[.,]\d+)?\s*)+%?$/;
@@ -74,7 +74,7 @@ function itemsToLines(items,gapK){
       else cells.push({x:it.x,x2:it.x+(it.w||s.length*h*0.5),s:s.trim()});
     });
     cells.forEach(function(c){ c.s=c.s.trim(); });
-    return cells.filter(function(c){ return c.s; });
+    var out=cells.filter(function(c){ return c.s; }); out.y=r.y; out.h=r.its.reduce(function(m,i){ return Math.max(m,i.h||8); },0); return out;
   }).filter(function(c){ return c.length; });
 }
 function textToLines(txt){
@@ -100,6 +100,7 @@ function parseLines(lines){
     if(!supplier&&!/ieci|matera/i.test(t)){ var s=t.match(/^([A-Z0-9][\w&.'\- ]{2,45}?\s(?:S\.?\s?r\.?\s?l\.?s?|S\.?\s?p\.?\s?A\.?|S\.?\s?n\.?\s?c\.?|S\.?\s?a\.?\s?s\.?))\b/i); if(s) supplier=s[1].trim(); }
   });
   lines.forEach(function(cells){
+    var pos={pg:cells.pg||1,y:cells.yTop!=null?cells.yTop:cells.y,yb:cells.yBot!=null?cells.yBot:cells.y,h:cells.h||9};
     var h=detectHeader(cells); if(h){ hdr=h; cont=0; return; }
     var splitDone=false; cells=cells.reduce(function(acc,c){
       var s0=c.s.replace(/([a-zà-ù\)\]])(NR|PZ|MT|ML|CF)(?=\s\d)/,'$1 $2'), tk=s0.split(' '), i=tk.length, isN=function(t){ return NUMRE.test(t)||DISCRE.test(t)||/^(NR|PZ|MT|ML|CF|KG|CAD)\.?$/.test(t); };
@@ -124,13 +125,17 @@ function parseLines(lines){
     if(f<1){
       /* nessun numero: eventuale continuazione della descrizione */
       var prev=rows[rows.length-1];
-      if(prev&&cont<3&&f<0&&txt.length<90&&!/^\W*$/.test(txt)){ prev.descrizione=(prev.descrizione+' '+txt).replace(/\s+/g,' ').trim(); cont++; }
+      if(prev&&cont<3&&f<0&&txt.length<90&&!/^\W*$/.test(txt)&&(prev._pg||1)===pos.pg&&!/^(via|viale|piazza|p\.zza|corso|c\.so|contrada|c\.da|loc\.|località|largo|vico)\s|\b\d{5}\b|@|www\.|\b(tel|fax|cell|p\.?\s?iva|iban)\b/i.test(txt)){ prev.descrizione=(prev.descrizione+' '+txt).replace(/\s+/g,' ').trim(); if(pos.y!=null) prev._y1=pos.y; prev._cont=(prev._cont||0)+1; cont++; }
       return;
     }
     cont=0;
     var left=cs.slice(0,f), code='', um='', note='';
-    var hc=hdr&&hdr.some(function(k){ return k.k==='code'&&Math.abs(k.x-(left[0]?left[0].x:-999))<40; });
-    if(left.length>=2&&(isCodeTok(left[0].s)||(hc&&!/\s/.test(left[0].s)))){ code=left.shift().s; }
+    var marca='', hm=hdr&&hdr.filter(function(k){ return k.k==='marca'; })[0];
+    if(hm&&left.length>1){ for(var li=left.length-1;li>=0;li--){ var lc0=left[li], cx=(lc0.x+lc0.x2)/2; if(cx>=hm.x-25&&cx<=hm.x2+25&&!/\d{3}/.test(lc0.s)&&lc0.s.length<=30){ marca=lc0.s; left.splice(li,1); break; } } }
+    var hck=hdr&&hdr.filter(function(k){ return k.k==='code'; })[0], ci=-1;
+    if(hck&&left.length>=2){ var bd=1e9; left.forEach(function(c,i){ var d=Math.abs(c.x-hck.x); if(d<40&&d<bd&&!/\s/.test(c.s)&&i<left.length-1){ bd=d; ci=i; } }); }
+    if(ci>-1){ code=left[ci].s; left=left.slice(0,ci).filter(function(c){ return /\s/.test(c.s)||c.s.length>8; }).concat(left.slice(ci+1)); }
+    else if(left.length>=2&&isCodeTok(left[0].s)){ code=left.shift().s; }
     else if(left.length===1){ var m=left[0].s.match(/^(\S+)\s+(.{8,})$/); if(m&&isCodeTok(m[1])&&/[A-Za-z]{3}/.test(m[2])){ code=m[1]; left[0]={x:left[0].x,x2:left[0].x2,s:m[2]}; } }
     if(left.length>1&&UMRE.test(left[left.length-1].s)){ um=left.pop().s.replace(/\.$/,''); }
     var descr=left.map(function(c){ return c.s; }).join(' ').trim();
@@ -176,7 +181,7 @@ function parseLines(lines){
     if(net!=null&&qty&&tot!=null&&!close(net*qty,tot)&&!(list!=null&&disc&&close(list*parseDisc(disc)*qty,tot))) dubbio=true;
     if(net==null||!(net>0)) return;
     if(descr.length<3&&!code) return;
-    rows.push({codice:code,descrizione:descr,marca:inferBrand(descr+' '+code),um:um||'',qta:qty||1,prezzo_listino:list,sconto:disc,prezzo_netto:Math.round(net*100)/100,note:note,dubbio:dubbio});
+    rows.push({codice:code,descrizione:descr,marca:marca||inferBrand(descr+' '+code),um:um||'',qta:qty||1,prezzo_listino:list,sconto:disc,prezzo_netto:Math.round(net*100)/100,note:note,dubbio:dubbio,importo:tot,_pg:pos.pg,_y0:pos.y,_y1:pos.yb,_h:pos.h,_hdr:!!hdr,_marcaCol:!!marca});
   });
   var d=rows.length;
   return {fornitore:supplier,data:date,righe:rows};

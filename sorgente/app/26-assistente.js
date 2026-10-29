@@ -1,7 +1,7 @@
 /* ===== Assistente: dal testo (scritto o dettato) al preventivo. Gratis, senza internet, nessun dato inviato =====
    Capisce anche richieste brevi («fv 6», «citofono 10», «8 cam»), errori di battitura, serie delle marche (Living Now, Plana…),
    comandi sul preventivo aperto («togli il quadro», «porta le prese a 20», «sconto 10%») e impara le parole che usi tu. */
-var AS={res:null, rec:null, ascolto:false, aperti:{}, lt:0, diz:null, dizK:'', fix:{}, tk:{}};
+var AS={res:null, doc:null, docPrima:null, rec:null, ascolto:false, aperti:{}, lt:0, diz:null, dizK:'', fix:{}, tk:{}};
 var AS_NUM={un:1,uno:1,una:1,due:2,tre:3,quattro:4,cinque:5,sei:6,sette:7,otto:8,nove:9,dieci:10,undici:11,dodici:12,tredici:13,quattordici:14,quindici:15,sedici:16,diciassette:17,diciotto:18,diciannove:19,venti:20,ventiquattro:24,trenta:30,quaranta:40,cinquanta:50,sessanta:60,settanta:70,ottanta:80,novanta:90,cento:100,mezzo:0.5,mezza:0.5};
 var AS_STOP=' di da del dello della dei degli delle con per il lo la i gli le un una uno e ed a ad in su tipo nuovo nuova nuovi nuove anche circa tutto tutta tutti tutte al alla alle ai agli nel nella nei nelle sul sulla sui ogni mio mia vorrei voglio serve servono fare metti mettere mettimi aggiungi aggiungere inserisci ancora altri altre altro altra preventivo impianto installazione fornitura posa ';
 // abbreviazioni e parole tronche di chi scrive di fretta
@@ -126,16 +126,8 @@ function asTipo(n,hint){
 var AS_BASE={vid:[[/^telecamer\w*$/,'Telecamera IP 4 MP bullet PoE']],all:[[/^sensor\w*( volumetric\w*)?$/,'Sensore volumetrico PIR'],[/^contatt\w*( magnetic\w*)?$/,'Contatto magnetico porta / finestra']],aut:[[/^(radiocomandi|telecomandi)$/,'Radiocomando 4 canali']],tv:[[/^(punti presa|prese|presa tv sat)$/,'Presa TV / SAT']],
   app:[[/^punti presa$/,'Punto presa 10/16 A'],[/^punti luce$/,'Punto luce semplice']],dom:[[/^punti presa$/,'Punto presa 10/16 A'],[/^punti luce$/,'Punto luce semplice']]};
 function asBase(model,r){ var it=null; (AS_BASE[model]||[]).forEach(function(x){ if(!it&&x[0].test(String(r||'').trim())) it=asItem(model,x[1]); }); return it; }
-function asCliente(t){
-  var o={}, m;
-  m=t.match(/(?:\bper\s+(?:il\s+|la\s+)?(?:sig(?:\.|nor)?(?:ra|a)?\.?\s+|dott(?:\.|or)?(?:ssa)?\.?\s+|famiglia\s+|ditta\s+|cliente\s+)?|\bcliente[:\s]+)((?:[A-Z][\wàèéìòù']+)(?:\s+(?:[A-Z][\wàèéìòù']+|di|de|del|della|d'))*)/);
-  if(m&&!/^(Via|Viale|Piazza|Corso|Il|La|Un|Una)$/.test(m[1].split(' ')[0])&&!AS_MARCHE.some(function(b){ return b.toLowerCase()===m[1].split(' ')[0].toLowerCase(); })&&!AS_SERIE.some(function(s){ return s[0].test(m[1].toLowerCase()); })) o.name=m[1].trim();
-  m=t.match(/\b((?:via|viale|v\.le|piazza|p\.zza|corso|c\.so|vico|vicolo|contrada|c\.da|largo|strada|localit[aà]|loc\.)\s+[^,;\n]+?)(?:\s*,\s*([A-Z][\wàèéìòù' ]{2,30}?))?(?=\s*(?:[,;.:\n]|$|\s(?:con|tel|telefono|cell)\b))/i);
-  if(m){ o.addr=m[1].trim().replace(/\s+/g,' ')+(m[2]?', '+m[2].trim():''); }
-  m=t.match(/((?:\+39[\s.]?)?3\d{2}[\s.]?\d{3}[\s.]?\d{3,4})/); if(m) o.tel=m[1].replace(/[\s.]+/g,' ').trim();
-  m=t.match(/[\w.+-]+@[\w-]+\.[\w.]+/); if(m) o.email=m[0];
-  return o;
-}
+// dati del cliente nel testo: li legge clLeggi (assistente-documenti), che esclude la tua ditta e controlla C.F. e P.IVA
+function asCliente(t){ var c=clLeggi(t,'libero'), o={}; ['name','addr','tel','email','cf'].forEach(function(k){ if(c[k]) o[k]=c[k]; }); if(c.n) o.info=c; return o; }
 // marche e serie, nell'ordine in cui le hai scritte
 function asTipoMarca(b){ var m=maTrova(b), t=[]; if(m) m.a.forEach(function(a){ var x=MA_TIPO[a]; if(x&&t.indexOf(x)<0) t.push(x); }); return t.length===1?t[0]:''; }
 function asMarche(n,testo){
@@ -456,7 +448,7 @@ function asCapito(r){
   if(r.cond) c.push([r.cond.n+' condomini','']);
   var kw=r.titolo.match(/(\d+(?:,\d+)?) kWp/); if(kw) c.push([kw[1]+' kWp','']);
   if(r.confronto) c.push([r.marche.join(' vs '),'']); else if(r.marca) c.push([r.marca,'']);
-  if(r.cliente.name) c.push([r.cliente.name,'']);
+  if(r.cliente.name) c.push([r.cliente.name,'']); if(r.cliente.tel) c.push(['tel. '+r.cliente.tel,'']); if(r.cliente.cf) c.push([(/^P\.IVA/.test(r.cliente.cf)?'P.IVA':'C.F.')+(r.cliente.info&&(r.cliente.info.chk.cf||r.cliente.info.chk.piva)?' ✓':''),'']);
   r.mods.forEach(function(x){ if(x.tipo==='s'||x.tipo==='b') c.push([x.t,'m']); });
   if(n) c.push([(r.mode==='mod'?'+':'')+n+(n===1?' voce':' voci'),'']); if(tm) c.push(['−'+tm+' da togliere','m']); if(cm) c.push([cm+' quantità','m']);
   if(n||tm||cm) c.push([(r.mode==='mod'?'variazione ':'≈ ')+eur(r.mode==='mod'?asDelta(r):asTot(r).tot),'']);
@@ -478,13 +470,13 @@ function asOpzioni(model,frase){
     '<optgroup label="Tutto il listino «'+esc(MODELS[model].short||MODELS[model].name)+'»">'+it.map(function(c,i){ return '<option value="'+i+'">'+esc(c[0])+'</option>'; }).join('')+'</optgroup>';
 }
 function asRender(){
-  var box=$('as-out'); if(!box) return; var r=AS.res; asRenderParole(); if(!r){ box.innerHTML=''; return; }
+  var box=$('as-out'); if(!box) return; var r=AS.res; asRenderParole(); if(AS.doc){ docRender(); return; } if(!r){ box.innerHTML=''; return; }
   var T=asTot(r), PER={richiesta:'chiesto',stanza:'stanza',tipico:'tipico',stima:'stimato',imparata:'imparata',prontuario:'prontuario',calcolo:'calcolato'}, mod=r.mode==='mod';
   var gruppi={}, ord=[]; r.righe.forEach(function(x,i){ var g=x.stanza||(mod?'Voci da aggiungere':'Generale e parti comuni'); if(!gruppi[g]){ gruppi[g]=[]; ord.push(g); } gruppi[g].push(i); });
   var h=r.calc&&!r.righe.length?'':mod?'<div class="as-sum"><div><small>Preventivo aperto</small><b>'+esc(MODELS[r.model].short||MODELS[r.model].name)+'</b></div><div><small>Modifiche</small><b>'+(r.righe.filter(function(x){ return x.on!==false; }).length+r.mods.filter(function(x){ return x.on!==false; }).length)+'</b></div><div><small>Variazione</small><b>'+(asDelta(r)>=0?'+':'−')+'\u00a0'+eur(Math.abs(asDelta(r)))+'</b></div></div>'
     :'<div class="as-sum"><div><small>Tipo</small><b>'+esc(MODELS[r.model].short||MODELS[r.model].name)+'</b></div><div><small>Voci</small><b>'+r.righe.filter(function(x){ return x.on!==false; }).length+'</b></div><div><small>Totale stimato</small><b>'+eur(T.tot)+'</b></div></div>'+
     '<label class="f">Titolo<input type="text" id="as-tit" value="'+esc(r.titolo)+'"></label>';
-  var c=r.cliente; if(c.name||c.addr||c.tel||c.email) h+='<div class="as-cli"><b>Cliente</b> '+esc([c.name,c.addr,c.tel,c.email].filter(Boolean).join(' · '))+'</div>';
+  var c=r.cliente; if(c.name||c.addr||c.tel||c.email||c.cf) h+='<div class="as-cli"><b>Cliente</b> '+esc([c.name,c.addr,c.tel,c.email,c.cf].filter(Boolean).join(' · '))+(c.info&&c.info.chk.cf?' <span class="as-k">C.F. valido'+(c.info.chk.nomeCf?' e corrisponde al nome':'')+'</span>':'')+(c.info&&c.info.chk.cf===false?' <span class="as-k m">C.F. da controllare</span>':'')+(c.info&&c.info.chk.piva?' <span class="as-k">P.IVA valida</span>':'')+(c.info&&c.info.rubrica?' <span class="as-k">già in rubrica</span>':'')+'</div>';
   if(r.cond) h+='<div class="as-cli"><b>Condomini</b> '+r.cond.n+' · '+(r.cond.kind==='cit'?'solo citofono':r.cond.kind==='both'?'videocitofono e citofono a confronto':'videocitofono')+'</div>';
   if(r.confronto) h+='<div class="as-cli"><b>Proposte a confronto</b> '+esc(r.marche.join(' · '))+'</div>'; else if(r.marca&&!r.mods.some(function(x){ return x.tipo==='b'; })) h+='<div class="as-cli"><b>Marca</b> '+esc(r.marca)+'</div>';
   r.note.forEach(function(x){ h+='<div class="as-note">'+esc(x)+'</div>'; });
@@ -526,7 +518,7 @@ function asApplica(sostituisci){
   var prev=S.model;
   if(sostituisci){ S.lines=[]; S.products=S.products.filter(function(p){ return !prodEmpty(p); }); if(S.cmp) S.cmp.on=false; S.tiers.on=false; }
   if(!mod&&r.model!==prev){ S.model=r.model; typeTitle(prev); condSwitch(prev); }
-  var c=r.cliente; if(c.name) S.client.name=c.name; if(c.addr) S.client.addr=c.addr; if(c.tel) S.client.tel=c.tel; if(c.email) S.client.email=c.email;
+  var c=r.cliente; if(c.name) S.client.name=c.name; if(c.addr) S.client.addr=c.addr; if(c.tel) S.client.tel=c.tel; if(c.email) S.client.email=c.email; if(c.cf) S.client.cf=c.cf;
   if(tit&&!mod) S.meta.title=tit;
   // modifiche al preventivo aperto
   var nt=0, nc=0, ns=0;
@@ -586,7 +578,7 @@ var AS_ESEMPI=[
   var go=$('as-go'); if(!go) return;
   $('as-ex').innerHTML=AS_ESEMPI.map(function(e,i){ return '<button type="button" class="chip" data-asex="'+i+'">'+esc(e.length>46?e.slice(0,44)+'…':e)+'</button>'; }).join('');
   $('as-ex').addEventListener('click',function(e){ var b=e.target.closest('[data-asex]'); if(!b) return; $('as-txt').value=AS_ESEMPI[+b.getAttribute('data-asex')]; asLive(); $('as-txt').focus(); });
-  function prepara(){ var t=$('as-txt').value.trim(); if(t.length<3){ toast('Scrivi o detta cosa ti serve'); return; } AS.res=asAnalizza(t); AS.aperti={}; asRender(); }
+  function prepara(){ var t=$('as-txt').value.trim(); if(t.length<3){ toast('Scrivi o detta cosa ti serve'); return; } AS.doc=null; if(docSembraFornitore(t)){ docApri([new File([t],'Testo incollato.txt',{type:'text/plain'})]); return; } var r0=asAnalizza(t); if(!r0.righe.length&&!r0.mods.length&&!r0.calc&&r0.cliente.info&&r0.cliente.info.n>=2&&!r0.tipoTrovato){ docApri([new File([t],'Testo incollato.txt',{type:'text/plain'})]); return; } AS.res=r0; AS.aperti={}; asRender(); }
   go.addEventListener('click',prepara);
   $('as-txt').addEventListener('input',function(){ clearTimeout(AS.lt); AS.lt=setTimeout(asLive,280); });
   $('as-txt').addEventListener('keydown',function(e){ if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){ e.preventDefault(); prepara(); } });

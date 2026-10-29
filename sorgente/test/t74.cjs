@@ -13,7 +13,7 @@ await ctx.route(/https:\/\/www\.wikidata\.org\/.*/,r=>{ const u=new URL(r.reques
 await ctx.route(/https:\/\/commons\.wikimedia\.org\/.*/,r=>{ const u=new URL(r.request().url()); const pages={}; (u.searchParams.get('titles')||'').split('|').filter(Boolean).forEach((t,i)=>{ pages[-1-i]={title:t,index:i,imageinfo:[{mime:'image/png',url:'https://upload.wikimedia.org/x/'+i+'.png',thumburl:'https://upload.wikimedia.org/x/500px-'+i+'.png',extmetadata:{LicenseShortName:{value:'Public domain'}}}]}; }); r.fulfill({headers:cors,body:JSON.stringify({query:{pages}})}); });
 await ctx.route(/https:\/\/upload\.wikimedia\.org\/.*/,r=>r.fulfill({headers:{'Access-Control-Allow-Origin':'*','Content-Type':'image/png'},body:PNG}));
 const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));p.on('dialog',d=>d.accept());
-await p.goto(A.SRC);await p.waitForTimeout(1500);
+await p.goto(A.SRC);await p.waitForTimeout(1500);await p.waitForFunction(()=>window.IECI_T&&window.IECI_T.S,null,{timeout:20000}).catch(()=>{});
 const S=(f,a)=>p.evaluate(f,a);
 let st=await S(()=>({v:window.IECI_T.prVoci().length,amb:new Set(window.IECI_T.prVoci().map(v=>v.amb)).size,m:window.IECI_T.maVoci().length}));
 ok(st.v>=400&&st.amb>=17&&st.m>=200,'prontuario: '+st.v+' voci in '+st.amb+' ambiti · libreria: '+st.m+' marche');

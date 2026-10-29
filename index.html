@@ -807,6 +807,10 @@ textarea.t1.as-dr-d{min-height:0}
 /* numero dei preventivi salvati: pallino sul pulsante, non testo che allarga */
 #qb-list{position:relative;overflow:visible}#qb-n{position:absolute;top:-7px;right:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--brand);color:#fff;font-size:.68rem;font-weight:800;line-height:20px;text-align:center;letter-spacing:0;box-shadow:0 0 0 2px var(--surface)}#qb-n[hidden]{display:none}
 @media (max-width:620px){.qb-act #qb-list{overflow:visible}}
+/* libreria prodotti */
+.libr{align-items:flex-start;gap:10px}.libim{width:56px;height:56px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}.libim.no{background:repeating-linear-gradient(45deg,var(--field),var(--field) 6px,transparent 6px,transparent 12px)}
+.liblg{height:14px;max-width:60px;vertical-align:-2px;object-fit:contain;background:#fff;border-radius:3px}.libd{margin-top:2px}.libb{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 100%;justify-content:flex-end}
+.plib{align-items:center}.plib .hint{flex:1 1 180px;margin:0}
 </style>
 
 <div class="lock" id="lock" hidden role="dialog" aria-modal="true" aria-label="App bloccata">
@@ -1573,7 +1577,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
 <script type="text/plain" id="pdfjs-wk" data-src="lib-pdfjs-worker.txt"></script>
 <script>
 var CAN_PRINT = true;
-var APP_VER = '2026.10.29.5';
+var APP_VER = '2026.10.29.6';
 (function(){
 'use strict';
 
@@ -2013,7 +2017,7 @@ function fillMsg(t){
   return String(t||'').replace(/\{(\w+)\}/g,function(a,k){ return map[k]!=null?map[k]:a; });
 }
 
-var DB={clients:[],prods:[],quotes:[],arts:[],logos:[],parole:[],del:{},su:0,lastBackup:0,lastChange:0}, DBKEY='preventivi-db-v1', dbT=0, qT=0, dbReady=false;
+var DB={clients:[],prods:[],quotes:[],arts:[],logos:[],parole:[],del:{},libNo:[],libMig:0,su:0,lastBackup:0,lastChange:0}, DBKEY='preventivi-db-v1', dbT=0, qT=0, dbReady=false;
 var S, panel='stile', storageWarned=false, IDB=null, saveT=0;
 var BASE_IDS=['cover','prodotti','planimetria','azienda','crono','fv','prev','fiducia','cond','conferma','lavoro','collaudo'];
 function fixLayout(lay,custom){
@@ -4311,7 +4315,7 @@ function renderProducts0(){
       '<label class="f">Caratteristiche tecniche (una per riga: voce: valore)<textarea data-pf="specs" data-pi="'+i+'" style="min-height:100px">'+esc(p.specs)+'</textarea></label>'+
       '<label class="f">Link alla scheda tecnica (https://…)<textarea rows="1" class="t1" inputmode="url" autocapitalize="off" spellcheck="false" data-pf="link" data-pi="'+i+'">'+esc(p.link)+'</textarea></label>'+
       '<div class="row"><label class="btn ghost sm">'+(p.pdf?'Sostituisci scheda PDF':'Allega scheda tecnica PDF')+'<input type="file" accept="application/pdf,.pdf" hidden data-ppdf="'+i+'"></label>'+(p.pdf?'<span class="hint">'+esc(p.pdf.name)+'</span><button type="button" class="btn x" data-rpdf="'+i+'" aria-label="Rimuovi PDF">×</button>':'')+'</div>'+
-      '<div class="row"><button type="button" class="btn ghost sm" data-act="lib" data-pi="'+i+'">Salva in libreria</button></div>'+
+      '<div class="row plib"><span class="hint">'+(p.libId&&DB.prods.some(function(x){ return x.id===p.libId; })?'✓ Nella libreria prodotti: si aggiorna da sola a ogni modifica':'Si salva da sola nella libreria prodotti')+'</span><button type="button" class="btn ghost sm" data-act="lib" data-pi="'+i+'">Salva ora in libreria</button></div>'+
       '<label class="f">Grandezza della foto nel documento: <b class="psv">'+Math.max(15,Math.min(100,num(p.ps)||45))+'%</b><input type="range" min="15" max="100" step="5" value="'+Math.max(15,Math.min(100,num(p.ps)||45))+'" data-pf="ps" data-pi="'+i+'"></label>'+
       (function(){ var bm=p.bg||(cutOn()?'cut':'keep'); return '<div class="row" style="align-items:center"><span class="hint">Sfondo delle foto:</span><button type="button" class="tab" data-act="bgcut" data-pi="'+i+'" aria-pressed="'+(bm==='cut')+'">Senza sfondo, con alone</button><button type="button" class="tab" data-act="bgkeep" data-pi="'+i+'" aria-pressed="'+(bm==='keep')+'">Con sfondo originale</button></div>'; })()+
       (iwVero(p.brand)?(function(){ var lg=brandLogo(p.brand); return '<div class="iw-pl"><span class="iw-mi">'+(lg?'<img src="'+lg+'" alt="">':'<i>'+esc(iwBase(p.brand).slice(0,2).toUpperCase())+'</i>')+'</span><small>'+(lg?'Logo '+esc(iwBase(p.brand))+' nel fascicolo':'Nessun logo per '+esc(iwBase(p.brand)))+'</small><button type="button" class="btn ghost sm" data-act="iwlg" data-pi="'+i+'">'+(lg?'Cambia logo':'Trova il logo')+'</button></div>'; })():'')+
@@ -4337,7 +4341,7 @@ function renderLogoPrev(){ var u=S.style.logo; $('logo-prev').innerHTML=u?'<div 
 function renderAll(){ try{ renderCondSave(); }catch(e){} if(S.products[0]&&openP[S.products[0].id]===undefined) openP[S.products[0].id]=true; renderTabs(); renderRooms(); renderVc(); renderCat(); renderLines(); renderProducts(); renderContent(); renderOrder(); renderCustom(); renderEcon(); renderTiers(); renderTrust(); renderIcons(); renderTpl(); syncFields(); sigDraw('cli'); sigDraw('dit'); renderStamp(); renderPlan(); renderFvRes(); renderInvio(); renderArchivio(); renderGd(); renderGh(); renderQbar(); renderAiSet(); renderImp(); renderArts(); renderAq(); schedule(); refreshVariants(); }
 var docVer=0;
 var lastEdit=0;
-function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); }
+function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); libSoon(); }
 
 var TTL_G='Rifacimento impianto appartamento', TTL_T={wb:'Installazione wallbox per ricarica auto elettrica',rip:'Riparazione impianto elettrico',vid:'Impianto di videosorveglianza',all:'Impianto di allarme antintrusione',vcit:'Impianto videocitofonico',aut:'Automazione cancello e accessi',fv:'Impianto fotovoltaico',tv:'Impianto TV e antenna',ind:'Impianto elettrico industriale',sw:'Programmazione e messa in servizio'};
 function typeTitle(prev){ if(S.meta.title===TTL_G||S.meta.title===TTL_T[prev]||(prev&&S.meta.title===(MODELS[prev]||{}).name)){ S.meta.title=TTL_T[S.model]||TTL_G; if($('m-title')) $('m-title').value=S.meta.title; } }
@@ -5169,7 +5173,7 @@ function dbSave(ns){
   },300);
 }
 function dbLoad(cb){
-  function fin(d){ if(d&&typeof d==='object'){ DB.clients=d.clients||[]; DB.prods=d.prods||[]; DB.quotes=d.quotes||[]; DB.arts=d.arts||[]; DB.logos=d.logos||[]; DB.parole=d.parole||[]; DB.del=d.del||{}; DB.su=d.su||0; DB.lastBackup=d.lastBackup||0; DB.lastChange=d.lastChange||0; } dbReady=true; if(cb) cb(); }
+  function fin(d){ if(d&&typeof d==='object'){ DB.clients=d.clients||[]; DB.prods=d.prods||[]; DB.quotes=d.quotes||[]; DB.arts=d.arts||[]; DB.logos=d.logos||[]; DB.parole=d.parole||[]; DB.del=d.del||{}; DB.libNo=d.libNo||[]; DB.libMig=d.libMig||0; DB.su=d.su||0; DB.lastBackup=d.lastBackup||0; DB.lastChange=d.lastChange||0; } dbReady=true; if(cb) cb(); }
   if(IDB){ try{ var q=IDB.transaction('kv').objectStore('kv').get(DBKEY); q.onsuccess=function(){ fin(q.result); }; q.onerror=function(){ fin(null); }; }catch(e){ fin(null); } }
   else { var r=null; try{ r=JSON.parse(localStorage.getItem(DBKEY)); }catch(e){} fin(r); }
 }
@@ -5184,7 +5188,7 @@ function saveClient(silent){
   DB.clients.sort(byName); dbSave(); renderArchivio();
   if(!silent) toast(ex?'Cliente aggiornato':'Cliente salvato in rubrica');
 }
-var RUB={sel:{},tolti:null};
+var RUB={sel:{},tolti:null}, LIBV=60;
 function clientQuotes(c){ var n=lc(c.name); return DB.quotes.filter(function(q){ return lc(q.client)===n; }).length; }
 function rubElimina(ids){
   ids=ids.filter(function(id){ return DB.clients.some(function(c){ return c.id===id; }); }); if(!ids.length) return;
@@ -5199,15 +5203,16 @@ function useClient(id){
   S.client={name:c.name,addr:c.addr,tel:c.tel,email:c.email,cf:c.cf||''}; syncFields(); renderInvio(); touch(); toast('Cliente inserito: '+c.name);
 }
 function saveProd(i,silent){
-  var p=copy(S.products[i]); if(!p||!(p.name||'').trim()){ if(!silent) toast('Dai prima un nome al prodotto'); return false; }
-  delete p.on;
-  var ex=DB.prods.filter(function(x){ return lc(x.name)===lc(p.name)&&lc(x.code)===lc(p.code); })[0];
-  if(ex){ if(silent) return false; p.id=ex.id; DB.prods[DB.prods.indexOf(ex)]=p; } else { p.id=uid(); DB.prods.push(p); }
-  DB.prods.sort(byName); dbSave(); renderArchivio(); if(!silent) toast(ex?'Prodotto aggiornato in libreria':'Prodotto salvato in libreria'); return true;
+  var p=S.products[i]; if(!p||!String(p.name||'').trim()){ if(!silent) toast('Dai prima un nome al prodotto'); return false; }
+  if(!silent) DB.libNo=(DB.libNo||[]).filter(function(k){ return k!==libKey(p); });
+  var r=libSalva(p,libPrezzo(p,S.lines));
+  if(r){ DB.prods.sort(byName); dbSave(); renderArchivio(); }
+  if(!silent) toast(r===1?'Prodotto salvato nella libreria':r===2?'Prodotto aggiornato nella libreria':'Il prodotto è già aggiornato nella libreria');
+  return r===1;
 }
 function useProd(id){
   var s=DB.prods.filter(function(x){ return x.id===id; })[0]; if(!s) return;
-  var p=copy(s); p.id=uid(); p.on=true; S.products.push(p); openP[p.id]=true; renderProducts(); touch(); toast('Aggiunto: '+p.name);
+  var p=copy(s); p.id=uid(); p.on=true; p.libId=s.id; delete p.lp; delete p.lu; delete p.upd; S.products.push(p); openP[p.id]=true; renderProducts(); touch(); toast('Aggiunto: '+p.name);
 }
 function nextNum(){
   var y=new Date().getFullYear(), mx=0;
@@ -5296,11 +5301,12 @@ function renderArchivio(){
     return '<div class="rowc rubr'+(RUB.sel[c.id]?' sel':'')+'"><label class="chk rubck" aria-label="Seleziona '+esc(c.name)+'"><input type="checkbox" data-csel="'+c.id+'"'+(RUB.sel[c.id]?' checked':'')+'></label><div style="flex:1 1 180px;min-width:0"><b>'+esc(c.name)+'</b><div class="hint">'+esc([c.addr,c.tel,c.email,c.cf].filter(Boolean).join(' · '))+'</div><div class="hint">'+(nq?nq+(nq===1?' preventivo':' preventivi')+' in archivio':'nessun preventivo in archivio')+'</div></div>'+
       '<button type="button" class="btn sm" data-cu="'+c.id+'">Usa</button><button type="button" class="btn ghost sm rubx" data-cx="'+c.id+'" aria-label="Elimina '+esc(c.name)+'">Elimina</button></div>';
   }).join('')||'<div class="empty">'+(DB.clients.length?'Nessun risultato.':'Rubrica vuota. I clienti si salvano con il preventivo o col pulsante qui sopra.')+'</div>');
-  var P=DB.prods.filter(function(p){ return !fl||lc(p.name+' '+p.brand+' '+p.code).indexOf(fl)>-1; });
-  $('l-list').innerHTML=P.map(function(p){
-    return '<div class="rowc"><div style="flex:1 1 200px;min-width:0"><b>'+esc(p.name)+'</b><div class="hint">'+esc([p.brand,p.code].filter(Boolean).join(' · '))+((p.photos||[]).length?' · '+p.photos.length+' foto':'')+(p.pdf?' · PDF':'')+'</div></div>'+
-      '<button type="button" class="btn sm" data-lu="'+p.id+'">Aggiungi al preventivo</button><button type="button" class="btn x" data-lx="'+p.id+'" aria-label="Elimina">×</button></div>';
-  }).join('')||'<div class="empty">'+(DB.prods.length?'Nessun risultato.':'Libreria vuota. Salva i prodotti dalla scheda Prodotti o salvando il preventivo.')+'</div>';
+  var P=DB.prods.filter(function(p){ return !fl||lc(p.name+' '+p.brand+' '+p.code+' '+(p.desc||'')+' '+(p.tags||'')).indexOf(fl)>-1; });
+  $('l-list').innerHTML=(DB.prods.length?'<div class="rubbar"><span>'+DB.prods.length+(DB.prods.length===1?' prodotto':' prodotti')+' in libreria · si aggiorna da sola</span></div>':'')+P.slice(0,LIBV).map(function(p){
+    var ph=(p.photos||[])[0], lg=p.brand?brandLogo(p.brand):'';
+    return '<div class="rowc libr">'+(ph?'<img class="libim" src="'+esc(ph)+'" alt="" loading="lazy" referrerpolicy="no-referrer">':'<span class="libim no" aria-hidden="true"></span>')+'<div style="flex:1 1 180px;min-width:0"><b>'+esc(p.name)+'</b><div class="hint">'+(lg?'<img class="liblg" src="'+esc(lg)+'" alt="'+esc(p.brand)+'"> ':'')+esc([p.brand,p.code].filter(Boolean).join(' · '))+((p.photos||[]).length>1?' · '+p.photos.length+' foto':'')+(p.pdf?' · scheda PDF':'')+(num(p.lp)?' · '+eur(num(p.lp))+'/'+esc(p.lu||'cad'):'')+'</div>'+(p.desc?'<div class="hint libd">'+esc(String(p.desc).slice(0,140))+(String(p.desc).length>140?'…':'')+'</div>':'')+'</div>'+
+      '<div class="libb"><button type="button" class="btn sm" data-lu="'+p.id+'">Aggiungi al preventivo</button><button type="button" class="btn ghost sm rubx" data-lx="'+p.id+'" aria-label="Elimina '+esc(p.name)+'">Elimina</button></div></div>';
+  }).join('')+(P.length>LIBV?'<div class="row"><button type="button" class="btn ghost sm" data-lmore>Mostra altri '+(P.length-LIBV)+'</button></div>':'')||'<div class="empty">'+(DB.prods.length?'Nessun risultato.':'Libreria vuota: le schede dei prodotti si salvano qui da sole.')+'</div>';
   renderBackupInfo();
   if(typeof renderArts==='function'&&$('art-list')){ renderArts(); renderAq(); }
   var lp=$('lib-pick'); if(lp) lp.innerHTML='<option value="">+ Aggiungi dalla libreria prodotti…</option>'+DB.prods.map(function(p){ return '<option value="'+p.id+'">'+esc(p.name+(p.brand?' · '+p.brand:''))+'</option>'; }).join('');
@@ -5316,8 +5322,9 @@ function archClick(e){
   if((b=t.closest('[data-csn]'))){ RUB.sel={}; return renderArchivio(); }
   if((b=t.closest('[data-csa]'))){ var fc=lc($('c-search').value), vis=DB.clients.filter(function(c){ return !fc||lc(c.name+' '+c.addr+' '+c.tel+' '+(c.email||'')+' '+(c.cf||'')).indexOf(fc)>-1; }), tutti=vis.length&&vis.every(function(c){ return RUB.sel[c.id]; }); vis.forEach(function(c){ if(tutti) delete RUB.sel[c.id]; else RUB.sel[c.id]=1; }); return renderArchivio(); }
   if((b=t.closest('[data-csz]'))){ RUB.sel={}; DB.clients.forEach(function(c){ if(!clientQuotes(c)) RUB.sel[c.id]=1; }); renderArchivio(); var n=Object.keys(RUB.sel).length; toast(n?n+(n===1?' cliente senza preventivi selezionato':' clienti senza preventivi selezionati'):'Tutti i clienti hanno almeno un preventivo'); return; }
-  if((b=t.closest('[data-lu]'))) return useProd(b.getAttribute('data-lu'));
-  if((b=t.closest('[data-lx]'))){ var lid=b.getAttribute('data-lx'); return delTwice('l'+lid,function(){ DB.del[lid]=Date.now(); DB.prods=DB.prods.filter(function(p){ return p.id!==lid; }); dbSave(); renderArchivio(); },b); }
+  if((b=t.closest('[data-lu]'))) return libAggiungi(b.getAttribute('data-lu'));
+  if((b=t.closest('[data-lmore]'))){ LIBV+=60; return renderArchivio(); }
+  if((b=t.closest('[data-lx]'))){ var lid=b.getAttribute('data-lx'); return delTwice('l'+lid,function(){ var lp0=DB.prods.filter(function(x){ return x.id===lid; })[0]; if(lp0){ DB.libNo=(DB.libNo||[]).concat([libKey(lp0)]); toast('«'+lp0.name+'» eliminato dalla libreria: non verrà più salvato da solo'); } DB.del[lid]=Date.now(); DB.prods=DB.prods.filter(function(p){ return p.id!==lid; }); dbSave(); renderArchivio(); },b); }
 }
 $('arch').addEventListener('click',archClick);
 $('arch').addEventListener('change',function(e){ var id=e.target.getAttribute&&e.target.getAttribute('data-csel'); if(id==null) return; if(e.target.checked) RUB.sel[id]=1; else delete RUB.sel[id]; renderArchivio(); });
@@ -6317,6 +6324,76 @@ if(HTTP){
   window.addEventListener('online',function(){ checkRemote(false); });
 }
 
+/* ---------- libreria prodotti automatica ----------
+   Ogni scheda prodotto con un nome (creata a mano, dall'assistente, da un documento o da una foto) finisce da sola
+   nella libreria con tutto quello che contiene: marca, codice, descrizione, caratteristiche, foto (anche gli originali
+   con lo sfondo), link, scheda PDF, etichette, grandezza della foto e l'ultimo prezzo e unità usati nel preventivo.
+   Modificando la scheda si aggiorna anche la libreria. Un prodotto eliminato dalla libreria non torna da solo. */
+var LIB={t:0, sig:{}};
+var LIB_VIA=['on','sys','sol','libId','x'];
+function libKey(p){ return lc(p.name)+'|'+lc(p.code); }
+function libVuoto(v){ return v==null||v===''||(Array.isArray(v)&&!v.length)||(typeof v==='object'&&!Array.isArray(v)&&!Object.keys(v).length); }
+function libSig(p,pz){ var ph=(p.photos||[]).map(function(u){ return iwH(u); }).join(','); return [p.name,p.brand,p.code,p.desc,p.specs,p.link,p.tags,p.ps,p.bg,ph,p.pdf?p.pdf.name+String(p.pdf.data||'').length:'',pz?pz.p+'/'+pz.u:''].join('§'); }
+function libNo(p){ return (DB.libNo||[]).indexOf(libKey(p))>-1; }
+// ultimo prezzo e unità della voce collegata alla scheda
+function libPrezzo(p,lines){
+  var l=null; (lines||[]).forEach(function(x){ if(l||x.vm) return; if((x.pid&&x.pid===p.id)||lcn(x.d)===lcn(p.name)) l=x; });
+  return l&&num(l.p)>0?{p:num(l.p),u:String(l.u||'cad')}:null;
+}
+function libCerca(p){
+  var e=null;
+  if(p.libId) DB.prods.forEach(function(x){ if(!e&&x.id===p.libId) e=x; });
+  if(!e){ var k=libKey(p); DB.prods.forEach(function(x){ if(!e&&libKey(x)===k) e=x; }); }
+  if(!e&&String(p.code||'').trim()) DB.prods.forEach(function(x){ if(!e&&lc(x.code)===lc(p.code)&&(!x.brand||!p.brand||lc(x.brand)===lc(p.brand))) e=x; });
+  return e;
+}
+// salva o aggiorna un prodotto nella libreria; i campi vuoti della scheda non cancellano quelli già in libreria
+function libSalva(p,pz){
+  if(!p||!String(p.name||'').trim()||libNo(p)) return 0;
+  var c=copy(p), e=libCerca(p), nuovo=!e;
+  LIB_VIA.forEach(function(k){ delete c[k]; });
+  if(pz){ c.lp=pz.p; c.lu=pz.u; }
+  if(nuovo){ c.id=uid(); c.upd=Date.now(); DB.prods.push(c); p.libId=c.id; return 1; }
+  var cambi=0;
+  Object.keys(c).forEach(function(k){ if(k==='id') return; var v=c[k];
+    if(k==='photos'){ if(v&&v.length&&JSON.stringify(v)!==JSON.stringify(e.photos||[])){ e.photos=v.slice(); e.po=(c.po||[]).slice(); if(c.cr) e.cr=copy(c.cr); cambi++; } return; }
+    if(k==='po'||k==='cr') return;
+    if(libVuoto(v)) return;
+    if(JSON.stringify(e[k])!==JSON.stringify(v)){ e[k]=copy(v); cambi++; } });
+  if(cambi) e.upd=Date.now();
+  p.libId=e.id; return cambi?2:0;
+}
+// tutte le schede del preventivo aperto (chiamata poco dopo ogni modifica)
+function libSync(silenzio){
+  if(!dbReady||!S||!S.products) return {n:0,a:0};
+  var demo=libDemo(); // le schede del preventivo di esempio non riempiono la libreria
+  var n=0, a=0;
+  S.products.forEach(function(p){ if(!String(p.name||'').trim()||demo[lcn(p.name)]&&!(p.photos&&p.photos.length)&&!p.libId) return; var pz=libPrezzo(p,S.lines), sg=libSig(p,pz); if(LIB.sig[p.id]===sg) return; LIB.sig[p.id]=sg; var r=libSalva(p,pz); if(r===1) n++; else if(r===2) a++; });
+  if(n||a){ DB.prods.sort(byName); dbSave(); try{ renderArchivio(); }catch(e){} if(n) try{ renderProducts(); }catch(e){} if(!silenzio&&n) toast(n===1?'Prodotto salvato nella libreria prodotti':n+' prodotti salvati nella libreria prodotti'); }
+  return {n:n,a:a};
+}
+var LIB_DEMO=null;
+function libDemo(){ if(!LIB_DEMO){ LIB_DEMO={}; try{ (fresh().products||[]).forEach(function(p){ LIB_DEMO[lcn(p.name)]=1; }); }catch(e){} } var c=S.client||{}; return (c.name==='Mario Rossi'&&/^Via Verdi 12/.test(c.addr||''))?LIB_DEMO:{}; }
+function libSoon(){ clearTimeout(LIB.t); LIB.t=setTimeout(function(){ idle(function(){ libSync(true); }); },1500); }
+// una volta sola: recupero i prodotti dei preventivi già salvati
+function libMigra(){
+  if(!dbReady||DB.libMig>=1) return;
+  var n=0;
+  DB.quotes.forEach(function(q){ var d=q.data; if(!d||!d.products) return; d.products.forEach(function(p){ if(libSalva(p,libPrezzo(p,d.lines||[]))===1) n++; }); });
+  libSync(true);
+  DB.libMig=1; DB.prods.sort(byName); dbSave(true); try{ renderArchivio(); }catch(e){}
+  if(n) toast('Libreria prodotti: '+n+(n===1?' prodotto recuperato':' prodotti recuperati')+' dai tuoi preventivi');
+}
+// «Aggiungi al preventivo» dalla libreria: voce con l'ultimo prezzo usato e scheda collegata con tutto
+function libAggiungi(id){
+  var s=DB.prods.filter(function(x){ return x.id===id; })[0]; if(!s) return;
+  var p=copy(s); p.id=uid(); p.on=true; p.libId=s.id; delete p.lp; delete p.lu; delete p.upd;
+  var l={d:s.name,u:s.lu||'cad',q:1,p:num(s.lp),s:0,pid:p.id}; if(s.brand) l.br=s.brand;
+  if(S.model==='app'&&curKey()) l.r=curKey(); brTag(l);
+  S.products.push(p); S.lines.push(l); openP[p.id]=true; LIB.sig[p.id]=libSig(p,libPrezzo(p,S.lines));
+  renderLines(); renderProducts(); touch(); toast('Aggiunto al preventivo: '+s.name+(num(s.lp)?' · '+eur(num(s.lp)):' · scrivi il prezzo'));
+}
+(function(T){ if(!T) return; T.libMigra=libMigra; T.libSync=libSync; })(window.IECI_T);
 /* ===== Prontuario IECI: materiali e lavorazioni di ogni ambito elettrico, e libreria delle marche =====
    Prezzi INDICATIVI per voce fornita e posata in opera (materiale + manodopera), IVA esclusa: servono come punto di partenza.
    Quando una voce entra nel tuo listino, il prezzo diventa il tuo e lo cambi quando vuoi.
@@ -8670,7 +8747,7 @@ $('in-diag').addEventListener('click',function(){
     out.textContent=L.join('\n'); renderInstall();
   });
 });
-function afterLoad(){ renderArchivio(); renderRecover(); try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){} verCheck(); renderSnaps(); mirInit(); newBanner(); renderPersist(); renderInstall(); }
+function afterLoad(){ setTimeout(libMigra,1200); renderArchivio(); renderRecover(); try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){} verCheck(); renderSnaps(); mirInit(); newBanner(); renderPersist(); renderInstall(); }
 function exportAll(){
   if(S.qid&&dbReady) saveQuote(true);
   var txt=JSON.stringify(buildPayload()), name=backupName();

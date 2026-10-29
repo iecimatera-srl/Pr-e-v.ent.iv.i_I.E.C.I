@@ -62,6 +62,7 @@ app/21-archivio.js
 app/22-sincronizzazione-drive-github.js
 app/23-fornitori-e-lettura-pdf.js
 app/24-salvataggi-e-recupero.js
+app/24b-libreria-prodotti.js
 app/25-prontuario-materiali-e-marche.js
 app/26-assistente.js
 app/27-immagini-dal-web.js

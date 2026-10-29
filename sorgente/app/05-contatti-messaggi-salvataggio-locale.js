@@ -86,7 +86,7 @@ function fillMsg(t){
   return String(t||'').replace(/\{(\w+)\}/g,function(a,k){ return map[k]!=null?map[k]:a; });
 }
 
-var DB={clients:[],prods:[],quotes:[],arts:[],logos:[],parole:[],del:{},su:0,lastBackup:0,lastChange:0}, DBKEY='preventivi-db-v1', dbT=0, qT=0, dbReady=false;
+var DB={clients:[],prods:[],quotes:[],arts:[],logos:[],parole:[],del:{},libNo:[],libMig:0,su:0,lastBackup:0,lastChange:0}, DBKEY='preventivi-db-v1', dbT=0, qT=0, dbReady=false;
 var S, panel='stile', storageWarned=false, IDB=null, saveT=0;
 var BASE_IDS=['cover','prodotti','planimetria','azienda','crono','fv','prev','fiducia','cond','conferma','lavoro','collaudo'];
 function fixLayout(lay,custom){

@@ -121,7 +121,7 @@ $('in-diag').addEventListener('click',function(){
     out.textContent=L.join('\n'); renderInstall();
   });
 });
-function afterLoad(){ renderArchivio(); renderRecover(); try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){} verCheck(); renderSnaps(); mirInit(); newBanner(); renderPersist(); renderInstall(); }
+function afterLoad(){ setTimeout(libMigra,1200); renderArchivio(); renderRecover(); try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){} verCheck(); renderSnaps(); mirInit(); newBanner(); renderPersist(); renderInstall(); }
 function exportAll(){
   if(S.qid&&dbReady) saveQuote(true);
   var txt=JSON.stringify(buildPayload()), name=backupName();

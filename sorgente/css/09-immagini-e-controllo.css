@@ -137,3 +137,7 @@ textarea.t1.as-dr-d{min-height:0}
 /* numero dei preventivi salvati: pallino sul pulsante, non testo che allarga */
 #qb-list{position:relative;overflow:visible}#qb-n{position:absolute;top:-7px;right:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--brand);color:#fff;font-size:.68rem;font-weight:800;line-height:20px;text-align:center;letter-spacing:0;box-shadow:0 0 0 2px var(--surface)}#qb-n[hidden]{display:none}
 @media (max-width:620px){.qb-act #qb-list{overflow:visible}}
+/* libreria prodotti */
+.libr{align-items:flex-start;gap:10px}.libim{width:56px;height:56px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}.libim.no{background:repeating-linear-gradient(45deg,var(--field),var(--field) 6px,transparent 6px,transparent 12px)}
+.liblg{height:14px;max-width:60px;vertical-align:-2px;object-fit:contain;background:#fff;border-radius:3px}.libd{margin-top:2px}.libb{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 100%;justify-content:flex-end}
+.plib{align-items:center}.plib .hint{flex:1 1 180px;margin:0}

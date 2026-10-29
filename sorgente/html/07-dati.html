@@ -3,25 +3,25 @@
         <h3>Cliente</h3>
         <div class="grid2">
           <div class="f cpk"><span>Cliente (scegli dalla rubrica o scrivi)</span><div class="cpkrow"><input id="k-name" type="text" autocomplete="off" placeholder="Scrivi il nome o scegli dalla rubrica" aria-label="Cliente"><button type="button" class="btn ghost sm" id="k-open" aria-expanded="false" aria-controls="k-list">Rubrica ▾</button><button type="button" class="btn ghost sm" id="k-save">Salva in rubrica</button></div><div class="clpop" id="k-list" hidden role="listbox"></div></div>
-          <label class="f">Indirizzo cantiere<input id="k-addr" type="text"></label>
+          <label class="f">Indirizzo cantiere<textarea rows="1" class="t1" id="k-addr"></textarea></label>
           <label class="f">Telefono cliente<input type="tel" data-b="client.tel" data-after="invio"></label>
           <label class="f">Email cliente<input type="email" data-b="client.email" data-after="invio"></label>
           <label class="f">C.F. / P.IVA cliente<input type="text" data-b="client.cf" autocapitalize="characters" placeholder="facoltativo"></label>
         </div>
         <h3>Preventivo</h3>
-        <label class="f">Titolo del documento<input id="m-title" type="text" placeholder="es. Rifacimento impianto appartamento"></label>
+        <label class="f">Titolo del documento<textarea rows="1" class="t1" id="m-title" placeholder="es. Rifacimento impianto appartamento"></textarea></label>
         <div class="grid2">
           <label class="f">Tipo di preventivo (cambia la grafica della copertina)<select id="m-type"></select></label>
-          <label class="f">Slogan in copertina (vuoto = slogan della ditta)<input type="text" data-b="meta.slogan" placeholder="es. Energia pulita per la tua casa"></label>
+          <label class="f">Slogan in copertina (vuoto = slogan della ditta)<textarea rows="1" class="t1" data-b="meta.slogan" placeholder="es. Energia pulita per la tua casa"></textarea></label>
           <label class="f">N. preventivo<input id="m-num" type="text"></label>
           <label class="f">Data<input id="m-date" type="date"></label>
           <label class="f">Validità (giorni)<input id="m-val" type="number" min="0" step="1"></label>
           <label class="f">Stato del preventivo<select data-b="meta.status"><option value="bozza">Bozza</option><option value="inviato">Inviato al cliente</option><option value="accettato">Accettato</option><option value="rifiutato">Rifiutato</option></select></label>
         </div>
         <details class="acc"><summary><span>Dati della ditta</span></summary><div class="accb"><div class="grid2">
-          <label class="f">Ragione sociale<input id="c-name" type="text"></label>
+          <label class="f">Ragione sociale<textarea rows="1" class="t1" id="c-name"></textarea></label>
           <label class="f">P. IVA / C.F.<input id="c-piva" type="text"></label>
-          <label class="f">Indirizzo ditta<input id="c-addr" type="text"></label>
+          <label class="f">Indirizzo ditta<textarea rows="1" class="t1" id="c-addr"></textarea></label>
           <label class="f">Telefono ditta<input id="c-tel" type="text"></label>
         </div><p class="hint">Altri contatti, slogan e testi dell'azienda sono nella scheda Azienda.</p></div></details>
         <details class="sv">

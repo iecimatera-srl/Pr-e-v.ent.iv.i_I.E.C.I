@@ -209,10 +209,14 @@ function ocrImage(src,cb,prog){
     if(e) return cb(null,e.message);
     window.Tesseract.createWorker('ita',1,{logger:function(m){ if(prog&&m.status==='recognizing text') prog(m.progress); }}).then(function(w){
       return w.recognize(src,{},{blocks:true,text:true}).then(function(r){
-        var d=r.data, words=d.words||[];
-        if(!words.length&&d.blocks){ d.blocks.forEach(function(b){ (b.paragraphs||[]).forEach(function(p){ (p.lines||[]).forEach(function(l){ (l.words||[]).forEach(function(x){ words.push(x); }); }); }); }); }
-        var its=words.filter(function(x){ return x.text&&x.text.trim(); }).map(function(x){ var h=x.bbox.y1-x.bbox.y0; return {x:x.bbox.x0,w:x.bbox.x1-x.bbox.x0,h:h,y:-(x.bbox.y0+x.bbox.y1)/2,s:x.text}; });
-        return w.terminate().then(function(){ cb(its); });
+        // righe come le vede il lettore (anche con la foto un po' storta): ogni parola prende l'altezza della sua riga
+        var d=r.data, its=[], par=[];
+        if(d.blocks&&d.blocks.length){ d.blocks.forEach(function(b){ (b.paragraphs||[]).forEach(function(p){ var rr=[]; (p.lines||[]).forEach(function(l){ var lb=l.bbox, ly=-(lb.y0+lb.y1)/2, lh=Math.max(6,(lb.y1-lb.y0)*0.8);
+          (l.words||[]).forEach(function(x){ if(x.text&&x.text.trim()) its.push({x:x.bbox.x0,w:x.bbox.x1-x.bbox.x0,h:lh,y:ly,s:x.text}); });
+          var lt=(l.words||[]).map(function(x){ return x.text; }).join(' ').trim(); if(lt) rr.push(lt); }); if(rr.length) par.push(rr.join('\n')); }); }); }
+        else (d.words||[]).forEach(function(x){ if(x.text&&x.text.trim()){ var h=x.bbox.y1-x.bbox.y0; its.push({x:x.bbox.x0,w:x.bbox.x1-x.bbox.x0,h:h,y:-(x.bbox.y0+x.bbox.y1)/2,s:x.text}); } });
+        var txt=par.length?par.join('\n\n'):String(d.text||'');
+        return w.terminate().then(function(){ cb(its,null,txt); });
       });
     }).catch(function(x){ cb(null,'Lettura della foto non riuscita: '+(x&&x.message||x)); });
   });
@@ -464,7 +468,7 @@ function renderArts(){
       '<label class="f">U.m.<input type="text" data-af="um" data-ai="'+a.id+'" value="'+esc(a.um)+'"></label><label class="f">Costo €<input type="number" step="any" min="0" data-af="cost" data-ai="'+a.id+'" value="'+esc(a.cost)+'"></label>'+
       '<label class="f">Ricarico %<input type="number" step="any" data-af="markup" data-ai="'+a.id+'" value="'+esc(a.markup)+'"></label><label class="f">Prezzo di vendita €<input type="number" step="any" min="0" data-af="price" data-ai="'+a.id+'" value="'+esc(a.price)+'"></label></div>'+prev+
       '<label class="f">Descrizione<textarea data-af="desc" data-ai="'+a.id+'">'+esc(a.desc)+'</textarea></label><label class="f">Caratteristiche (voce: valore, una per riga)<textarea data-af="specs" data-ai="'+a.id+'" style="min-height:90px">'+esc(a.specs)+'</textarea></label>'+
-      '<label class="f">Scheda / fonte (link)<input type="url" data-af="link" data-ai="'+a.id+'" value="'+esc(a.link)+'"></label>'+
+      '<label class="f">Scheda / fonte (link)<textarea rows="1" class="t1" inputmode="url" autocapitalize="off" spellcheck="false" data-af="link" data-ai="'+a.id+'">'+esc(a.link)+'</textarea></label>'+
       (a.pdfurl?'<p class="hint">Scheda tecnica PDF: <a href="'+esc(a.pdfurl)+'" target="_blank" rel="noopener">apri</a></p>':'')+
       '<div class="thumbs">'+th+'</div><div class="row"><label class="btn ghost sm">Aggiungi foto<input type="file" accept="image/*" multiple hidden data-aph="'+a.id+'"></label><button type="button" class="btn ghost sm" data-aweb="'+a.id+'">Cerca descrizione e foto sul web</button><button type="button" class="btn x" data-adel="'+a.id+'" aria-label="Elimina articolo">× Elimina</button></div></div></details>';
   }).join('')||'<div class="empty">'+(DB.arts.length?'Nessun risultato.':'Nessun articolo salvato. Importa il preventivo di un fornitore per iniziare.')+'</div>';

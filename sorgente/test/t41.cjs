@@ -16,7 +16,7 @@ await p.fill('#cat-q','Punto luce semplice');await p.click('#cat [data-add]');
 ck('servizio (pt) non crea scheda',!(await names()).some(x=>/Punto luce semplice/.test(x)));
 await p.fill('#cat-q','');
 await p.click('#add-free');
-await p.evaluate(()=>{const ins=[...document.querySelectorAll('#lines input[data-f=d]')];const i=ins[ins.length-1];i.value='Cavo FG16 test';i.dispatchEvent(new Event('input',{bubbles:true}));i.dispatchEvent(new Event('change',{bubbles:true}));});
+await p.evaluate(()=>{const ins=[...document.querySelectorAll('#lines [data-f=d]')];const i=ins[ins.length-1];i.value='Cavo FG16 test';i.dispatchEvent(new Event('input',{bubbles:true}));i.dispatchEvent(new Event('change',{bubbles:true}));});
 await p.evaluate(()=>{const us=[...document.querySelectorAll('#lines input[data-f=u]')];const u=us[us.length-1];u.value='cad';u.dispatchEvent(new Event('input',{bubbles:true}));});
 ck('riga libera con nome ma u.m. cad crea scheda (alla conferma nome)',await p.evaluate(()=>true));
 // foto

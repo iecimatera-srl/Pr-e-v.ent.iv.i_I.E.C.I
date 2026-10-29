@@ -25,3 +25,19 @@ module.exports.mostra = async (p, sel) => {
   }, sel);
   await p.waitForTimeout(120);
 };
+// Lettore di testo delle foto (OCR) senza internet: le richieste al CDN vanno ai file installati con npm
+module.exports.ocrLocale = async (ctx) => {
+  const nm = [path.join(ROOT, 'node_modules'), '/opt/npm-tools/node_modules'].find(d => fs.existsSync(path.join(d, 'tesseract.js', 'dist', 'tesseract.min.js')));
+  if (!nm) return false;
+  const tipi = { '.js': 'text/javascript', '.wasm': 'application/wasm', '.gz': 'application/gzip' };
+  await ctx.route(/cdn\.jsdelivr\.net\/npm\//, (route) => {
+    const u = new URL(route.request().url()).pathname.replace(/^\/npm\//, '');
+    let f = null, m;
+    if ((m = u.match(/^tesseract\.js@v?[\d.]+\/(.+)$/))) f = path.join(nm, 'tesseract.js', m[1]);
+    else if ((m = u.match(/^tesseract\.js-core@v?[\d.]+\/?(.*)$/))) f = path.join(nm, 'tesseract.js-core', m[1] || 'index.js');
+    else if ((m = u.match(/^@tesseract\.js-data\/(\w+)\/([\w.]+)\/(.+)$/))) f = path.join(nm, '@tesseract.js-data', m[1], m[2], m[3]);
+    if (!f || !fs.existsSync(f)) return route.fulfill({ status: 404, body: 'non trovato' });
+    route.fulfill({ status: 200, body: fs.readFileSync(f), headers: { 'content-type': tipi[path.extname(f)] || 'application/octet-stream', 'access-control-allow-origin': '*' } });
+  });
+  return true;
+};

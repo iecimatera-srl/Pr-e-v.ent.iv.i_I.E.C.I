@@ -10,7 +10,7 @@
         </label>
         <div class="row"><button class="btn ghost sm" type="button" data-gomt>Gestisci i tuoi messaggi</button></div>
         <label class="f">Messaggio WhatsApp / SMS<textarea data-b="msgs.wa" data-after="invio" style="min-height:110px"></textarea></label>
-        <label class="f">Oggetto email<input type="text" data-b="msgs.subj" data-after="invio"></label>
+        <label class="f">Oggetto email<textarea rows="1" class="t1" data-b="msgs.subj" data-after="invio"></textarea></label>
         <label class="f">Testo email<textarea data-b="msgs.body" data-after="invio" style="min-height:130px"></textarea></label>
         <p class="hint">Segnaposto: {cliente} {numero} {titolo} {totale} {validita} {ditta} {tel}</p>
         <h3>Anteprima WhatsApp</h3>
@@ -56,7 +56,7 @@
   <div class="sh-msg">
     <div class="sh-mh"><b>Messaggio che accompagna il PDF</b><select id="sh-tpl" aria-label="Scegli il messaggio"></select></div>
     <textarea id="sh-txt" rows="5" aria-label="Testo del messaggio WhatsApp"></textarea>
-    <details class="sv" id="sh-em"><summary>Testo dell'email</summary><label class="f">Oggetto<input type="text" id="sh-subj"></label><label class="f">Testo<textarea id="sh-body" rows="6"></textarea></label></details>
+    <details class="sv" id="sh-em"><summary>Testo dell'email</summary><label class="f">Oggetto<textarea rows="1" class="t1" id="sh-subj"></textarea></label><label class="f">Testo<textarea id="sh-body" rows="6"></textarea></label></details>
     <div class="row"><button class="btn ghost sm" id="sh-save" type="button">Salva come mio messaggio</button><button class="btn ghost sm" type="button" data-gomt>Gestisci i messaggi</button><button class="btn ghost sm" id="sh-cp2" type="button">Copia il testo</button></div>
   </div>
   <div class="sh-b">

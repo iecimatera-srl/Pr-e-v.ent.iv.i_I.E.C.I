@@ -653,6 +653,7 @@ header.top{position:relative}
 @media (max-width:520px){.as-dr{grid-template-columns:auto 46px 1fr}.as-dr-im{width:46px;height:46px}.as-dr-n{grid-column:1/-1;padding-left:4px}}
 .as-chips .as-k,.as-cli .as-k{display:inline-block;font-size:.76rem;border-radius:99px;padding:2px 9px;background:color-mix(in srgb,#15803D 12%,var(--surface));border:1px solid color-mix(in srgb,#15803D 35%,var(--line));font-weight:700}
 .as-chips .as-k.m,.as-cli .as-k.m{background:color-mix(in srgb,var(--danger) 12%,var(--surface));border-color:color-mix(in srgb,var(--danger) 40%,var(--line))}
+.as-dpz{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 12px;align-items:end;padding:10px 12px;border:1px solid var(--line);border-radius:12px}.as-dpz>.chk,.as-dpz>.hint{grid-column:1/-1;margin:0}.as-np{font-size:.8rem;color:var(--muted)}
 /* loghi e foto dal web */
 .sheet.iw{max-width:640px}
 .iw-q{display:flex;gap:8px;align-items:stretch}.iw-q input{flex:1;min-width:0;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink)}
@@ -765,6 +766,20 @@ header.top{position:relative}
 .brsug button img{height:18px;max-width:54px;object-fit:contain;background:#fff;border-radius:4px}
 /* telefoni: campi a 16px (sotto questa misura iPhone ingrandisce la pagina a ogni tocco e i riquadri saltano) */
 @media (pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px}}
+/* caselle di testo su una riga che vanno a capo: il testo lungo si legge tutto anche sul telefono */
+textarea.t1{resize:none;overflow:hidden;min-height:44px;field-sizing:content;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;vertical-align:top;display:block}
+textarea.t1.mnn,textarea.t1.gn,textarea.t1.gname{min-height:34px;display:block}
+textarea.t1.as-dr-d{min-height:0}
+@media (max-width:560px){.lsh{flex-wrap:wrap}.lsh .gname{flex:1 1 calc(100% - 48px)}.lsh em{margin-left:40px}}
+/* barra in alto sui telefoni stretti: i cinque pulsanti stanno sempre tutti dentro */
+@media (max-width:620px){.qb-act{grid-template-columns:minmax(0,1.15fr) minmax(0,.9fr) minmax(0,.95fr) minmax(0,1fr) minmax(0,1.15fr);gap:4px}.qb-act .btn{padding:6px 1px;font-size:clamp(.66rem,3.05vw,.8rem);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:clip}}
+#as-txt{field-sizing:content;min-height:110px;max-height:50vh}
+@media (max-width:520px){#acc-as .accb>.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}#acc-as .accb>.row .btn{justify-content:center;text-align:center;padding-left:6px;padding-right:6px}#acc-as .accb>.row #as-go{grid-column:1/-1}}
+@media (max-width:340px){.qb-act .btn{font-size:.62rem}}
+.ltools .lt{flex:none;white-space:nowrap}
+#acc-as .chk input[type=checkbox]{width:22px;height:22px;flex:none}
+.as-righe.no-im .as-dr{grid-template-columns:auto 1fr}.as-righe.no-im .as-dr-im{display:none}
+@media (max-width:520px){.as-righe.no-im .as-dr{grid-template-columns:auto 1fr}}
 </style>
 
 <div class="lock" id="lock" hidden role="dialog" aria-modal="true" aria-label="App bloccata">
@@ -1003,25 +1018,25 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
         <h3>Cliente</h3>
         <div class="grid2">
           <div class="f cpk"><span>Cliente (scegli dalla rubrica o scrivi)</span><div class="cpkrow"><input id="k-name" type="text" autocomplete="off" placeholder="Scrivi il nome o scegli dalla rubrica" aria-label="Cliente"><button type="button" class="btn ghost sm" id="k-open" aria-expanded="false" aria-controls="k-list">Rubrica ▾</button><button type="button" class="btn ghost sm" id="k-save">Salva in rubrica</button></div><div class="clpop" id="k-list" hidden role="listbox"></div></div>
-          <label class="f">Indirizzo cantiere<input id="k-addr" type="text"></label>
+          <label class="f">Indirizzo cantiere<textarea rows="1" class="t1" id="k-addr"></textarea></label>
           <label class="f">Telefono cliente<input type="tel" data-b="client.tel" data-after="invio"></label>
           <label class="f">Email cliente<input type="email" data-b="client.email" data-after="invio"></label>
           <label class="f">C.F. / P.IVA cliente<input type="text" data-b="client.cf" autocapitalize="characters" placeholder="facoltativo"></label>
         </div>
         <h3>Preventivo</h3>
-        <label class="f">Titolo del documento<input id="m-title" type="text" placeholder="es. Rifacimento impianto appartamento"></label>
+        <label class="f">Titolo del documento<textarea rows="1" class="t1" id="m-title" placeholder="es. Rifacimento impianto appartamento"></textarea></label>
         <div class="grid2">
           <label class="f">Tipo di preventivo (cambia la grafica della copertina)<select id="m-type"></select></label>
-          <label class="f">Slogan in copertina (vuoto = slogan della ditta)<input type="text" data-b="meta.slogan" placeholder="es. Energia pulita per la tua casa"></label>
+          <label class="f">Slogan in copertina (vuoto = slogan della ditta)<textarea rows="1" class="t1" data-b="meta.slogan" placeholder="es. Energia pulita per la tua casa"></textarea></label>
           <label class="f">N. preventivo<input id="m-num" type="text"></label>
           <label class="f">Data<input id="m-date" type="date"></label>
           <label class="f">Validità (giorni)<input id="m-val" type="number" min="0" step="1"></label>
           <label class="f">Stato del preventivo<select data-b="meta.status"><option value="bozza">Bozza</option><option value="inviato">Inviato al cliente</option><option value="accettato">Accettato</option><option value="rifiutato">Rifiutato</option></select></label>
         </div>
         <details class="acc"><summary><span>Dati della ditta</span></summary><div class="accb"><div class="grid2">
-          <label class="f">Ragione sociale<input id="c-name" type="text"></label>
+          <label class="f">Ragione sociale<textarea rows="1" class="t1" id="c-name"></textarea></label>
           <label class="f">P. IVA / C.F.<input id="c-piva" type="text"></label>
-          <label class="f">Indirizzo ditta<input id="c-addr" type="text"></label>
+          <label class="f">Indirizzo ditta<textarea rows="1" class="t1" id="c-addr"></textarea></label>
           <label class="f">Telefono ditta<input id="c-tel" type="text"></label>
         </div><p class="hint">Altri contatti, slogan e testi dell'azienda sono nella scheda Azienda.</p></div></details>
         <details class="sv">
@@ -1046,10 +1061,10 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
           <label class="f">Sito web<input type="text" data-b="company.web" data-after="invio"></label>
           <label class="f">WhatsApp principale (con prefisso)<input type="tel" data-b="company.wa" data-after="invio"></label>
           <label class="f">WhatsApp secondo numero<input type="tel" data-b="company.wa2" data-after="invio"></label>
-          <label class="f">Pagina Facebook<input type="url" data-b="company.fb"></label>
-          <label class="f">Profilo Instagram<input type="url" data-b="company.ig"></label>
+          <label class="f">Pagina Facebook<textarea rows="1" class="t1" inputmode="url" autocapitalize="off" spellcheck="false" data-b="company.fb"></textarea></label>
+          <label class="f">Profilo Instagram<textarea rows="1" class="t1" inputmode="url" autocapitalize="off" spellcheck="false" data-b="company.ig"></textarea></label>
         </div>
-        <label class="f">Slogan<input id="p-slogan" data-pr="slogan" type="text"></label>
+        <label class="f">Slogan<textarea rows="1" class="t1" id="p-slogan" data-pr="slogan"></textarea></label>
         <label class="f">Chi siamo<textarea id="p-about" data-pr="about" style="min-height:110px"></textarea></label>
         <label class="f">Numeri (una riga ciascuno: valore | etichetta)<textarea id="p-stats" data-pr="stats"></textarea></label>
         <label class="f">Abilitazioni e certificazioni (una per riga)<textarea id="p-certs" data-pr="certs"></textarea></label>
@@ -1139,8 +1154,8 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
           <p class="hint">Scrivi o detta come lo diresti a un collega, anche di fretta: «fv 6 con batteria», «citofono 10», «trilocale Vimar Plana per Bianchi». Con un preventivo aperto puoi anche correggerlo: «aggiungi 3 prese in cucina, togli il quadro, sconto 10%». Usa i prezzi del <b>tuo listino</b>, ti mostra un'anteprima e impara le tue parole. Gratis, anche senza internet, non invia dati a nessuno.</p>
           <textarea id="as-txt" rows="4" placeholder="es. Rifacimento appartamento 95 mq per Rossi Mario, via Roma 3, Matera: 2 camere, 2 bagni, cucina, soggiorno, Bticino"></textarea>
           <div class="as-live" id="as-live" aria-live="polite"></div>
-          <div class="row"><button class="btn" id="as-go" type="button">Prepara il preventivo</button><button class="btn ghost" id="as-mic" type="button">Detta</button><label class="btn ghost as-docb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/></svg>Carica documento<input type="file" id="as-doc" hidden multiple accept=".pdf,application/pdf,image/*,.xlsx,.docx,.csv,.txt,.vcf,text/vcard,text/x-vcard,text/plain"></label></div>
-          <p class="hint as-doch">Carica il <b>preventivo di un fornitore</b> (PDF, foto, Excel, Word): capisco che lavoro è, preparo le voci con le foto dei prodotti e ricontrollo il totale. Oppure i <b>dati del cliente</b>: contatto (.vcf), messaggio, biglietto da visita. Il documento resta sul telefono.</p>
+          <div class="row"><button class="btn" id="as-go" type="button">Prepara il preventivo</button><button class="btn ghost" id="as-mic" type="button">Detta</button><label class="btn ghost as-docb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/></svg>Carica documento<input type="file" id="as-doc" hidden multiple accept=".pdf,application/pdf,image/*,.xlsx,.docx,.csv,.txt,.vcf,text/vcard,text/x-vcard,text/plain"></label><label class="btn ghost as-docb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Foto dati cliente<input type="file" id="as-cli-foto" hidden multiple accept="image/*,.pdf,.vcf,text/vcard"></label></div>
+          <p class="hint as-doch">Carica il <b>preventivo di un fornitore</b> (PDF, foto, Excel, Word): capisco che lavoro è, preparo le voci con le foto dei prodotti e ricontrollo il totale. Con <b>Foto dati cliente</b> fotografi carta d'identità, tessera sanitaria, biglietto da visita o la schermata di un messaggio: leggo nome, indirizzo, telefono e codice fiscale. Tutto resta sul telefono.</p>
           <div class="as-doc-st" id="as-doc-st" role="status" aria-live="polite" hidden></div>
           <details class="sv"><summary>Esempi di richieste</summary><div class="as-ex" id="as-ex"></div></details>
           <details class="sv" id="as-par-d" hidden><summary>Parole che ho imparato <em id="as-par-n"></em></summary><div class="as-par" id="as-par"></div></details>
@@ -1321,7 +1336,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
         <div class="row"><button class="btn sm" id="bg-add" type="button">+ Nuova riga di marchi</button><button class="btn sm ghost" id="bg-from" type="button">Usa i loghi di un altro preventivo</button></div>
         <p class="hint">I loghi dei marchi valgono per tutti i preventivi, vecchi e nuovi. Se in un preventivo salvato li avevi disposti meglio, toccando «Usa i loghi di un altro preventivo» scegli quello e diventano la disposizione di tutti.</p>
         <h3>Contatti con link e icone</h3>
-        <label class="f">Titolo del blocco<input type="text" data-b="trust.qrTitle"></label>
+        <label class="f">Titolo del blocco<textarea rows="1" class="t1" data-b="trust.qrTitle"></textarea></label>
         <div class="subs" style="padding-left:0">
           <label class="chk"><input type="checkbox" data-b="trust.qr.wa">WhatsApp (principale)</label>
           <label class="chk"><input type="checkbox" data-b="trust.qr.wa2">WhatsApp (secondo numero)</label>
@@ -1350,7 +1365,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
           <div class="grid2">
             <label class="f">Data intervento<input type="date" data-b="docs.lavoro.data"></label>
             <label class="f">Squadra<input type="text" data-b="docs.lavoro.squadra"></label>
-            <label class="f">Mezzi e attrezzature<input type="text" data-b="docs.lavoro.mezzi"></label>
+            <label class="f">Mezzi e attrezzature<textarea rows="1" class="t1" data-b="docs.lavoro.mezzi"></textarea></label>
           </div>
           <label class="f">Sicurezza<textarea data-b="docs.lavoro.sicurezza"></textarea></label>
           <label class="f">Note<textarea data-b="docs.lavoro.note"></textarea></label></div>
@@ -1446,7 +1461,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
         </label>
         <div class="row"><button class="btn ghost sm" type="button" data-gomt>Gestisci i tuoi messaggi</button></div>
         <label class="f">Messaggio WhatsApp / SMS<textarea data-b="msgs.wa" data-after="invio" style="min-height:110px"></textarea></label>
-        <label class="f">Oggetto email<input type="text" data-b="msgs.subj" data-after="invio"></label>
+        <label class="f">Oggetto email<textarea rows="1" class="t1" data-b="msgs.subj" data-after="invio"></textarea></label>
         <label class="f">Testo email<textarea data-b="msgs.body" data-after="invio" style="min-height:130px"></textarea></label>
         <p class="hint">Segnaposto: {cliente} {numero} {titolo} {totale} {validita} {ditta} {tel}</p>
         <h3>Anteprima WhatsApp</h3>
@@ -1492,7 +1507,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
   <div class="sh-msg">
     <div class="sh-mh"><b>Messaggio che accompagna il PDF</b><select id="sh-tpl" aria-label="Scegli il messaggio"></select></div>
     <textarea id="sh-txt" rows="5" aria-label="Testo del messaggio WhatsApp"></textarea>
-    <details class="sv" id="sh-em"><summary>Testo dell'email</summary><label class="f">Oggetto<input type="text" id="sh-subj"></label><label class="f">Testo<textarea id="sh-body" rows="6"></textarea></label></details>
+    <details class="sv" id="sh-em"><summary>Testo dell'email</summary><label class="f">Oggetto<textarea rows="1" class="t1" id="sh-subj"></textarea></label><label class="f">Testo<textarea id="sh-body" rows="6"></textarea></label></details>
     <div class="row"><button class="btn ghost sm" id="sh-save" type="button">Salva come mio messaggio</button><button class="btn ghost sm" type="button" data-gomt>Gestisci i messaggi</button><button class="btn ghost sm" id="sh-cp2" type="button">Copia il testo</button></div>
   </div>
   <div class="sh-b">
@@ -1531,7 +1546,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
 <script type="text/plain" id="pdfjs-wk" data-src="lib-pdfjs-worker.txt"></script>
 <script>
 var CAN_PRINT = true;
-var APP_VER = '2026.10.29.1';
+var APP_VER = '2026.10.29.2';
 (function(){
 'use strict';
 
@@ -2102,6 +2117,15 @@ function lineTotal(l){ return r2(num(l.q)*num(l.p)*(1-num(l.s)/100)); }
 var toastT;
 function toast(msg){ var t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(function(){t.hidden=true;},2600); }
 
+/* caselle di testo su una riga che vanno a capo (textarea.t1): sul telefono il testo lungo si legge tutto.
+   Invio non va a capo; dove il browser non allarga da solo la casella (field-sizing) la adatto io. */
+var T1_JS=!(window.CSS&&CSS.supports&&CSS.supports('field-sizing','content')), T1_RAF=0;
+function t1Fit(el){ if(!T1_JS||!el||!el.offsetParent) return; el.style.height='auto'; var h=el.scrollHeight+(el.offsetHeight-el.clientHeight); if(h>8) el.style.height=h+'px'; }
+function t1All(){ T1_RAF=0; if(!T1_JS) return; Array.prototype.forEach.call(document.querySelectorAll('textarea.t1'),t1Fit); }
+function t1Soon(){ if(T1_JS&&!T1_RAF) T1_RAF=requestAnimationFrame(t1All); }
+document.addEventListener('keydown',function(e){ var t=e.target; if(e.key==='Enter'&&t&&t.tagName==='TEXTAREA'&&t.classList.contains('t1')){ e.preventDefault(); if(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) t.blur(); } },true);
+document.addEventListener('input',function(e){ var t=e.target; if(!t||t.tagName!=='TEXTAREA'||!t.classList.contains('t1')) return; if(/[\r\n]/.test(t.value)){ var p=t.selectionStart; t.value=t.value.replace(/\s*[\r\n]+\s*/g,' '); try{ t.setSelectionRange(p,p); }catch(x){} } t1Fit(t); },true);
+if(T1_JS){ try{ new MutationObserver(t1Soon).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','open','class']}); }catch(e){} window.addEventListener('resize',t1Soon); document.addEventListener('toggle',t1Soon,true); }
 /* ---------- colori ---------- */
 function hex2rgb(h){ h=String(h||'#000000').replace('#',''); if(h.length===3) h=h.replace(/./g,'$&$&'); var n=parseInt(h,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
 function rgb2hex(c){ return '#'+c.map(function(v){ v=Math.max(0,Math.min(255,Math.round(v))); return (v<16?'0':'')+v.toString(16); }).join(''); }
@@ -3147,10 +3171,10 @@ function renderMenuEd(){
   var last=MENU.groups.length-1;
   el.innerHTML=MENU.groups.map(function(g,gi){
     var its=MENU.items.filter(function(i){ return i.g===g.id; });
-    return '<div class="mgc2" data-gid="'+g.id+'"><div class="mngrp"><input type="text" class="gn" data-gn="'+g.id+'" value="'+esc(g.n)+'" aria-label="Nome del gruppo" placeholder="Nome del gruppo"><button type="button" class="sq" data-gm="'+g.id+':-1"'+(gi===0?' disabled':'')+' aria-label="Sposta il gruppo su">▲</button><button type="button" class="sq" data-gm="'+g.id+':1"'+(gi===last?' disabled':'')+' aria-label="Sposta il gruppo giù">▼</button>'+(MENU.groups.length>1?'<button type="button" class="sq x" data-gd="'+g.id+'" aria-label="Elimina il gruppo">✕</button>':'')+'</div><div class="mgc">'+
+    return '<div class="mgc2" data-gid="'+g.id+'"><div class="mngrp"><textarea rows="1" class="t1 gn" data-gn="'+g.id+'" aria-label="Nome del gruppo" placeholder="Nome del gruppo">'+esc(g.n)+'</textarea><button type="button" class="sq" data-gm="'+g.id+':-1"'+(gi===0?' disabled':'')+' aria-label="Sposta il gruppo su">▲</button><button type="button" class="sq" data-gm="'+g.id+':1"'+(gi===last?' disabled':'')+' aria-label="Sposta il gruppo giù">▼</button>'+(MENU.groups.length>1?'<button type="button" class="sq x" data-gd="'+g.id+'" aria-label="Elimina il gruppo">✕</button>':'')+'</div><div class="mgc">'+
       its.map(function(i){
         var ren=!!(MENU.names[i.p]);
-        return '<div class="mnrow'+(i.on?'':' off')+'" data-p="'+i.p+'"><span class="dh" aria-label="Trascina per spostare" title="Trascina">≡</span><input type="text" class="mnn" data-nm="'+i.p+'" value="'+esc(secLabel(i.p))+'" placeholder="'+esc(secDef(i.p))+'" aria-label="Nome della sezione '+esc(secDef(i.p))+'">'+
+        return '<div class="mnrow'+(i.on?'':' off')+'" data-p="'+i.p+'"><span class="dh" aria-label="Trascina per spostare" title="Trascina">≡</span><textarea rows="1" class="t1 mnn" data-nm="'+i.p+'" placeholder="'+esc(secDef(i.p))+'" aria-label="Nome della sezione '+esc(secDef(i.p))+'">'+esc(secLabel(i.p))+'</textarea>'+
           '<label class="sw" title="Mostra nel menu"><input type="checkbox" data-mv="'+i.p+'"'+(i.on?' checked':'')+(i.p==='menu'?' disabled':'')+'><span></span></label>'+
           '<button type="button" class="sq" data-mm="'+i.p+':-1" aria-label="Su">▲</button><button type="button" class="sq" data-mm="'+i.p+':1" aria-label="Giù">▼</button></div>';
       }).join('')+'</div></div>';
@@ -3889,11 +3913,11 @@ function renderMt(){
   el.innerHTML=S.mtpl.map(function(t,i){
     var def=t.id===S.mdef, open=mtOpen===t.id||(mtOpen==null&&def);
     return '<details class="mt'+(def?' def':'')+'" data-mtid="'+esc(t.id)+'"'+(open?' open':'')+'><summary><span class="mtn">'+esc(t.n||'Senza nome')+'</span>'+(def?'<span class="mtd">Predefinito</span>':'')+'</summary><div class="mtb">'+
-      '<label class="f">Nome del messaggio<input type="text" data-mtf="n" value="'+esc(t.n)+'" placeholder="es. Invio preventivo condominio"></label>'+
+      '<label class="f">Nome del messaggio<textarea rows="1" class="t1" data-mtf="n" placeholder="es. Invio preventivo condominio">'+esc(t.n)+'</textarea></label>'+
       '<label class="f">Testo per WhatsApp<textarea data-mtf="wa" rows="5">'+esc(t.wa)+'</textarea></label>'+
       '<div class="mtph"><small>Inserisci:</small>'+MT_PH.map(function(p){ return '<button type="button" class="chip" data-mtph="'+p[0]+'">'+p[1]+'</button>'; }).join('')+'</div>'+
       '<div class="mtp"><small>Anteprima con questo preventivo</small><div class="msgprev" data-mtprev>'+esc(fillMsg(t.wa))+'</div></div>'+
-      '<details class="sv"><summary>Testo per l\'email</summary><label class="f">Oggetto<input type="text" data-mtf="subj" value="'+esc(t.subj)+'"></label><label class="f">Testo<textarea data-mtf="body" rows="7">'+esc(t.body)+'</textarea></label></details>'+
+      '<details class="sv"><summary>Testo per l\'email</summary><label class="f">Oggetto<textarea rows="1" class="t1" data-mtf="subj">'+esc(t.subj)+'</textarea></label><label class="f">Testo<textarea data-mtf="body" rows="7">'+esc(t.body)+'</textarea></label></details>'+
       '<div class="row">'+(def?'':'<button type="button" class="btn sm" data-mta="def">Usa come predefinito</button>')+'<button type="button" class="btn ghost sm" data-mta="use">Usa ora in questo preventivo</button><button type="button" class="btn ghost sm" data-mta="dup">Duplica</button>'+(S.mtpl.length>1?'<button type="button" class="btn ghost sm" data-mta="del">Elimina</button>':'')+'</div></div></details>';
   }).join('');
 }
@@ -4177,7 +4201,7 @@ function renderLines0(){
     if(l.pc) extra+='<span class="hint">Per ogni condomino: la quantità segue il numero dei condomini ('+vcN()+')</span>';
     if(S.model==='app') extra+='<label class="f rsel">Stanza<select data-f="r">'+roomOpts(l.r)+'</select></label>';
     extra+=prodChip(l,i)+'</div>';
-    return '<div class="line'+(l.off?' off':'')+(SYNC.set.has(l)?' sync':'')+'" data-i="'+i+'"><div class="ltools"><span class="lnum">'+(i+1)+'</span><span class="sp"></span><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su"'+(i?'':' disabled')+'>▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù"'+(i<S.lines.length-1?'':' disabled')+'>▼</button><button type="button" class="lt" data-ldup="'+i+'">Duplica</button><button type="button" class="lt del" data-rm="'+i+'" aria-label="Rimuovi riga">Elimina</button></div><input type="text" data-f="d" value="'+esc(l.d)+'" aria-label="Descrizione">'+lineBrandHtml(l)+'<div class="nums">'+
+    return '<div class="line'+(l.off?' off':'')+(SYNC.set.has(l)?' sync':'')+'" data-i="'+i+'"><div class="ltools"><span class="lnum">'+(i+1)+'</span><span class="sp"></span><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su"'+(i?'':' disabled')+'>▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù"'+(i<S.lines.length-1?'':' disabled')+'>▼</button><button type="button" class="lt" data-ldup="'+i+'">Duplica</button><button type="button" class="lt del" data-rm="'+i+'" aria-label="Rimuovi riga">Elimina</button></div><textarea rows="1" class="t1" data-f="d" aria-label="Descrizione">'+esc(l.d)+'</textarea>'+lineBrandHtml(l)+'<div class="nums">'+
       '<label class="f">Q.tà<input type="number" step="any" min="0" data-f="q" value="'+esc(l.q)+'"></label>'+
       '<label class="f">U.m.<input type="text" data-f="u" value="'+esc(l.u)+'"></label>'+
       (FREE()?'':'<label class="f">€ unit.<input type="number" step="any" min="0" data-f="p" value="'+esc(l.p)+'"></label>'+
@@ -4250,13 +4274,13 @@ function renderProducts0(){
       '<div class="subs" style="padding-left:0"><label class="chk sub"><input type="checkbox" data-px="on" data-pi="'+i+'"'+(p.on===false?'':' checked')+'><b>Includi nel fascicolo</b></label>'+
       [['photos','Foto'],['desc','Descrizione'],['specs','Caratteristiche'],['tags','Etichette'],['link','Link scheda'],['pdf','PDF allegato']].map(function(o){ return '<label class="chk sub"><input type="checkbox" data-px="'+o[0]+'" data-pi="'+i+'"'+((p.x&&p.x[o[0]])?'':' checked')+'>'+o[1]+'</label>'; }).join('')+'</div>'+
       (brOn()?prodSysSel(p,i):S.model==='vcit'?'<label class="f">Questo prodotto fa parte di<select data-pf="sol" data-pi="'+i+'"><option value=""'+(p.sol?'':' selected')+'>Tutte le soluzioni</option><option value="video"'+(p.sol==='video'?' selected':'')+'>Solo soluzione videocitofono</option><option value="cit"'+(p.sol==='cit'?' selected':'')+'>Solo soluzione citofono</option></select></label>':'')+
-      '<div class="grid2"><label class="f">Nome prodotto<input type="text" data-pf="name" data-pi="'+i+'" value="'+esc(p.name)+'"></label>'+
+      '<div class="grid2"><label class="f">Nome prodotto<textarea rows="1" class="t1" data-pf="name" data-pi="'+i+'">'+esc(p.name)+'</textarea></label>'+
       '<label class="f">Marca<input type="text" data-pf="brand" data-pi="'+i+'" data-brsug autocomplete="off" autocapitalize="words" spellcheck="false" value="'+esc(p.brand)+'"></label>'+
       '<label class="f">Modello / codice<input type="text" data-pf="code" data-pi="'+i+'" value="'+esc(p.code)+'"></label>'+
       '<label class="f">Etichette (separate da virgola)<input type="text" data-pf="tags" data-pi="'+i+'" value="'+esc(p.tags)+'"></label></div>'+
       '<label class="f">Descrizione<textarea data-pf="desc" data-pi="'+i+'">'+esc(p.desc)+'</textarea></label>'+
       '<label class="f">Caratteristiche tecniche (una per riga: voce: valore)<textarea data-pf="specs" data-pi="'+i+'" style="min-height:100px">'+esc(p.specs)+'</textarea></label>'+
-      '<label class="f">Link alla scheda tecnica (https://…)<input type="url" data-pf="link" data-pi="'+i+'" value="'+esc(p.link)+'"></label>'+
+      '<label class="f">Link alla scheda tecnica (https://…)<textarea rows="1" class="t1" inputmode="url" autocapitalize="off" spellcheck="false" data-pf="link" data-pi="'+i+'">'+esc(p.link)+'</textarea></label>'+
       '<div class="row"><label class="btn ghost sm">'+(p.pdf?'Sostituisci scheda PDF':'Allega scheda tecnica PDF')+'<input type="file" accept="application/pdf,.pdf" hidden data-ppdf="'+i+'"></label>'+(p.pdf?'<span class="hint">'+esc(p.pdf.name)+'</span><button type="button" class="btn x" data-rpdf="'+i+'" aria-label="Rimuovi PDF">×</button>':'')+'</div>'+
       '<div class="row"><button type="button" class="btn ghost sm" data-act="lib" data-pi="'+i+'">Salva in libreria</button></div>'+
       '<label class="f">Grandezza della foto nel documento: <b class="psv">'+Math.max(15,Math.min(100,num(p.ps)||45))+'%</b><input type="range" min="15" max="100" step="5" value="'+Math.max(15,Math.min(100,num(p.ps)||45))+'" data-pf="ps" data-pi="'+i+'"></label>'+
@@ -4393,13 +4417,13 @@ function renderListini(){
     if(q&&!idx.length) return; if(!sc.g&&!all) return;
     var key=sc.g||'~', closed=!q&&lsClosed[m+'|'+key];
     html+='<section class="lsg"><div class="lsh"><button type="button" class="lt" data-gtog="'+esc(key)+'" aria-label="Apri o chiudi" aria-expanded="'+(!closed)+'">'+(closed?'▸':'▾')+'</button>'+
-      (sc.g?'<input type="text" class="gname" data-gren="'+sc.gi+'" value="'+esc(sc.g)+'" aria-label="Nome categoria" maxlength="60">':'<span class="gname plain">Senza categoria</span>')+
+      (sc.g?'<textarea rows="1" class="t1 gname" data-gren="'+sc.gi+'" aria-label="Nome categoria" maxlength="60">'+esc(sc.g)+'</textarea>':'<span class="gname plain">Senza categoria</span>')+
       '<em>'+all+'</em>'+
       (sc.g?'<button type="button" class="lt" data-gup="'+sc.gi+'" aria-label="Sposta categoria su"'+(sc.gi?'':' disabled')+'>▲</button><button type="button" class="lt" data-gdn="'+sc.gi+'" aria-label="Sposta categoria giù"'+(sc.gi<gl.length-1?'':' disabled')+'>▼</button><button type="button" class="btn x" data-gdel="'+sc.gi+'" aria-label="Elimina categoria">×</button>':'')+'</div>';
     if(!closed){
       html+=idx.map(function(i){
         var it=items[i];
-        return '<div class="lsr" data-i="'+i+'"><input type="text" class="ld" data-lf="d" value="'+esc(it[0])+'" aria-label="Descrizione">'+
+        return '<div class="lsr" data-i="'+i+'"><textarea rows="1" class="t1 ld" data-lf="d" aria-label="Descrizione">'+esc(it[0])+'</textarea>'+
           '<div class="lr2"><label class="f sm">u.m.<input type="text" class="lu" data-lf="u" value="'+esc(it[1])+'"></label><label class="f sm">Prezzo €<input type="number" step="any" min="0" class="lp" data-lf="p" value="'+esc(it[2])+'"></label>'+
           '<label class="f sm lg">Categoria<select data-lf="g">'+groupOpts(m,sc.g)+'</select></label>'+
           '<span class="lacts"><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su">▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù">▼</button><button type="button" class="btn x" data-ldel="'+i+'" aria-label="Elimina voce">×</button></span></div>'+
@@ -4875,7 +4899,7 @@ function renderEcon(){
   if(econOn()){
     h+='<div class="grid2">'+(brOn()?vcFreeFields():vcBothFlag()?'<label class="f">Totale: '+esc(S.tiers.names[0]||'soluzione 1')+' (€)<input type="number" step="any" min="0" data-b="cond.tc"></label><label class="f">Totale: '+esc(S.tiers.names[1]||'soluzione 2')+' (€)<input type="number" step="any" min="0" data-b="cond.tv"></label>':'<label class="f">Totale (€)<input type="number" step="any" min="0" data-b="econ.total" placeholder="es. 4500"></label>')+
       '<label class="f">Il totale è<select data-b="econ.vat"><option value="incl">IVA inclusa</option><option value="excl">IVA esclusa (si aggiunge)</option></select></label></div>'+
-      '<label class="f">Dicitura del totale (facoltativa)<input type="text" data-b="econ.label" placeholder="es. Totale lavori chiavi in mano"></label>'+
+      '<label class="f">Dicitura del totale (facoltativa)<textarea rows="1" class="t1" data-b="econ.label" placeholder="es. Totale lavori chiavi in mano"></textarea></label>'+
       '<label class="chk"><input type="checkbox" data-b="econ.breakdown">Mostra imponibile e IVA sopra il totale</label>'+
       '<label class="f">Nota sotto il totale (facoltativa)<textarea data-b="econ.note" style="min-height:60px" placeholder="es. Comprensivo di materiali, manodopera e dichiarazione di conformità"></textarea></label>'+
       '<p class="hint">Le righe qui sotto servono solo a descrivere i lavori e non mostrano prezzi. Sconto % e offerta a livelli non si applicano.</p>';
@@ -4969,7 +4993,7 @@ function photoBox(src,attr,label){
 function renderTrust(){
   var T=S.trust;
   $('tr-ba').innerHTML=T.ba.map(function(b,i){
-    return '<div class="rowc"><label class="f">Titolo (facoltativo)<input type="text" data-tf="ba:'+i+':title" value="'+esc(b.title)+'"></label>'+
+    return '<div class="rowc"><label class="f">Titolo (facoltativo)<textarea rows="1" class="t1" data-tf="ba:'+i+':title">'+esc(b.title)+'</textarea></label>'+
       '<div class="row">'+photoBox(b.before,'data-bap="'+i+':before"','Foto prima')+'</div><div class="row">'+photoBox(b.after,'data-bap="'+i+':after"','Foto dopo')+'</div>'+
       '<button type="button" class="btn x" data-bard="'+i+'" aria-label="Rimuovi">×</button></div>';
   }).join('')||'<div class="empty">Nessuna coppia di foto.</div>';
@@ -4989,7 +5013,7 @@ function renderTrust(){
   }).join('')||'<div class="empty">Nessuna recensione.</div>';
   var BGs=T.bgroups||(T.bgroups=[]);
   $('tr-brand').innerHTML=BGs.map(function(g,gi){
-    return '<div class="bgx" data-bg="'+gi+'"><div class="mngrp"><input type="text" class="gn" data-bgt="'+gi+'" value="'+esc(g.t)+'" aria-label="Titolo della riga" placeholder="Titolo (es. Domotica)" list="bg-sug"><button type="button" class="sq" data-bgm="'+gi+':-1"'+(gi===0?' disabled':'')+' aria-label="Sposta su">▲</button><button type="button" class="sq" data-bgm="'+gi+':1"'+(gi===BGs.length-1?' disabled':'')+' aria-label="Sposta giù">▼</button><button type="button" class="sq" data-bgd="'+gi+'" aria-label="Elimina la riga">×</button></div>'+
+    return '<div class="bgx" data-bg="'+gi+'"><div class="mngrp"><textarea rows="1" class="t1 gn" data-bgt="'+gi+'" aria-label="Titolo della riga" placeholder="Titolo (es. Domotica)">'+esc(g.t)+'</textarea><button type="button" class="sq" data-bgm="'+gi+':-1"'+(gi===0?' disabled':'')+' aria-label="Sposta su">▲</button><button type="button" class="sq" data-bgm="'+gi+':1"'+(gi===BGs.length-1?' disabled':'')+' aria-label="Sposta giù">▼</button><button type="button" class="sq" data-bgd="'+gi+'" aria-label="Elimina la riga">×</button></div>'+
       '<div class="thumbs">'+(g.items.map(function(b,j){ return '<div class="thumb logo" title="'+esc(b.name)+'"><img src="'+b.img+'" alt=""><button type="button" data-brd="'+gi+':'+j+'" aria-label="Rimuovi">×</button></div>'; }).join('')||'<div class="empty" style="width:100%">Nessun logo in questa riga.</div>')+'</div>'+
       '<div class="iw-q"><input type="text" data-bgn="'+gi+'" placeholder="Scrivi le marche: Bticino, Vimar…" aria-label="Marche da aggiungere" autocomplete="off" enterkeyhint="go"><button type="button" class="btn ghost sm" data-bgw="'+gi+'">Aggiungi i loghi</button></div>'+
       '<div class="row"><label class="btn ghost sm">+ Carica loghi dal dispositivo<input type="file" accept="image/*" multiple hidden data-bgf="'+gi+'"></label></div></div>';
@@ -5704,10 +5728,14 @@ function ocrImage(src,cb,prog){
     if(e) return cb(null,e.message);
     window.Tesseract.createWorker('ita',1,{logger:function(m){ if(prog&&m.status==='recognizing text') prog(m.progress); }}).then(function(w){
       return w.recognize(src,{},{blocks:true,text:true}).then(function(r){
-        var d=r.data, words=d.words||[];
-        if(!words.length&&d.blocks){ d.blocks.forEach(function(b){ (b.paragraphs||[]).forEach(function(p){ (p.lines||[]).forEach(function(l){ (l.words||[]).forEach(function(x){ words.push(x); }); }); }); }); }
-        var its=words.filter(function(x){ return x.text&&x.text.trim(); }).map(function(x){ var h=x.bbox.y1-x.bbox.y0; return {x:x.bbox.x0,w:x.bbox.x1-x.bbox.x0,h:h,y:-(x.bbox.y0+x.bbox.y1)/2,s:x.text}; });
-        return w.terminate().then(function(){ cb(its); });
+        // righe come le vede il lettore (anche con la foto un po' storta): ogni parola prende l'altezza della sua riga
+        var d=r.data, its=[], par=[];
+        if(d.blocks&&d.blocks.length){ d.blocks.forEach(function(b){ (b.paragraphs||[]).forEach(function(p){ var rr=[]; (p.lines||[]).forEach(function(l){ var lb=l.bbox, ly=-(lb.y0+lb.y1)/2, lh=Math.max(6,(lb.y1-lb.y0)*0.8);
+          (l.words||[]).forEach(function(x){ if(x.text&&x.text.trim()) its.push({x:x.bbox.x0,w:x.bbox.x1-x.bbox.x0,h:lh,y:ly,s:x.text}); });
+          var lt=(l.words||[]).map(function(x){ return x.text; }).join(' ').trim(); if(lt) rr.push(lt); }); if(rr.length) par.push(rr.join('\n')); }); }); }
+        else (d.words||[]).forEach(function(x){ if(x.text&&x.text.trim()){ var h=x.bbox.y1-x.bbox.y0; its.push({x:x.bbox.x0,w:x.bbox.x1-x.bbox.x0,h:h,y:-(x.bbox.y0+x.bbox.y1)/2,s:x.text}); } });
+        var txt=par.length?par.join('\n\n'):String(d.text||'');
+        return w.terminate().then(function(){ cb(its,null,txt); });
       });
     }).catch(function(x){ cb(null,'Lettura della foto non riuscita: '+(x&&x.message||x)); });
   });
@@ -5959,7 +5987,7 @@ function renderArts(){
       '<label class="f">U.m.<input type="text" data-af="um" data-ai="'+a.id+'" value="'+esc(a.um)+'"></label><label class="f">Costo €<input type="number" step="any" min="0" data-af="cost" data-ai="'+a.id+'" value="'+esc(a.cost)+'"></label>'+
       '<label class="f">Ricarico %<input type="number" step="any" data-af="markup" data-ai="'+a.id+'" value="'+esc(a.markup)+'"></label><label class="f">Prezzo di vendita €<input type="number" step="any" min="0" data-af="price" data-ai="'+a.id+'" value="'+esc(a.price)+'"></label></div>'+prev+
       '<label class="f">Descrizione<textarea data-af="desc" data-ai="'+a.id+'">'+esc(a.desc)+'</textarea></label><label class="f">Caratteristiche (voce: valore, una per riga)<textarea data-af="specs" data-ai="'+a.id+'" style="min-height:90px">'+esc(a.specs)+'</textarea></label>'+
-      '<label class="f">Scheda / fonte (link)<input type="url" data-af="link" data-ai="'+a.id+'" value="'+esc(a.link)+'"></label>'+
+      '<label class="f">Scheda / fonte (link)<textarea rows="1" class="t1" inputmode="url" autocapitalize="off" spellcheck="false" data-af="link" data-ai="'+a.id+'">'+esc(a.link)+'</textarea></label>'+
       (a.pdfurl?'<p class="hint">Scheda tecnica PDF: <a href="'+esc(a.pdfurl)+'" target="_blank" rel="noopener">apri</a></p>':'')+
       '<div class="thumbs">'+th+'</div><div class="row"><label class="btn ghost sm">Aggiungi foto<input type="file" accept="image/*" multiple hidden data-aph="'+a.id+'"></label><button type="button" class="btn ghost sm" data-aweb="'+a.id+'">Cerca descrizione e foto sul web</button><button type="button" class="btn x" data-adel="'+a.id+'" aria-label="Elimina articolo">× Elimina</button></div></div></details>';
   }).join('')||'<div class="empty">'+(DB.arts.length?'Nessun risultato.':'Nessun articolo salvato. Importa il preventivo di un fornitore per iniziare.')+'</div>';
@@ -7616,8 +7644,8 @@ function docPdf(f,msg){
               // pagina scansionata: la leggo con l'OCR
               var vs=pg.getViewport({scale:2.2}), cv=document.createElement('canvas'); cv.width=vs.width; cv.height=vs.height;
               return pg.render({canvasContext:cv.getContext('2d'),viewport:vs}).promise.then(function(){
-                ocrImage(cv,function(its,err){
-                  if(its){ doc.ocr++; var L=docRighe(itemsToLines(its,0.9),pn,0); doc.righe=doc.righe.concat(L); doc.tab=(doc.tab||[]).concat(docTabella(L)); testi.push(docLineeTesto(L,vs.width)); }
+                ocrImage(cv,function(its,err,txt){
+                  if(its){ doc.ocr++; var L=docRighe(itemsToLines(its,0.9),pn,0); doc.righe=doc.righe.concat(L); doc.tab=(doc.tab||[]).concat(docTabella(L)); testi.push(txt||docLineeTesto(L,vs.width)); }
                   else if(err) msg(err);
                   next();
                 },function(p){ msg('Leggo '+doc.nome+' (scansione) · pagina '+pn+' · '+Math.round(p*100)+'%'); });
@@ -7706,10 +7734,10 @@ function docFoto(f,msg){
     readImage(f,2600,false,function(u){
       if(!u) return ko(new Error('Immagine non leggibile'));
       msg('Leggo il testo della foto…');
-      ocrImage(u,function(its,err){
+      ocrImage(u,function(its,err,txt){
         if(!its) return ko(new Error(err||'Lettura della foto non riuscita'));
         var L=docRighe(itemsToLines(its,0.9),1,0), mx=0; its.forEach(function(i){ mx=Math.max(mx,i.x+(i.w||0)); });
-        ok({nome:f.name||'Foto',tipo:'foto',righe:L,testo:docLineeTesto(L,mx||1000),imgs:[],pagine:1,ocr:1});
+        ok({nome:f.name||'Foto',tipo:'foto',righe:L,tab:docTabella(L),testo:txt||docLineeTesto(L,mx||1000),imgs:[],pagine:1,ocr:1});
       },function(p){ msg('Leggo il testo della foto · '+Math.round(p*100)+'%'); });
     });
   });
@@ -7789,6 +7817,15 @@ function clCfOk(cf){
   var s=0; for(var i=0;i<15;i++){ var c=cf[i]; s+=i%2===0?CL_ODD[c]:(/\d/.test(c)?+c:c.charCodeAt(0)-65); }
   return String.fromCharCode(65+s%26)===cf[15];
 }
+var CL_CF_L={'0':'O','1':'I','2':'Z','3':'E','4':'A','5':'S','6':'G','7':'T','8':'B'}, CL_CF_D={O:'0',Q:'0',D:'0',I:'1',Z:'2',E:'3',A:'4',G:'6',B:'8',J:'1'};
+function clCfRipara(x){
+  x=String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  for(var o=0;o+16<=x.length;o++){ var c=x.substr(o,16).split('');
+    [0,1,2,3,4,5,8,11,15].forEach(function(i){ if(CL_CF_L[c[i]]) c[i]=CL_CF_L[c[i]]; });
+    [6,7,9,10,12,13,14].forEach(function(i){ if(CL_CF_D[c[i]]) c[i]=CL_CF_D[c[i]]; });
+    var v=c.join(''); if(clCfOk(v)) return v; }
+  return '';
+}
 function clPivaOk(p){ p=String(p||'').replace(/\D/g,''); if(!/^\d{11}$/.test(p)||/^0{11}$/.test(p)) return false; var s=0; for(var i=0;i<10;i++){ var d=+p[i]; if(i%2){ d*=2; if(d>9) d-=9; } s+=d; } return (10-s%10)%10===+p[10]; }
 function clLett(s){ return String(s||'').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z]/g,''); }
 function clCfCog(s){ s=clLett(s); var c=s.replace(/[AEIOU]/g,''), v=s.replace(/[^AEIOU]/g,''); return (c+v+'XXX').slice(0,3); }
@@ -7849,9 +7886,11 @@ function clIndirizzo(t){
   var via=(m[1]+' '+m[2]).replace(/\s+/g,' ').trim(), civ=m[3]?m[3].replace(/\s+/g,'').replace(/^s\.?n\.?c?\.?$/i,'snc'):'';
   if(/^(e|di|del|della)$/i.test(m[2].trim())) return null;
   var rest=t.slice(m.index+m[0].length,m.index+m[0].length+90), cap='', citta='', pr='';
+  var m2=civ&&/^\d{1,2}$/.test(civ)?rest.match(/^\s*,\s*(\d{1,4}[a-z]?(?:\/[a-z0-9]{1,3})?)(?=[\s,;|\n\-–.)]|$)/i):null;
+  if(m2){ via+=' '+({'1':'I','2':'II','3':'III'}[civ]||civ); civ=m2[1]; rest=rest.slice(m2[0].length); }
   var mc=rest.match(/^\s*[,\-–]?\s*(?:\n\s*)?(\d{5})\s*[,\-–]?\s*([A-Za-zÀ-ÿ'][A-Za-zÀ-ÿ' .]{1,34}?)\s*(?:\(\s*([A-Za-z]{2})\s*\)|[,\-–]\s*([A-Z]{2})\b|\s([A-Z]{2})\b|(?=\s*(?:[,;:.|\n\-–]|$|\s(?:tel|cell|telefono|email|mail|italia|italy)\b)))/);
   if(mc){ cap=mc[1]; citta=mc[2].trim(); pr=(mc[3]||mc[4]||mc[5]||'').toUpperCase(); }
-  else { var mt=rest.match(/^\s*(?:[,\-–]|\sa|\sin)?\s*([A-Z][a-zà-ÿ']+(?:\s[A-Z][a-zà-ÿ']+){0,2})\s*(?:\(\s*([A-Z]{2})\s*\))?(?=\s*(?:[,;:.|\n\-–(]|$)|\s+[a-zà-ÿ])/); if(mt&&!/^(Tel|Cell|Email|Mail|Telefono|Interno|Int|Scala|Piano|Cap|Snc|Presso)$/i.test(mt[1])){ citta=mt[1]; pr=mt[2]||''; } }
+  else { var mt=rest.match(/^\s*(?:[,\-–]|\sa|\sin)?\s*([A-ZÀ-Ý][A-Za-zÀ-ÿ']+(?:\s[A-ZÀ-Ý][A-Za-zÀ-ÿ']+){0,2})\s*(?:\(\s*([A-Z]{2})\s*\))?(?=\s*(?:[,;:.|\n\-–(]|$)|\s+[a-zà-ÿ])/); if(mt&&!/^(Tel|Cell|Email|Mail|Telefono|Interno|Int|Scala|Piano|Cap|Snc|Presso)$/i.test(mt[1])){ citta=mt[1]; pr=mt[2]||''; } }
   var s=clTitolo(via).replace(/^[a-z]/,function(c){ return c.toUpperCase(); })+(civ?' '+civ:''), loc=[cap,citta?clTitolo(citta):''].filter(Boolean).join(' ');
   return {addr:s+(loc?', '+loc:'')+(pr?' ('+pr+')':''),via:s,cap:cap,citta:citta,pr:pr,i:m.index,n:m[0].length};
 }
@@ -7871,6 +7910,9 @@ function clEmail(t){ return (String(t).match(/[\w.+\-]+@[\w\-]+(?:\.[\w\-]+)+/g)
 function clCodici(t){
   var out={cf:[],piva:[],sdi:''}, u=String(t).toUpperCase(), m, re=/\b([A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z])\b/g;
   while((m=re.exec(u))) if(clCfOk(m[1])&&out.cf.indexOf(m[1])<0) out.cf.push(m[1]);
+  if(!out.cf.length){ var rl=/(CODICE\s+FISCALE|COD\.?\s*FISC\.?|FISCAL\s+CODE|C\.\s?F\.)[^A-Z0-9]{0,8}([A-Z0-9][A-Z0-9 ]{15,23})/g, mm;
+    while((mm=rl.exec(u))){ var rpc=clCfRipara(mm[2]); if(rpc&&out.cf.indexOf(rpc)<0) out.cf.push(rpc); }
+    if(!out.cf.length) (u.match(/\b[A-Z0-9]{16}\b/g)||[]).forEach(function(tk){ if(/^[A-Z0-9]{6}/.test(tk)&&(tk.match(/[A-Z]/g)||[]).length>=7){ var r=clCfRipara(tk); if(r&&out.cf.indexOf(r)<0) out.cf.push(r); } }); }
   var rp=/(P\.?\s?IVA|PARTITA\s+IVA|P\.?\s?I\.?|VAT|C\.?\s?F\.?(?:\s*(?:E|\/)\s*P\.?\s?IVA)?|COD(?:ICE)?\.?\s*FISC(?:ALE)?\.?)\s*[:.\-n°]*\s*(?:IT\s?)?(\d{11})\b/g;
   while((m=rp.exec(u))) if(out.piva.indexOf(m[2])<0) out.piva.push(m[2]);
   var r2_=/\bIT\s?(\d{11})\b/g; while((m=r2_.exec(u))) if(clPivaOk(m[1])&&out.piva.indexOf(m[1])<0) out.piva.push(m[1]);
@@ -7905,11 +7947,12 @@ function clTogliMiei(x,M){
   return x;
 }
 // nel preventivo di un fornitore il cliente è solo dove c'è scritto (cantiere, destinazione, riferimento…)
+function clSaluto(m){ return /^(spett|alla c|c\.a\.|egr|gent|sig)/i.test(m[1]); }
 function clSoloEtichette(b,M){
-  var r=b.split('\n'), out=[];
-  r.forEach(function(l,i){ var m=clHaLab(l); if(!m||clMio(l,M)) return; var dopo=l.slice(m.index+m[0].length).trim(), k=i+1, n=0;
+  var r=b.split('\n'), out=[], cli=r.some(function(l){ var m=clHaLab(l); return m&&!clSaluto(m)&&!clMio(l,M); });
+  r.forEach(function(l,i){ var m=clHaLab(l); if(!m||clMio(l,M)||(cli&&clSaluto(m))) return; var dopo=l.slice(m.index+m[0].length).trim(), k=i+1, n=0;
     out.push(l);
-    while(k<r.length&&n<4&&!clHaLab(r[k])&&!clMio(r[k],M)&&(dopo.length<4||/^\s*(\d{5}\b|(?:tel|cell|telefono|email|e-mail|c\.f\.|p\.?\s?iva|cod)|(?:via|viale|piazza|corso|contrada|c\.da|loc)\b)/i.test(r[k]))){ out.push(r[k]); k++; n++; } });
+    while(k<r.length&&n<4&&!clHaLab(r[k])&&!clMio(r[k],M)&&(dopo.length<4||/(?:\b(?:cf|c\.f\.|tel\.?|cell\.?|e-?mail|p\.?\s?iva|codice fiscale))[:.]?\s*$/i.test(r[k-1])||/^\s*(\d{5}\b|(?:tel|cell|telefono|email|e-mail|c\.f\.|p\.?\s?iva|cod)|(?:via|viale|piazza|corso|contrada|c\.da|loc)\b)/i.test(r[k]))){ out.push(r[k]); k++; n++; } });
   return out.join('\n');
 }
 // legge i dati del cliente da un testo. ctx: 'libero' (messaggio, descrizione), 'contatto' (vcf, biglietto), 'fornitore' (preventivo di un fornitore)
@@ -7934,7 +7977,7 @@ function clLeggi(testo,ctx){
     if(fornitore){ forn.push(b); return; }
     if(ctx!=='fornitore'&&!lab&&/\b(fornitore|grossista|distributore|rivenditore)\b/i.test(b)){ forn.push(b); return; }
     if(ctx==='fornitore'&&!lab) return;
-    if(ctx==='fornitore') b=clSoloEtichette(b,M);
+    if(ctx==='fornitore'){ b=clSoloEtichette(b,M); var l2=b&&clHaLab(b); solo=l2&&clSaluto(l2)?'saluto':''; lab=l2; }
     if(b) usa.push({b:b,lab:solo||(lab?'cliente':''),i:i});
   });
   // valori della ditta e del fornitore: mai nel cliente
@@ -7979,10 +8022,18 @@ function clLeggi(testo,ctx){
     if(cf[0]) set('cf',cf[0],conf); else if(pi[0]) set('cf','P.IVA '+pi[0],conf);
     if(k.sdi) set('sdi',k.sdi,conf);
   });
+  if(ctx!=='fornitore'){
+    var mC=t.match(/(?:^|[^a-z])cognome(?!\s+e\s+nome)(?:\s*\/\s*surname)?[ \t]*[:.]?[ \t]*(?:\n[ \t]*)?([A-Za-zÀ-ÿ'][A-Za-zÀ-ÿ' ]{1,30}?)[ \t]*(?=\n|$|\s+nome\b)/i),
+        mN=t.match(/(?:^|[^a-z])nome(?!\s+e\s+cognome)(?:\s*\/\s*(?:given\s+)?names?)?[ \t]*[:.]?[ \t]*(?:\n[ \t]*)?([A-Za-zÀ-ÿ'][A-Za-zÀ-ÿ' ]{1,30}?)[ \t]*(?=\n|$)/i);
+    if(mC&&mN){ var nd=clNomeBuono(clTitolo(mN[1].trim())+' '+clTitolo(mC[1].trim())); if(nd&&!clMio(nd,M)) nomi.unshift({n:nd,c:'documento'}); }
+    var mr=t.match(/(?:indirizzo\s+di\s+residenza|residenza|residente\s+(?:in|a)|domicilio)(?:\s*\/\s*(?:residence|address))?[ \t]*[:.]?[ \t]*(?:\n[ \t]*)?([^\n]{4,80}(?:\n[^\n]{2,40})?)/i);
+    if(mr&&!R.addr){ var ir=clIndirizzo(' '+mr[1]); if(ir) set('addr',ir.addr,'documento'); else if(!/\d{3}/.test(mr[1].split('\n')[0])) set('addr',clTitolo(mr[1].split('\n')[0].trim()),'documento'); }
+    if(!R.cf){ var kc=clCodici(t); if(kc.cf[0]&&no.piva.indexOf(kc.cf[0])<0) set('cf',kc.cf[0],'documento'); }
+  }
   // il nome giusto: quello confermato dal codice fiscale, poi quello con etichetta
   var cfv=/^[A-Z]{6}/.test(R.cf)?R.cf:'', best=null;
   if(cfv) nomi.forEach(function(x){ if(!best&&clCfNome(x.n,cfv)) best=x; });
-  if(!best){ var pr={etichetta:6,titolo:5,contatto:4,presentazione:4,intestazione:3,firma:2,testo:1}; nomi.slice().sort(function(a,b){ return (pr[b.c]||0)-(pr[a.c]||0); }).forEach(function(x){ if(!best) best=x; }); }
+  if(!best){ var pr={documento:7,etichetta:6,titolo:5,contatto:4,presentazione:4,intestazione:3,firma:2,testo:1}; nomi.slice().sort(function(a,b){ return (pr[b.c]||0)-(pr[a.c]||0); }).forEach(function(x){ if(!best) best=x; }); }
   if(best){ R.name=best.n; R.fonti.name=best.lab?'«'+best.lab+'»':best.c; }
   return clFine(R);
 }
@@ -8114,17 +8165,25 @@ function docVoci(doc){
   var P=parseLines(doc.tab||doc.righe), out=[], scarti=[], visti={}, T=docTotali(doc);
   P.righe.forEach(function(r,i){
     var d0=String(r.descrizione||'').trim(), code=String(r.codice||'').trim(), q=num(r.qta)||1, net=num(r.prezzo_netto), imp=r.importo!=null?num(r.importo):r2(q*net);
+    if(code&&!/\d/.test(code)&&code.length<=4&&maTrova(code)){ d0=code+' '+d0; code=''; }
     var txt=(code+' '+d0).trim();
     if(DOC_SPESE.test(d0)){ T.spese.push({d:clTitolo(d0),v:r2(imp)}); return; }
     if(/\b(totale|subtotale|imponibile|riporto|a riportare|iva\s+\d{1,2}\s*%)\b/i.test(d0)) return;
     if(!/[A-Za-zÀ-ÿ]{3}/.test(d0)){ scarti.push({t:txt,perche:'senza descrizione leggibile'}); return; }
     if(new RegExp('^(?:'+CL_VIA+'|tel|fax|e-?mail|iban|p\\.?\\s?iva|c\\.f\\.|cap\\.? soc|rea|banca|pagamento|scadenza|consegna|resa|validit)\\b','i').test(d0)){ scarti.push({t:txt,perche:'dati del documento, non un articolo'}); return; }
     if(!(net>0)){ scarti.push({t:txt,perche:'senza prezzo'}); return; }
+    if(!code&&/\b(preventivo|offerta|ordine|rif\.|riferimento|cliente|spett|tel\.?|cell\.?|c\.f\.|p\.?\s?iva|iban|del\s+\d{1,2}[\/.\-]\d{1,2})\b|\b\d{5}\s+[A-Z][a-z]/i.test(d0)){ scarti.push({t:txt,perche:'intestazione del documento, non un articolo'}); return; }
+    if(q>=10000&&!/^(m|mt|ml|metri)$/i.test(String(r.um||''))){ scarti.push({t:txt,perche:'quantità non credibile ('+q+')'}); return; }
     var ver=r.importo!=null&&Math.abs(r2(q*net)-num(r.importo))<=Math.max(0.03,num(r.importo)*0.006), sc=0, warn=[];
     if(code) sc+=2; if(ver) sc+=2; if(r._hdr) sc+=1; if(r.um) sc+=1; if(d0.split(/\s+/).length>=2) sc+=1; if(/,\d{2}/.test(String(r.prezzo_netto))||net%1) sc+=0;
     if(r.dubbio){ sc-=3; warn.push('i prezzi della riga non tornano: controlla'); }
     if(r.importo!=null&&!ver&&!r.dubbio){ sc-=1; warn.push('importo diverso da quantità × prezzo'); }
     var key=lc(code+'|'+d0+'|'+q+'|'+net); if(visti[key]){ warn.push('riga uguale a un\'altra: forse ripetuta'); sc-=4; } visti[key]=1;
+    var tk=d0.split(/\s+/), bm0=tk[0]&&maTrova(tk[0]);
+    if((!code||code.length<=4)&&tk.length>2&&bm0&&isCodeTok(tk[1])&&tk[1].length>=5&&/\d/.test(tk[1])){ if(!r.marca) r.marca=bm0.n; code=tk[1]; d0=tk.slice(2).join(' '); }
+    else if(!code&&tk.length>2&&tk[0].length<=3&&/^[A-Za-z0-9][\w\-.,\/+]{3,24}$/.test(tk[1])&&/\d/.test(tk[1])&&/[A-Za-z]/.test(tk[1])){ code=tk[1]; d0=tk.slice(2).join(' '); }
+    else if(code&&code.length<=4&&tk.length>2&&isCodeTok(tk[0])&&tk[0].length>=5&&/\d/.test(tk[0])&&/[A-Za-z]/.test(tk[0])){ code=tk[0]; d0=tk.slice(1).join(' '); }
+    txt=(code+' '+d0).trim();
     var mk=asMarche(docN(txt),txt), br=String(r.marca||'').trim(); if(br){ var bm=maTrova(br)||(asMarche(docN(br),br)[0]?{n:asMarche(docN(br),br)[0].b}:null); br=bm?bm.n:clTitolo(br); } if(!br&&mk[0]) br=mk[0].b;
     var brands=mk.map(function(x){ return x.b; }); if(br&&brands.indexOf(br)<0) brands.push(br);
     out.push({on:sc>=2,vera:true,d0:d0,d:docPulisci(d0,brands),code:code,br:br,u:docUm(r.um),q:q,cost:r2(net),list:num(r.prezzo_listino)||0,disc:r.sconto||'',imp:r2(imp),ver:ver,sc:sc,warn:warn,pg:r._pg||1,y0:r._y0,y1:r._y1,h:r._h||9,img:'',imgK:'',doc:doc});
@@ -8151,18 +8210,23 @@ function docMk(){ try{ var v=localStorage.getItem('ieci-doc-mk'); if(v!=null&&v!
 function docPrezzo(r,R){ var mk=num(R.prezzo.mk); if(R.prezzo.mode==='lis'&&r.list>0) return r2(r.list); if(R.prezzo.mode==='cos') return r2(r.cost); return r2(r.cost*(1+mk/100)); }
 
 // ===================== 4. analisi completa di uno o più documenti =====================
-function docAnalizza(docs){
-  var R={file:docs.map(function(d){ return d.nome; }),righe:[],scarti:[],spese:[],forn:null,ctrl:null,tipo:null,posa:[],cliente:null,titolo:'',prezzo:{mode:'ric',mk:docMk()},arch:true,note:[],ocr:docs.some(function(d){ return d.ocr; })};
+function docPrezziOn(){ try{ return localStorage.getItem('ieci-doc-prezzi')!=='0'; }catch(e){ return true; } }
+function docAnalizza(docs,opt){
+  opt=opt||{};
+  var R={soloCliente:!!opt.cliente,prezzi:docPrezziOn(),file:docs.map(function(d){ return d.nome; }),righe:[],scarti:[],spese:[],forn:null,ctrl:null,tipo:null,posa:[],cliente:null,titolo:'',prezzo:{mode:'ric',mk:docMk()},arch:true,note:[],ocr:docs.some(function(d){ return d.ocr; })};
   var clienti=[];
   docs.forEach(function(d){
-    var V=d.tipo==='vcf'?{righe:[],scarti:[],T:{spese:[]}}:docVoci(d);
+    var V=(d.tipo==='vcf'||opt.cliente)?{righe:[],scarti:[],T:{spese:[]}}:docVoci(d);
     var fornit=V.righe.length>=1&&(V.righe.filter(function(r){ return r.on; }).length>=1);
     if(fornit){
       docAbbina(d,V.righe); R.righe=R.righe.concat(V.righe); R.scarti=R.scarti.concat(V.scarti); R.spese=R.spese.concat(V.T.spese);
       var f=docFornitore(d); if(!R.forn) R.forn=f;
-      var c=docControllo(V.righe,V.T,V.T.spese); c.doc=d.nome; R.ctrl=R.ctrl||c; if(R.ctrl!==c&&c.ok===false) R.ctrl=c;
+      var c=docControllo(V.righe,V.T,V.T.spese);
+      if(c.ok===false&&c.rif!=null){ var colpa=V.righe.filter(function(r){ return Math.abs(r2(c.somma-r.imp)-c.rif)<=0.06; });
+        if(colpa.length===1){ colpa[0].on=false; colpa[0].vera=false; colpa[0].warn.unshift('esclusa: con questa riga il totale del fornitore non tornava'); c=docControllo(V.righe,V.T,V.T.spese); if(c.ok) c.esclusa=colpa[0].d0; } }
+      c.doc=d.nome; R.ctrl=R.ctrl||c; if(R.ctrl!==c&&c.ok===false) R.ctrl=c;
       var cl=clLeggi(d.testo,'fornitore'); if(cl.n) clienti.push({c:cl,p:1,doc:d.nome});
-    } else { var cl2=clLeggi(d.testo,d.tipo==='vcf'||d.tipo==='foto'?'contatto':'libero'); if(cl2.n) clienti.push({c:cl2,p:2,doc:d.nome}); }
+    } else { var cl2=clLeggi(d.testo,d.tipo==='vcf'||d.tipo==='foto'||opt.cliente?'contatto':'libero'); if(cl2.n) clienti.push({c:cl2,p:2,doc:d.nome}); }
   });
   // cliente: prima i documenti del cliente (contatto, messaggio), poi i riferimenti nel preventivo del fornitore
   clienti.sort(function(a,b){ return b.p-a.p||b.c.n-a.c.n; });
@@ -8190,15 +8254,15 @@ function docSembraFornitore(t){
 
 // ===================== 5. interfaccia nell'assistente =====================
 function docSt(t,cls){ var el=$('as-doc-st'); if(!el) return; el.hidden=!t; el.className='as-doc-st'+(cls?' '+cls:''); el.textContent=t||''; }
-function docApri(files){
-  files=Array.prototype.slice.call(files||[]).filter(Boolean).slice(0,6); if(!files.length||DOCA.busy) return;
+function docApri(files,opt){
+  opt=opt||{}; files=Array.prototype.slice.call(files||[]).filter(Boolean).slice(0,6); if(!files.length||DOCA.busy) return;
   DOCA.busy=true; AS.res=null; AS.doc=null; asRender(); var docs=[], errs=[], k=0;
-  docSt('Leggo '+(files.length===1?'«'+files[0].name+'»':files.length+' documenti')+' qui sul dispositivo…','run');
+  docSt(opt.cliente?'Leggo i dati del cliente '+(files.length===1?'dalla foto':'da '+files.length+' foto')+' qui sul dispositivo…':'Leggo '+(files.length===1?'«'+files[0].name+'»':files.length+' documenti')+' qui sul dispositivo…','run');
   (function nx(){
     var f=files[k++];
     if(!f){
       if(!docs.length){ DOCA.busy=false; docSt(errs.join(' · ')||'Non ho trovato niente da leggere.','err'); return; }
-      try{ var R=docAnalizza(docs); }catch(e){ DOCA.busy=false; docSt('Non riesco ad analizzare il documento: '+(e&&e.message||e),'err'); return; }
+      try{ var R=docAnalizza(docs,opt); }catch(e){ DOCA.busy=false; docSt('Non riesco ad analizzare il documento: '+(e&&e.message||e),'err'); return; }
       R.err=errs; docSt(R.righe.some(function(r){ return r.box; })?'Ritaglio le foto dei prodotti dal documento…':'','run');
       docFoto2(R,function(){ DOCA.busy=false; AS.doc=R; AS.docPrima=null; docSt(''); asRender(); try{ $('as-out').scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} });
       return;
@@ -8207,19 +8271,20 @@ function docApri(files){
   })();
 }
 function docDiverso(a,b){ var n=function(x){ return docN(x).replace(/[^a-z0-9]/g,'').replace(/mmq|mm2/g,'mm'); }; return n(a)!==n(b)&&docToks(a).join(' ')!==docToks(b).join(' '); }
-function docTot(R){ var s=0; R.righe.forEach(function(r){ if(r.on) s+=num(r.q)*docPrezzo(r,R); }); R.posa.forEach(function(x){ if(x.on) s+=num(x.q)*num(x.p); }); return r2(s); }
+function docPz(r,R){ return !R.prezzi?0:(r.pman!=null?num(r.pman):docPrezzo(r,R)); }
+function docTot(R){ var s=0; R.righe.forEach(function(r){ if(r.on) s+=num(r.q)*docPz(r,R); }); R.posa.forEach(function(x){ if(x.on) s+=num(x.q)*num(x.p); }); return r2(s); }
 function docRender(){
   var R=AS.doc, box=$('as-out'); if(!R||!box) return;
   var on=R.righe.filter(function(r){ return r.on; }), tot=docTot(R), iva=num(S.meta.iva), C=R.cliente, f=R.forn, h='';
   var md=R.tipo?R.tipo.model:S.model, nm=MODELS[md]?(MODELS[md].short||MODELS[md].name):md;
   // 1. cosa ho letto
-  h+='<div class="as-sum"><div><small>'+(R.righe.length?'Tipo di lavoro':'Documento')+'</small><b>'+(R.righe.length?esc(nm):esc(R.file.join(', ')))+'</b></div>'+(R.righe.length?'<div><small>Voci</small><b>'+on.length+'</b></div><div><small>Totale cliente</small><b>'+eur(tot*(1+iva/100))+'</b></div>':'<div><small>Cliente</small><b>'+(C&&C.name?esc(C.name):'—')+'</b></div>')+'</div>';
+  h+='<div class="as-sum"><div><small>'+(R.righe.length?'Tipo di lavoro':'Documento')+'</small><b>'+(R.righe.length?esc(nm):esc(R.file.join(', ')))+'</b></div>'+(R.righe.length?'<div><small>Voci</small><b>'+on.length+'</b></div><div><small>Totale cliente</small><b>'+(R.prezzi?eur(tot*(1+iva/100)):'prezzi da inserire')+'</b></div>':'<div><small>Cliente</small><b>'+(C&&C.name?esc(C.name):'—')+'</b></div>')+'</div>';
   var lett=[]; if(f&&f.nome) lett.push('<b>'+esc(f.nome)+'</b>'); if(f&&(f.num||f.data)) lett.push(esc((f.cosa||'Offerta')+(f.num?' n. '+f.num:'')+(f.data?' del '+f.data:'')));
   if(R.righe.length) lett.push(R.righe.length+(R.righe.length===1?' riga articolo':' righe articolo')); var nf=R.righe.filter(function(r){ return r.img; }).length; if(nf) lett.push(nf+' foto');
   h+='<div class="as-doc-r"><span class="as-doc-i">📄</span><div>'+esc(R.file.join(' · '))+(lett.length?'<br><small>'+lett.join(' · ')+'</small>':'')+'</div></div>';
   // controllo del totale: la prova che non ho inventato né perso righe
   var c=R.ctrl; if(c){
-    if(c.ok) h+='<div class="as-ok">✓ Ho ricontrollato: la somma delle righe ('+eur(c.somma)+') coincide con '+esc(c.t)+' ('+eur(c.rif)+'). Ho letto tutte le righe, nessuna inventata.</div>';
+    if(c.ok) h+='<div class="as-ok">✓ Ho ricontrollato: la somma delle righe ('+eur(c.somma)+') coincide con '+esc(c.t)+' ('+eur(c.rif)+'). Ho letto tutte le righe, nessuna inventata.'+(c.esclusa?' Ho escluso «'+esc(c.esclusa.slice(0,60))+'», che non è un articolo.':'')+'</div>';
     else if(c.ok===false) h+='<div class="as-warn">⚠ La somma delle righe lette ('+eur(c.somma)+') non coincide con il totale del fornitore ('+eur(c.rif)+'): mancano '+eur(Math.abs(c.diff))+(c.diff<0?' in più':'')+'. Forse una riga non è leggibile: confronta con il documento prima di inviare.</div>';
     else h+='<div class="as-note">Nel documento non trovo un totale da confrontare: controlla che le righe siano tutte.</div>';
   }
@@ -8227,6 +8292,7 @@ function docRender(){
   if(R.ocr) h+='<div class="as-note">Ho letto una foto o una scansione: controlla bene numeri e descrizioni.</div>';
   (R.err||[]).forEach(function(e){ h+='<div class="as-warn">'+esc(e)+'</div>'; });
   // 2. cliente
+  if(!R.righe.length&&!(C&&C.n)) h+='<div class="as-warn">Non ho trovato dati del cliente '+(R.ocr?'nella foto: rifalla dritta, vicina e con buona luce (carta d\'identità, tessera sanitaria, biglietto da visita, schermata del messaggio).':'in questo documento.')+'</div>';
   if(C&&C.n){
     var lab={name:'Nome',addr:'Indirizzo cantiere',tel:'Telefono',email:'Email',cf:'C.F. / P.IVA'}, chips=[];
     if(C.chk.cf) chips.push('<span class="as-k">C.F. valido'+(C.chk.nomeCf?' e corrisponde al nome':'')+'</span>'); else if(C.chk.cf===false) chips.push('<span class="as-k m">C.F. non valido: controllalo</span>');
@@ -8234,24 +8300,26 @@ function docRender(){
     if(C.rubrica) chips.push('<span class="as-k">già in rubrica</span>');
     if(C.escl.length) chips.push('<span class="as-k">non confusi con i '+esc(C.escl.join(' e i '))+'</span>');
     h+='<div class="as-dcli"><label class="chk"><input type="checkbox" id="as-dcli-on"'+(R.cliOff?'':' checked')+'><b>Dati del cliente</b></label>'+(chips.length?'<div class="as-chips">'+chips.join('')+'</div>':'')+
-      '<div class="grid2">'+['name','addr','tel','email','cf'].map(function(k){ var FO={etichetta:'dal documento',testo:'dal testo',contatto:'dal contatto',presentazione:'si presenta così',rubrica:'dalla rubrica',titolo:'dal biglietto da visita',intestazione:'dall\'intestazione',firma:'dalla firma'}, fo=C.fonti[k]; return '<label class="f">'+lab[k]+(C[k]&&fo?' <small class="as-src">'+esc(/^«/.test(fo)?'da '+fo:(FO[fo]||fo))+'</small>':'')+'<input type="text" data-dcl="'+k+'" value="'+esc(C[k]||'')+'"></label>'; }).join('')+'</div></div>';
+      '<div class="grid2">'+['name','addr','tel','email','cf'].map(function(k){ var FO={documento:'dal documento d\'identità',etichetta:'dal documento',testo:'dal testo',contatto:'dal contatto',presentazione:'si presenta così',rubrica:'dalla rubrica',titolo:'dal biglietto da visita',intestazione:'dall\'intestazione',firma:'dalla firma'}, fo=C.fonti[k]; return '<label class="f">'+lab[k]+(C[k]&&fo?' <small class="as-src">'+esc(/^«/.test(fo)?'da '+fo:(FO[fo]||fo))+'</small>':'')+'<textarea rows="1" class="t1" data-dcl="'+k+'">'+esc(C[k]||'')+'</textarea></label>'; }).join('')+'</div></div>';
   }
   if(R.righe.length){
     // 3. tipo, prezzi, titolo
     var opts=ORDER.filter(function(k){ return MODELS[k]&&k!=='app'&&k!=='rip'; }).map(function(k){ return '<option value="'+k+'"'+(k===md?' selected':'')+'>'+esc(MODELS[k].short||MODELS[k].name)+'</option>'; }).join('');
     h+='<div class="as-dset"><label class="f">Tipo di preventivo'+(R.tipo&&R.tipo.perc?' <small class="as-src">'+(R.tipo.certo?'sicuro':'probabile')+' · '+R.tipo.perc+'% del materiale'+(R.tipo.mot.length?': '+esc(R.tipo.mot.join(', ')):'')+'</small>':'')+'<select id="as-dmod">'+opts+'</select></label>'+
-      '<label class="f">Titolo<input type="text" id="as-dtit" value="'+esc(R.titolo)+'"></label>'+
-      '<div class="f"><span>Prezzo al cliente</span><div class="as-seg" role="group"><button type="button" data-dpm="ric" aria-pressed="'+(R.prezzo.mode==='ric')+'">Costo + ricarico</button>'+(R.haListino?'<button type="button" data-dpm="lis" aria-pressed="'+(R.prezzo.mode==='lis')+'">Prezzo di listino</button>':'')+'<button type="button" data-dpm="cos" aria-pressed="'+(R.prezzo.mode==='cos')+'">Al costo</button></div></div>'+
-      (R.prezzo.mode==='ric'?'<label class="f">Ricarico %<input type="number" id="as-dmk" min="0" step="any" value="'+esc(R.prezzo.mk)+'"></label>':'')+'</div>';
+      '<label class="f">Titolo<textarea rows="1" class="t1" id="as-dtit">'+esc(R.titolo)+'</textarea></label>'+
+      '<div class="as-dpz"><label class="chk"><input type="checkbox" id="as-dprezzi"'+(R.prezzi?' checked':'')+'><b>Porta nel preventivo i prezzi del documento</b></label>'+
+      (R.prezzi?'<div class="f"><span>Prezzo al cliente</span><div class="as-seg" role="group"><button type="button" data-dpm="ric" aria-pressed="'+(R.prezzo.mode==='ric')+'">Costo + ricarico</button>'+(R.haListino?'<button type="button" data-dpm="lis" aria-pressed="'+(R.prezzo.mode==='lis')+'">Prezzo di listino</button>':'')+'<button type="button" data-dpm="cos" aria-pressed="'+(R.prezzo.mode==='cos')+'">Al costo</button></div></div>'+
+      (R.prezzo.mode==='ric'?'<label class="f">Ricarico %<input type="number" id="as-dmk" min="0" step="any" inputmode="decimal" value="'+esc(R.prezzo.mk)+'"></label>':'')
+      :'<p class="hint">Le voci entrano <b>senza prezzo</b>: lo scrivi tu nel preventivo. I costi del fornitore restano visibili qui sotto come riferimento.</p>')+'</div></div>';
     // 4. voci dal fornitore
-    h+='<div class="as-righe"><details class="as-gd" open><summary class="as-g"><span>Materiale dal fornitore</span><span>'+on.length+' di '+R.righe.length+' · '+eur(on.reduce(function(s,r){ return s+num(r.q)*docPrezzo(r,R); },0))+'</span></summary>'+
+    h+='<div class="as-righe'+(R.righe.some(function(r){ return r.img; })?'':' no-im')+'"><details class="as-gd" open><summary class="as-g"><span>Materiale dal fornitore</span><span>'+on.length+' di '+R.righe.length+(R.prezzi?' · '+eur(on.reduce(function(s,r){ return s+num(r.q)*docPz(r,R); },0)):'')+'</span></summary>'+
       R.righe.map(function(r,i){ var pv=docPrezzo(r,R);
         return '<div class="as-dr'+(r.on?'':' off')+'"><label class="as-dr-c"><input type="checkbox" data-drr="'+i+'"'+(r.on?' checked':'')+' aria-label="Includi"></label>'+
           (r.img?'<img class="as-dr-im" src="'+r.img+'" alt="" title="'+(r.imgK==='documento'?'foto dal documento del fornitore':'foto dalla tua libreria')+'">':'<span class="as-dr-im no" aria-hidden="true"></span>')+
-          '<div class="as-dr-t"><textarea class="as-dr-d" rows="'+Math.min(3,Math.ceil(r.d.length/34))+'" data-drd="'+i+'" aria-label="Descrizione">'+esc(r.d)+'</textarea>'+
+          '<div class="as-dr-t"><textarea class="t1 as-dr-d" rows="1" data-drd="'+i+'" aria-label="Descrizione">'+esc(r.d)+'</textarea>'+
           '<small>'+(r.br?'<b>'+esc(r.br)+'</b> · ':'')+(r.code?esc(r.code)+' · ':'')+'costo '+eur(r.cost)+(r.list>r.cost?' (listino '+eur(r.list)+(r.disc?', sc. '+esc(r.disc)+'%':'')+')':'')+' · pag. '+r.pg+(r.ver?' · <span class="as-v">✓ importo verificato</span>':'')+'</small>'+
           (r.warn.length?'<small class="as-w">'+esc(r.warn.join(' · '))+'</small>':'')+(docDiverso(r.d,r.d0)?'<small class="as-o">dal fornitore: «'+esc(r.d0)+'»</small>':'')+'</div>'+
-          '<div class="as-dr-n"><label><input type="number" min="0" step="any" class="as-q" data-drq="'+i+'" value="'+r.q+'" aria-label="Quantità"> '+esc(r.u)+'</label><span>×</span><label>€ <input type="number" min="0" step="0.01" class="as-pz" data-drp="'+i+'" value="'+(r.pman!=null?r.pman:pv)+'" aria-label="Prezzo unitario al cliente"></label><b>'+eur(num(r.q)*(r.pman!=null?r.pman:pv))+'</b></div></div>'; }).join('')+'</details>';
+          '<div class="as-dr-n"><label><input type="number" min="0" step="any" inputmode="decimal" class="as-q" data-drq="'+i+'" value="'+r.q+'" aria-label="Quantità"> '+esc(r.u)+'</label>'+(R.prezzi?'<span>×</span><label>€ <input type="number" min="0" step="0.01" inputmode="decimal" class="as-pz" data-drp="'+i+'" value="'+(r.pman!=null?r.pman:pv)+'" aria-label="Prezzo unitario al cliente"></label><b>'+eur(num(r.q)*docPz(r,R))+'</b>':'<em class="as-np">senza prezzo</em>')+'</div></div>'; }).join('')+'</details>';
     // 5. posa dal mio listino
     if(R.posa.length) h+='<details class="as-gd" open><summary class="as-g"><span>Posa e lavori · dal tuo listino</span><span>'+R.posa.filter(function(x){ return x.on; }).length+' di '+R.posa.length+'</span></summary>'+R.posa.map(function(x,i){
       return '<label class="as-r'+(x.on?'':' off')+'"><input type="checkbox" data-dpo="'+i+'"'+(x.on?' checked':'')+'><span class="as-d">'+esc(x.d)+(x.perche?'<small class="as-why">'+esc(x.perche)+'</small>':'')+'</span><input type="number" min="0" step="any" class="as-q" data-dpq="'+i+'" value="'+x.q+'" aria-label="Quantità"><span class="as-u">'+esc(x.u)+'</span><span class="as-pr">'+eur(num(x.q)*num(x.p))+'</span></label>'; }).join('')+'</details>';
@@ -8262,7 +8330,7 @@ function docRender(){
   }
   var vuoto=!S.lines.length, solo=!R.righe.length;
   h+='<div class="row">'+(solo?'<button type="button" class="btn" id="as-dcli-go"'+(C&&C.n?'':' disabled')+'>Usa questi dati del cliente</button>':'<button type="button" class="btn" id="as-dok">'+(vuoto?'Crea il preventivo':'Nuovo preventivo con queste voci')+'</button>'+(vuoto?'':'<button type="button" class="btn ghost" id="as-dadd">Aggiungi alle voci attuali</button>'))+'<button type="button" class="btn ghost" id="as-dx">Annulla</button></div>'+
-    '<p class="hint">Ho letto il documento qui sul dispositivo, senza mandarlo a nessuno. Ogni voce viene da una riga vera del fornitore: quelle con un avviso sono da controllare, quelle spente non le aggiungo.</p>';
+    '<p class="hint">'+(solo?'Ho letto i dati qui sul dispositivo, senza mandarli a nessuno. Controllali e correggili prima di usarli.':'Ho letto il documento qui sul dispositivo, senza mandarlo a nessuno. Ogni voce viene da una riga vera del fornitore: quelle con un avviso sono da controllare, quelle spente non le aggiungo.')+'</p>';
   box.innerHTML=h;
 }
 function docCliente(R){
@@ -8284,7 +8352,7 @@ function docApplica(nuovo){
   var nc=docCliente(R);
   var sup=R.forn&&R.forn.nome||'', foto=0, nuoveSchede=0, noFoto=0;
   righe.forEach(function(r){
-    var l={d:String(r.d).trim(),u:r.u,q:num(r.q),p:r.pman!=null?num(r.pman):docPrezzo(r,R),s:0};
+    var l={d:String(r.d).trim(),u:r.u,q:num(r.q),p:docPz(r,R),s:0};
     if(r.br) l.br=r.br; if(!nuovo) brTag(l);
     if(S.model==='app'&&curKey()&&!nuovo) l.r=curKey();
     S.lines.push(l);
@@ -8299,7 +8367,7 @@ function docApplica(nuovo){
     a.cost=r.cost; a.price=artPrice(a); if(r.img&&!(a.photos||[]).length) a.photos=[r.img]; a.sdate=dt; a.upd=Date.now(); }); DB.arts.sort(byName); dbSave(); try{ renderArts(); renderAq(); }catch(e){} }
   if(S.model==='vcit') vmSync();
   AS.doc=null; renderAll(); touch(); syncFields();
-  var msg=righe.length+' voci dal fornitore'+(posa.length?' e '+posa.length+' di posa':'')+(foto?' · '+foto+' foto':'')+(nc?' · dati del cliente':'');
+  var msg=righe.length+' voci dal fornitore'+(R.prezzi?'':' senza prezzo')+(posa.length?' e '+posa.length+' di posa':'')+(foto?' · '+foto+' foto':'')+(nc?' · dati del cliente':'');
   toast((nuovo?'Preventivo preparato: ':'Aggiunte: ')+msg);
   var box=$('as-out'); if(box) box.innerHTML='<div class="as-ok">✓ Fatto: '+esc(msg)+'.'+(na?' '+na+' articoli nuovi salvati in Fornitori.':'')+'</div>'+(noFoto&&iwMode()!=='off'?'<div class="row"><button type="button" class="btn ghost" id="as-dfoto">Cerca le foto mancanti ('+noFoto+')</button></div>':'');
   try{ var lb=$('lines'); if(lb) lb.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
@@ -8311,6 +8379,7 @@ function docSoloCliente(){
 (function(){
   var go=$('as-doc'); if(!go) return;
   go.addEventListener('change',function(e){ var fl=e.target.files; docApri(fl); e.target.value=''; });
+  var cf_=$('as-cli-foto'); if(cf_) cf_.addEventListener('change',function(e){ var fl=e.target.files; docApri(fl,{cliente:true}); e.target.value=''; });
   var ta=$('as-txt'), zona=ta.closest('.accb')||ta;
   ['dragover','dragleave','drop'].forEach(function(ev){ zona.addEventListener(ev,function(e){ if(!e.dataTransfer||!Array.prototype.some.call(e.dataTransfer.types||[],function(t){ return t==='Files'; })) return; e.preventDefault(); zona.classList.toggle('as-over',ev==='dragover'); if(ev==='drop') docApri(e.dataTransfer.files); }); });
   ta.addEventListener('paste',function(e){ var fl=e.clipboardData&&e.clipboardData.files; if(fl&&fl.length){ e.preventDefault(); docApri(fl); } });
@@ -8336,6 +8405,7 @@ function docSoloCliente(){
     else if((a=t.getAttribute('data-dcl'))!=null){ R.cliente[a]=t.value.trim(); }
     else if(t.id==='as-dcli-on'){ R.cliOff=!t.checked; }
     else if(t.id==='as-darc'){ R.arch=t.checked; }
+    else if(t.id==='as-dprezzi'){ R.prezzi=t.checked; try{ localStorage.setItem('ieci-doc-prezzi',t.checked?'1':'0'); }catch(x){} docRender(); }
     else if(t.id==='as-dtit'){ R.titolo=t.value; }
     else if(t.id==='as-dmk'){ R.prezzo.mk=Math.max(0,num(t.value)); try{ localStorage.setItem('ieci-doc-mk',String(R.prezzo.mk)); }catch(x){} R.righe.forEach(function(r){ r.pman=null; }); docRender(); }
     else if(t.id==='as-dmod'){ R.tipo.model=t.value; R.tipo.perc=0; R.posa=docPosa(t.value,R.righe); var nt=(TTL_T[t.value]||MODELS[t.value].name); if(!R.titolo||Object.keys(TTL_T).some(function(k){ return TTL_T[k]===R.titolo; })||R.titolo===TTL_G) R.titolo=nt; docRender(); }

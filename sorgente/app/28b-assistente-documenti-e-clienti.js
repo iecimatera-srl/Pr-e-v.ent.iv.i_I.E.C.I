@@ -72,8 +72,8 @@ function docPdf(f,msg){
               // pagina scansionata: la leggo con l'OCR
               var vs=pg.getViewport({scale:2.2}), cv=document.createElement('canvas'); cv.width=vs.width; cv.height=vs.height;
               return pg.render({canvasContext:cv.getContext('2d'),viewport:vs}).promise.then(function(){
-                ocrImage(cv,function(its,err){
-                  if(its){ doc.ocr++; var L=docRighe(itemsToLines(its,0.9),pn,0); doc.righe=doc.righe.concat(L); doc.tab=(doc.tab||[]).concat(docTabella(L)); testi.push(docLineeTesto(L,vs.width)); }
+                ocrImage(cv,function(its,err,txt){
+                  if(its){ doc.ocr++; var L=docRighe(itemsToLines(its,0.9),pn,0); doc.righe=doc.righe.concat(L); doc.tab=(doc.tab||[]).concat(docTabella(L)); testi.push(txt||docLineeTesto(L,vs.width)); }
                   else if(err) msg(err);
                   next();
                 },function(p){ msg('Leggo '+doc.nome+' (scansione) · pagina '+pn+' · '+Math.round(p*100)+'%'); });
@@ -162,10 +162,10 @@ function docFoto(f,msg){
     readImage(f,2600,false,function(u){
       if(!u) return ko(new Error('Immagine non leggibile'));
       msg('Leggo il testo della foto…');
-      ocrImage(u,function(its,err){
+      ocrImage(u,function(its,err,txt){
         if(!its) return ko(new Error(err||'Lettura della foto non riuscita'));
         var L=docRighe(itemsToLines(its,0.9),1,0), mx=0; its.forEach(function(i){ mx=Math.max(mx,i.x+(i.w||0)); });
-        ok({nome:f.name||'Foto',tipo:'foto',righe:L,testo:docLineeTesto(L,mx||1000),imgs:[],pagine:1,ocr:1});
+        ok({nome:f.name||'Foto',tipo:'foto',righe:L,tab:docTabella(L),testo:txt||docLineeTesto(L,mx||1000),imgs:[],pagine:1,ocr:1});
       },function(p){ msg('Leggo il testo della foto · '+Math.round(p*100)+'%'); });
     });
   });
@@ -245,6 +245,15 @@ function clCfOk(cf){
   var s=0; for(var i=0;i<15;i++){ var c=cf[i]; s+=i%2===0?CL_ODD[c]:(/\d/.test(c)?+c:c.charCodeAt(0)-65); }
   return String.fromCharCode(65+s%26)===cf[15];
 }
+var CL_CF_L={'0':'O','1':'I','2':'Z','3':'E','4':'A','5':'S','6':'G','7':'T','8':'B'}, CL_CF_D={O:'0',Q:'0',D:'0',I:'1',Z:'2',E:'3',A:'4',G:'6',B:'8',J:'1'};
+function clCfRipara(x){
+  x=String(x||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  for(var o=0;o+16<=x.length;o++){ var c=x.substr(o,16).split('');
+    [0,1,2,3,4,5,8,11,15].forEach(function(i){ if(CL_CF_L[c[i]]) c[i]=CL_CF_L[c[i]]; });
+    [6,7,9,10,12,13,14].forEach(function(i){ if(CL_CF_D[c[i]]) c[i]=CL_CF_D[c[i]]; });
+    var v=c.join(''); if(clCfOk(v)) return v; }
+  return '';
+}
 function clPivaOk(p){ p=String(p||'').replace(/\D/g,''); if(!/^\d{11}$/.test(p)||/^0{11}$/.test(p)) return false; var s=0; for(var i=0;i<10;i++){ var d=+p[i]; if(i%2){ d*=2; if(d>9) d-=9; } s+=d; } return (10-s%10)%10===+p[10]; }
 function clLett(s){ return String(s||'').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z]/g,''); }
 function clCfCog(s){ s=clLett(s); var c=s.replace(/[AEIOU]/g,''), v=s.replace(/[^AEIOU]/g,''); return (c+v+'XXX').slice(0,3); }
@@ -305,9 +314,11 @@ function clIndirizzo(t){
   var via=(m[1]+' '+m[2]).replace(/\s+/g,' ').trim(), civ=m[3]?m[3].replace(/\s+/g,'').replace(/^s\.?n\.?c?\.?$/i,'snc'):'';
   if(/^(e|di|del|della)$/i.test(m[2].trim())) return null;
   var rest=t.slice(m.index+m[0].length,m.index+m[0].length+90), cap='', citta='', pr='';
+  var m2=civ&&/^\d{1,2}$/.test(civ)?rest.match(/^\s*,\s*(\d{1,4}[a-z]?(?:\/[a-z0-9]{1,3})?)(?=[\s,;|\n\-–.)]|$)/i):null;
+  if(m2){ via+=' '+({'1':'I','2':'II','3':'III'}[civ]||civ); civ=m2[1]; rest=rest.slice(m2[0].length); }
   var mc=rest.match(/^\s*[,\-–]?\s*(?:\n\s*)?(\d{5})\s*[,\-–]?\s*([A-Za-zÀ-ÿ'][A-Za-zÀ-ÿ' .]{1,34}?)\s*(?:\(\s*([A-Za-z]{2})\s*\)|[,\-–]\s*([A-Z]{2})\b|\s([A-Z]{2})\b|(?=\s*(?:[,;:.|\n\-–]|$|\s(?:tel|cell|telefono|email|mail|italia|italy)\b)))/);
   if(mc){ cap=mc[1]; citta=mc[2].trim(); pr=(mc[3]||mc[4]||mc[5]||'').toUpperCase(); }
-  else { var mt=rest.match(/^\s*(?:[,\-–]|\sa|\sin)?\s*([A-Z][a-zà-ÿ']+(?:\s[A-Z][a-zà-ÿ']+){0,2})\s*(?:\(\s*([A-Z]{2})\s*\))?(?=\s*(?:[,;:.|\n\-–(]|$)|\s+[a-zà-ÿ])/); if(mt&&!/^(Tel|Cell|Email|Mail|Telefono|Interno|Int|Scala|Piano|Cap|Snc|Presso)$/i.test(mt[1])){ citta=mt[1]; pr=mt[2]||''; } }
+  else { var mt=rest.match(/^\s*(?:[,\-–]|\sa|\sin)?\s*([A-ZÀ-Ý][A-Za-zÀ-ÿ']+(?:\s[A-ZÀ-Ý][A-Za-zÀ-ÿ']+){0,2})\s*(?:\(\s*([A-Z]{2})\s*\))?(?=\s*(?:[,;:.|\n\-–(]|$)|\s+[a-zà-ÿ])/); if(mt&&!/^(Tel|Cell|Email|Mail|Telefono|Interno|Int|Scala|Piano|Cap|Snc|Presso)$/i.test(mt[1])){ citta=mt[1]; pr=mt[2]||''; } }
   var s=clTitolo(via).replace(/^[a-z]/,function(c){ return c.toUpperCase(); })+(civ?' '+civ:''), loc=[cap,citta?clTitolo(citta):''].filter(Boolean).join(' ');
   return {addr:s+(loc?', '+loc:'')+(pr?' ('+pr+')':''),via:s,cap:cap,citta:citta,pr:pr,i:m.index,n:m[0].length};
 }
@@ -327,6 +338,9 @@ function clEmail(t){ return (String(t).match(/[\w.+\-]+@[\w\-]+(?:\.[\w\-]+)+/g)
 function clCodici(t){
   var out={cf:[],piva:[],sdi:''}, u=String(t).toUpperCase(), m, re=/\b([A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z])\b/g;
   while((m=re.exec(u))) if(clCfOk(m[1])&&out.cf.indexOf(m[1])<0) out.cf.push(m[1]);
+  if(!out.cf.length){ var rl=/(CODICE\s+FISCALE|COD\.?\s*FISC\.?|FISCAL\s+CODE|C\.\s?F\.)[^A-Z0-9]{0,8}([A-Z0-9][A-Z0-9 ]{15,23})/g, mm;
+    while((mm=rl.exec(u))){ var rpc=clCfRipara(mm[2]); if(rpc&&out.cf.indexOf(rpc)<0) out.cf.push(rpc); }
+    if(!out.cf.length) (u.match(/\b[A-Z0-9]{16}\b/g)||[]).forEach(function(tk){ if(/^[A-Z0-9]{6}/.test(tk)&&(tk.match(/[A-Z]/g)||[]).length>=7){ var r=clCfRipara(tk); if(r&&out.cf.indexOf(r)<0) out.cf.push(r); } }); }
   var rp=/(P\.?\s?IVA|PARTITA\s+IVA|P\.?\s?I\.?|VAT|C\.?\s?F\.?(?:\s*(?:E|\/)\s*P\.?\s?IVA)?|COD(?:ICE)?\.?\s*FISC(?:ALE)?\.?)\s*[:.\-n°]*\s*(?:IT\s?)?(\d{11})\b/g;
   while((m=rp.exec(u))) if(out.piva.indexOf(m[2])<0) out.piva.push(m[2]);
   var r2_=/\bIT\s?(\d{11})\b/g; while((m=r2_.exec(u))) if(clPivaOk(m[1])&&out.piva.indexOf(m[1])<0) out.piva.push(m[1]);
@@ -361,11 +375,12 @@ function clTogliMiei(x,M){
   return x;
 }
 // nel preventivo di un fornitore il cliente è solo dove c'è scritto (cantiere, destinazione, riferimento…)
+function clSaluto(m){ return /^(spett|alla c|c\.a\.|egr|gent|sig)/i.test(m[1]); }
 function clSoloEtichette(b,M){
-  var r=b.split('\n'), out=[];
-  r.forEach(function(l,i){ var m=clHaLab(l); if(!m||clMio(l,M)) return; var dopo=l.slice(m.index+m[0].length).trim(), k=i+1, n=0;
+  var r=b.split('\n'), out=[], cli=r.some(function(l){ var m=clHaLab(l); return m&&!clSaluto(m)&&!clMio(l,M); });
+  r.forEach(function(l,i){ var m=clHaLab(l); if(!m||clMio(l,M)||(cli&&clSaluto(m))) return; var dopo=l.slice(m.index+m[0].length).trim(), k=i+1, n=0;
     out.push(l);
-    while(k<r.length&&n<4&&!clHaLab(r[k])&&!clMio(r[k],M)&&(dopo.length<4||/^\s*(\d{5}\b|(?:tel|cell|telefono|email|e-mail|c\.f\.|p\.?\s?iva|cod)|(?:via|viale|piazza|corso|contrada|c\.da|loc)\b)/i.test(r[k]))){ out.push(r[k]); k++; n++; } });
+    while(k<r.length&&n<4&&!clHaLab(r[k])&&!clMio(r[k],M)&&(dopo.length<4||/(?:\b(?:cf|c\.f\.|tel\.?|cell\.?|e-?mail|p\.?\s?iva|codice fiscale))[:.]?\s*$/i.test(r[k-1])||/^\s*(\d{5}\b|(?:tel|cell|telefono|email|e-mail|c\.f\.|p\.?\s?iva|cod)|(?:via|viale|piazza|corso|contrada|c\.da|loc)\b)/i.test(r[k]))){ out.push(r[k]); k++; n++; } });
   return out.join('\n');
 }
 // legge i dati del cliente da un testo. ctx: 'libero' (messaggio, descrizione), 'contatto' (vcf, biglietto), 'fornitore' (preventivo di un fornitore)
@@ -390,7 +405,7 @@ function clLeggi(testo,ctx){
     if(fornitore){ forn.push(b); return; }
     if(ctx!=='fornitore'&&!lab&&/\b(fornitore|grossista|distributore|rivenditore)\b/i.test(b)){ forn.push(b); return; }
     if(ctx==='fornitore'&&!lab) return;
-    if(ctx==='fornitore') b=clSoloEtichette(b,M);
+    if(ctx==='fornitore'){ b=clSoloEtichette(b,M); var l2=b&&clHaLab(b); solo=l2&&clSaluto(l2)?'saluto':''; lab=l2; }
     if(b) usa.push({b:b,lab:solo||(lab?'cliente':''),i:i});
   });
   // valori della ditta e del fornitore: mai nel cliente
@@ -435,10 +450,18 @@ function clLeggi(testo,ctx){
     if(cf[0]) set('cf',cf[0],conf); else if(pi[0]) set('cf','P.IVA '+pi[0],conf);
     if(k.sdi) set('sdi',k.sdi,conf);
   });
+  if(ctx!=='fornitore'){
+    var mC=t.match(/(?:^|[^a-z])cognome(?!\s+e\s+nome)(?:\s*\/\s*surname)?[ \t]*[:.]?[ \t]*(?:\n[ \t]*)?([A-Za-zÀ-ÿ'][A-Za-zÀ-ÿ' ]{1,30}?)[ \t]*(?=\n|$|\s+nome\b)/i),
+        mN=t.match(/(?:^|[^a-z])nome(?!\s+e\s+cognome)(?:\s*\/\s*(?:given\s+)?names?)?[ \t]*[:.]?[ \t]*(?:\n[ \t]*)?([A-Za-zÀ-ÿ'][A-Za-zÀ-ÿ' ]{1,30}?)[ \t]*(?=\n|$)/i);
+    if(mC&&mN){ var nd=clNomeBuono(clTitolo(mN[1].trim())+' '+clTitolo(mC[1].trim())); if(nd&&!clMio(nd,M)) nomi.unshift({n:nd,c:'documento'}); }
+    var mr=t.match(/(?:indirizzo\s+di\s+residenza|residenza|residente\s+(?:in|a)|domicilio)(?:\s*\/\s*(?:residence|address))?[ \t]*[:.]?[ \t]*(?:\n[ \t]*)?([^\n]{4,80}(?:\n[^\n]{2,40})?)/i);
+    if(mr&&!R.addr){ var ir=clIndirizzo(' '+mr[1]); if(ir) set('addr',ir.addr,'documento'); else if(!/\d{3}/.test(mr[1].split('\n')[0])) set('addr',clTitolo(mr[1].split('\n')[0].trim()),'documento'); }
+    if(!R.cf){ var kc=clCodici(t); if(kc.cf[0]&&no.piva.indexOf(kc.cf[0])<0) set('cf',kc.cf[0],'documento'); }
+  }
   // il nome giusto: quello confermato dal codice fiscale, poi quello con etichetta
   var cfv=/^[A-Z]{6}/.test(R.cf)?R.cf:'', best=null;
   if(cfv) nomi.forEach(function(x){ if(!best&&clCfNome(x.n,cfv)) best=x; });
-  if(!best){ var pr={etichetta:6,titolo:5,contatto:4,presentazione:4,intestazione:3,firma:2,testo:1}; nomi.slice().sort(function(a,b){ return (pr[b.c]||0)-(pr[a.c]||0); }).forEach(function(x){ if(!best) best=x; }); }
+  if(!best){ var pr={documento:7,etichetta:6,titolo:5,contatto:4,presentazione:4,intestazione:3,firma:2,testo:1}; nomi.slice().sort(function(a,b){ return (pr[b.c]||0)-(pr[a.c]||0); }).forEach(function(x){ if(!best) best=x; }); }
   if(best){ R.name=best.n; R.fonti.name=best.lab?'«'+best.lab+'»':best.c; }
   return clFine(R);
 }
@@ -570,17 +593,25 @@ function docVoci(doc){
   var P=parseLines(doc.tab||doc.righe), out=[], scarti=[], visti={}, T=docTotali(doc);
   P.righe.forEach(function(r,i){
     var d0=String(r.descrizione||'').trim(), code=String(r.codice||'').trim(), q=num(r.qta)||1, net=num(r.prezzo_netto), imp=r.importo!=null?num(r.importo):r2(q*net);
+    if(code&&!/\d/.test(code)&&code.length<=4&&maTrova(code)){ d0=code+' '+d0; code=''; }
     var txt=(code+' '+d0).trim();
     if(DOC_SPESE.test(d0)){ T.spese.push({d:clTitolo(d0),v:r2(imp)}); return; }
     if(/\b(totale|subtotale|imponibile|riporto|a riportare|iva\s+\d{1,2}\s*%)\b/i.test(d0)) return;
     if(!/[A-Za-zÀ-ÿ]{3}/.test(d0)){ scarti.push({t:txt,perche:'senza descrizione leggibile'}); return; }
     if(new RegExp('^(?:'+CL_VIA+'|tel|fax|e-?mail|iban|p\\.?\\s?iva|c\\.f\\.|cap\\.? soc|rea|banca|pagamento|scadenza|consegna|resa|validit)\\b','i').test(d0)){ scarti.push({t:txt,perche:'dati del documento, non un articolo'}); return; }
     if(!(net>0)){ scarti.push({t:txt,perche:'senza prezzo'}); return; }
+    if(!code&&/\b(preventivo|offerta|ordine|rif\.|riferimento|cliente|spett|tel\.?|cell\.?|c\.f\.|p\.?\s?iva|iban|del\s+\d{1,2}[\/.\-]\d{1,2})\b|\b\d{5}\s+[A-Z][a-z]/i.test(d0)){ scarti.push({t:txt,perche:'intestazione del documento, non un articolo'}); return; }
+    if(q>=10000&&!/^(m|mt|ml|metri)$/i.test(String(r.um||''))){ scarti.push({t:txt,perche:'quantità non credibile ('+q+')'}); return; }
     var ver=r.importo!=null&&Math.abs(r2(q*net)-num(r.importo))<=Math.max(0.03,num(r.importo)*0.006), sc=0, warn=[];
     if(code) sc+=2; if(ver) sc+=2; if(r._hdr) sc+=1; if(r.um) sc+=1; if(d0.split(/\s+/).length>=2) sc+=1; if(/,\d{2}/.test(String(r.prezzo_netto))||net%1) sc+=0;
     if(r.dubbio){ sc-=3; warn.push('i prezzi della riga non tornano: controlla'); }
     if(r.importo!=null&&!ver&&!r.dubbio){ sc-=1; warn.push('importo diverso da quantità × prezzo'); }
     var key=lc(code+'|'+d0+'|'+q+'|'+net); if(visti[key]){ warn.push('riga uguale a un\'altra: forse ripetuta'); sc-=4; } visti[key]=1;
+    var tk=d0.split(/\s+/), bm0=tk[0]&&maTrova(tk[0]);
+    if((!code||code.length<=4)&&tk.length>2&&bm0&&isCodeTok(tk[1])&&tk[1].length>=5&&/\d/.test(tk[1])){ if(!r.marca) r.marca=bm0.n; code=tk[1]; d0=tk.slice(2).join(' '); }
+    else if(!code&&tk.length>2&&tk[0].length<=3&&/^[A-Za-z0-9][\w\-.,\/+]{3,24}$/.test(tk[1])&&/\d/.test(tk[1])&&/[A-Za-z]/.test(tk[1])){ code=tk[1]; d0=tk.slice(2).join(' '); }
+    else if(code&&code.length<=4&&tk.length>2&&isCodeTok(tk[0])&&tk[0].length>=5&&/\d/.test(tk[0])&&/[A-Za-z]/.test(tk[0])){ code=tk[0]; d0=tk.slice(1).join(' '); }
+    txt=(code+' '+d0).trim();
     var mk=asMarche(docN(txt),txt), br=String(r.marca||'').trim(); if(br){ var bm=maTrova(br)||(asMarche(docN(br),br)[0]?{n:asMarche(docN(br),br)[0].b}:null); br=bm?bm.n:clTitolo(br); } if(!br&&mk[0]) br=mk[0].b;
     var brands=mk.map(function(x){ return x.b; }); if(br&&brands.indexOf(br)<0) brands.push(br);
     out.push({on:sc>=2,vera:true,d0:d0,d:docPulisci(d0,brands),code:code,br:br,u:docUm(r.um),q:q,cost:r2(net),list:num(r.prezzo_listino)||0,disc:r.sconto||'',imp:r2(imp),ver:ver,sc:sc,warn:warn,pg:r._pg||1,y0:r._y0,y1:r._y1,h:r._h||9,img:'',imgK:'',doc:doc});
@@ -607,18 +638,23 @@ function docMk(){ try{ var v=localStorage.getItem('ieci-doc-mk'); if(v!=null&&v!
 function docPrezzo(r,R){ var mk=num(R.prezzo.mk); if(R.prezzo.mode==='lis'&&r.list>0) return r2(r.list); if(R.prezzo.mode==='cos') return r2(r.cost); return r2(r.cost*(1+mk/100)); }
 
 // ===================== 4. analisi completa di uno o più documenti =====================
-function docAnalizza(docs){
-  var R={file:docs.map(function(d){ return d.nome; }),righe:[],scarti:[],spese:[],forn:null,ctrl:null,tipo:null,posa:[],cliente:null,titolo:'',prezzo:{mode:'ric',mk:docMk()},arch:true,note:[],ocr:docs.some(function(d){ return d.ocr; })};
+function docPrezziOn(){ try{ return localStorage.getItem('ieci-doc-prezzi')!=='0'; }catch(e){ return true; } }
+function docAnalizza(docs,opt){
+  opt=opt||{};
+  var R={soloCliente:!!opt.cliente,prezzi:docPrezziOn(),file:docs.map(function(d){ return d.nome; }),righe:[],scarti:[],spese:[],forn:null,ctrl:null,tipo:null,posa:[],cliente:null,titolo:'',prezzo:{mode:'ric',mk:docMk()},arch:true,note:[],ocr:docs.some(function(d){ return d.ocr; })};
   var clienti=[];
   docs.forEach(function(d){
-    var V=d.tipo==='vcf'?{righe:[],scarti:[],T:{spese:[]}}:docVoci(d);
+    var V=(d.tipo==='vcf'||opt.cliente)?{righe:[],scarti:[],T:{spese:[]}}:docVoci(d);
     var fornit=V.righe.length>=1&&(V.righe.filter(function(r){ return r.on; }).length>=1);
     if(fornit){
       docAbbina(d,V.righe); R.righe=R.righe.concat(V.righe); R.scarti=R.scarti.concat(V.scarti); R.spese=R.spese.concat(V.T.spese);
       var f=docFornitore(d); if(!R.forn) R.forn=f;
-      var c=docControllo(V.righe,V.T,V.T.spese); c.doc=d.nome; R.ctrl=R.ctrl||c; if(R.ctrl!==c&&c.ok===false) R.ctrl=c;
+      var c=docControllo(V.righe,V.T,V.T.spese);
+      if(c.ok===false&&c.rif!=null){ var colpa=V.righe.filter(function(r){ return Math.abs(r2(c.somma-r.imp)-c.rif)<=0.06; });
+        if(colpa.length===1){ colpa[0].on=false; colpa[0].vera=false; colpa[0].warn.unshift('esclusa: con questa riga il totale del fornitore non tornava'); c=docControllo(V.righe,V.T,V.T.spese); if(c.ok) c.esclusa=colpa[0].d0; } }
+      c.doc=d.nome; R.ctrl=R.ctrl||c; if(R.ctrl!==c&&c.ok===false) R.ctrl=c;
       var cl=clLeggi(d.testo,'fornitore'); if(cl.n) clienti.push({c:cl,p:1,doc:d.nome});
-    } else { var cl2=clLeggi(d.testo,d.tipo==='vcf'||d.tipo==='foto'?'contatto':'libero'); if(cl2.n) clienti.push({c:cl2,p:2,doc:d.nome}); }
+    } else { var cl2=clLeggi(d.testo,d.tipo==='vcf'||d.tipo==='foto'||opt.cliente?'contatto':'libero'); if(cl2.n) clienti.push({c:cl2,p:2,doc:d.nome}); }
   });
   // cliente: prima i documenti del cliente (contatto, messaggio), poi i riferimenti nel preventivo del fornitore
   clienti.sort(function(a,b){ return b.p-a.p||b.c.n-a.c.n; });
@@ -646,15 +682,15 @@ function docSembraFornitore(t){
 
 // ===================== 5. interfaccia nell'assistente =====================
 function docSt(t,cls){ var el=$('as-doc-st'); if(!el) return; el.hidden=!t; el.className='as-doc-st'+(cls?' '+cls:''); el.textContent=t||''; }
-function docApri(files){
-  files=Array.prototype.slice.call(files||[]).filter(Boolean).slice(0,6); if(!files.length||DOCA.busy) return;
+function docApri(files,opt){
+  opt=opt||{}; files=Array.prototype.slice.call(files||[]).filter(Boolean).slice(0,6); if(!files.length||DOCA.busy) return;
   DOCA.busy=true; AS.res=null; AS.doc=null; asRender(); var docs=[], errs=[], k=0;
-  docSt('Leggo '+(files.length===1?'«'+files[0].name+'»':files.length+' documenti')+' qui sul dispositivo…','run');
+  docSt(opt.cliente?'Leggo i dati del cliente '+(files.length===1?'dalla foto':'da '+files.length+' foto')+' qui sul dispositivo…':'Leggo '+(files.length===1?'«'+files[0].name+'»':files.length+' documenti')+' qui sul dispositivo…','run');
   (function nx(){
     var f=files[k++];
     if(!f){
       if(!docs.length){ DOCA.busy=false; docSt(errs.join(' · ')||'Non ho trovato niente da leggere.','err'); return; }
-      try{ var R=docAnalizza(docs); }catch(e){ DOCA.busy=false; docSt('Non riesco ad analizzare il documento: '+(e&&e.message||e),'err'); return; }
+      try{ var R=docAnalizza(docs,opt); }catch(e){ DOCA.busy=false; docSt('Non riesco ad analizzare il documento: '+(e&&e.message||e),'err'); return; }
       R.err=errs; docSt(R.righe.some(function(r){ return r.box; })?'Ritaglio le foto dei prodotti dal documento…':'','run');
       docFoto2(R,function(){ DOCA.busy=false; AS.doc=R; AS.docPrima=null; docSt(''); asRender(); try{ $('as-out').scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} });
       return;
@@ -663,19 +699,20 @@ function docApri(files){
   })();
 }
 function docDiverso(a,b){ var n=function(x){ return docN(x).replace(/[^a-z0-9]/g,'').replace(/mmq|mm2/g,'mm'); }; return n(a)!==n(b)&&docToks(a).join(' ')!==docToks(b).join(' '); }
-function docTot(R){ var s=0; R.righe.forEach(function(r){ if(r.on) s+=num(r.q)*docPrezzo(r,R); }); R.posa.forEach(function(x){ if(x.on) s+=num(x.q)*num(x.p); }); return r2(s); }
+function docPz(r,R){ return !R.prezzi?0:(r.pman!=null?num(r.pman):docPrezzo(r,R)); }
+function docTot(R){ var s=0; R.righe.forEach(function(r){ if(r.on) s+=num(r.q)*docPz(r,R); }); R.posa.forEach(function(x){ if(x.on) s+=num(x.q)*num(x.p); }); return r2(s); }
 function docRender(){
   var R=AS.doc, box=$('as-out'); if(!R||!box) return;
   var on=R.righe.filter(function(r){ return r.on; }), tot=docTot(R), iva=num(S.meta.iva), C=R.cliente, f=R.forn, h='';
   var md=R.tipo?R.tipo.model:S.model, nm=MODELS[md]?(MODELS[md].short||MODELS[md].name):md;
   // 1. cosa ho letto
-  h+='<div class="as-sum"><div><small>'+(R.righe.length?'Tipo di lavoro':'Documento')+'</small><b>'+(R.righe.length?esc(nm):esc(R.file.join(', ')))+'</b></div>'+(R.righe.length?'<div><small>Voci</small><b>'+on.length+'</b></div><div><small>Totale cliente</small><b>'+eur(tot*(1+iva/100))+'</b></div>':'<div><small>Cliente</small><b>'+(C&&C.name?esc(C.name):'—')+'</b></div>')+'</div>';
+  h+='<div class="as-sum"><div><small>'+(R.righe.length?'Tipo di lavoro':'Documento')+'</small><b>'+(R.righe.length?esc(nm):esc(R.file.join(', ')))+'</b></div>'+(R.righe.length?'<div><small>Voci</small><b>'+on.length+'</b></div><div><small>Totale cliente</small><b>'+(R.prezzi?eur(tot*(1+iva/100)):'prezzi da inserire')+'</b></div>':'<div><small>Cliente</small><b>'+(C&&C.name?esc(C.name):'—')+'</b></div>')+'</div>';
   var lett=[]; if(f&&f.nome) lett.push('<b>'+esc(f.nome)+'</b>'); if(f&&(f.num||f.data)) lett.push(esc((f.cosa||'Offerta')+(f.num?' n. '+f.num:'')+(f.data?' del '+f.data:'')));
   if(R.righe.length) lett.push(R.righe.length+(R.righe.length===1?' riga articolo':' righe articolo')); var nf=R.righe.filter(function(r){ return r.img; }).length; if(nf) lett.push(nf+' foto');
   h+='<div class="as-doc-r"><span class="as-doc-i">📄</span><div>'+esc(R.file.join(' · '))+(lett.length?'<br><small>'+lett.join(' · ')+'</small>':'')+'</div></div>';
   // controllo del totale: la prova che non ho inventato né perso righe
   var c=R.ctrl; if(c){
-    if(c.ok) h+='<div class="as-ok">✓ Ho ricontrollato: la somma delle righe ('+eur(c.somma)+') coincide con '+esc(c.t)+' ('+eur(c.rif)+'). Ho letto tutte le righe, nessuna inventata.</div>';
+    if(c.ok) h+='<div class="as-ok">✓ Ho ricontrollato: la somma delle righe ('+eur(c.somma)+') coincide con '+esc(c.t)+' ('+eur(c.rif)+'). Ho letto tutte le righe, nessuna inventata.'+(c.esclusa?' Ho escluso «'+esc(c.esclusa.slice(0,60))+'», che non è un articolo.':'')+'</div>';
     else if(c.ok===false) h+='<div class="as-warn">⚠ La somma delle righe lette ('+eur(c.somma)+') non coincide con il totale del fornitore ('+eur(c.rif)+'): mancano '+eur(Math.abs(c.diff))+(c.diff<0?' in più':'')+'. Forse una riga non è leggibile: confronta con il documento prima di inviare.</div>';
     else h+='<div class="as-note">Nel documento non trovo un totale da confrontare: controlla che le righe siano tutte.</div>';
   }
@@ -683,6 +720,7 @@ function docRender(){
   if(R.ocr) h+='<div class="as-note">Ho letto una foto o una scansione: controlla bene numeri e descrizioni.</div>';
   (R.err||[]).forEach(function(e){ h+='<div class="as-warn">'+esc(e)+'</div>'; });
   // 2. cliente
+  if(!R.righe.length&&!(C&&C.n)) h+='<div class="as-warn">Non ho trovato dati del cliente '+(R.ocr?'nella foto: rifalla dritta, vicina e con buona luce (carta d\'identità, tessera sanitaria, biglietto da visita, schermata del messaggio).':'in questo documento.')+'</div>';
   if(C&&C.n){
     var lab={name:'Nome',addr:'Indirizzo cantiere',tel:'Telefono',email:'Email',cf:'C.F. / P.IVA'}, chips=[];
     if(C.chk.cf) chips.push('<span class="as-k">C.F. valido'+(C.chk.nomeCf?' e corrisponde al nome':'')+'</span>'); else if(C.chk.cf===false) chips.push('<span class="as-k m">C.F. non valido: controllalo</span>');
@@ -690,24 +728,26 @@ function docRender(){
     if(C.rubrica) chips.push('<span class="as-k">già in rubrica</span>');
     if(C.escl.length) chips.push('<span class="as-k">non confusi con i '+esc(C.escl.join(' e i '))+'</span>');
     h+='<div class="as-dcli"><label class="chk"><input type="checkbox" id="as-dcli-on"'+(R.cliOff?'':' checked')+'><b>Dati del cliente</b></label>'+(chips.length?'<div class="as-chips">'+chips.join('')+'</div>':'')+
-      '<div class="grid2">'+['name','addr','tel','email','cf'].map(function(k){ var FO={etichetta:'dal documento',testo:'dal testo',contatto:'dal contatto',presentazione:'si presenta così',rubrica:'dalla rubrica',titolo:'dal biglietto da visita',intestazione:'dall\'intestazione',firma:'dalla firma'}, fo=C.fonti[k]; return '<label class="f">'+lab[k]+(C[k]&&fo?' <small class="as-src">'+esc(/^«/.test(fo)?'da '+fo:(FO[fo]||fo))+'</small>':'')+'<input type="text" data-dcl="'+k+'" value="'+esc(C[k]||'')+'"></label>'; }).join('')+'</div></div>';
+      '<div class="grid2">'+['name','addr','tel','email','cf'].map(function(k){ var FO={documento:'dal documento d\'identità',etichetta:'dal documento',testo:'dal testo',contatto:'dal contatto',presentazione:'si presenta così',rubrica:'dalla rubrica',titolo:'dal biglietto da visita',intestazione:'dall\'intestazione',firma:'dalla firma'}, fo=C.fonti[k]; return '<label class="f">'+lab[k]+(C[k]&&fo?' <small class="as-src">'+esc(/^«/.test(fo)?'da '+fo:(FO[fo]||fo))+'</small>':'')+'<textarea rows="1" class="t1" data-dcl="'+k+'">'+esc(C[k]||'')+'</textarea></label>'; }).join('')+'</div></div>';
   }
   if(R.righe.length){
     // 3. tipo, prezzi, titolo
     var opts=ORDER.filter(function(k){ return MODELS[k]&&k!=='app'&&k!=='rip'; }).map(function(k){ return '<option value="'+k+'"'+(k===md?' selected':'')+'>'+esc(MODELS[k].short||MODELS[k].name)+'</option>'; }).join('');
     h+='<div class="as-dset"><label class="f">Tipo di preventivo'+(R.tipo&&R.tipo.perc?' <small class="as-src">'+(R.tipo.certo?'sicuro':'probabile')+' · '+R.tipo.perc+'% del materiale'+(R.tipo.mot.length?': '+esc(R.tipo.mot.join(', ')):'')+'</small>':'')+'<select id="as-dmod">'+opts+'</select></label>'+
-      '<label class="f">Titolo<input type="text" id="as-dtit" value="'+esc(R.titolo)+'"></label>'+
-      '<div class="f"><span>Prezzo al cliente</span><div class="as-seg" role="group"><button type="button" data-dpm="ric" aria-pressed="'+(R.prezzo.mode==='ric')+'">Costo + ricarico</button>'+(R.haListino?'<button type="button" data-dpm="lis" aria-pressed="'+(R.prezzo.mode==='lis')+'">Prezzo di listino</button>':'')+'<button type="button" data-dpm="cos" aria-pressed="'+(R.prezzo.mode==='cos')+'">Al costo</button></div></div>'+
-      (R.prezzo.mode==='ric'?'<label class="f">Ricarico %<input type="number" id="as-dmk" min="0" step="any" value="'+esc(R.prezzo.mk)+'"></label>':'')+'</div>';
+      '<label class="f">Titolo<textarea rows="1" class="t1" id="as-dtit">'+esc(R.titolo)+'</textarea></label>'+
+      '<div class="as-dpz"><label class="chk"><input type="checkbox" id="as-dprezzi"'+(R.prezzi?' checked':'')+'><b>Porta nel preventivo i prezzi del documento</b></label>'+
+      (R.prezzi?'<div class="f"><span>Prezzo al cliente</span><div class="as-seg" role="group"><button type="button" data-dpm="ric" aria-pressed="'+(R.prezzo.mode==='ric')+'">Costo + ricarico</button>'+(R.haListino?'<button type="button" data-dpm="lis" aria-pressed="'+(R.prezzo.mode==='lis')+'">Prezzo di listino</button>':'')+'<button type="button" data-dpm="cos" aria-pressed="'+(R.prezzo.mode==='cos')+'">Al costo</button></div></div>'+
+      (R.prezzo.mode==='ric'?'<label class="f">Ricarico %<input type="number" id="as-dmk" min="0" step="any" inputmode="decimal" value="'+esc(R.prezzo.mk)+'"></label>':'')
+      :'<p class="hint">Le voci entrano <b>senza prezzo</b>: lo scrivi tu nel preventivo. I costi del fornitore restano visibili qui sotto come riferimento.</p>')+'</div></div>';
     // 4. voci dal fornitore
-    h+='<div class="as-righe"><details class="as-gd" open><summary class="as-g"><span>Materiale dal fornitore</span><span>'+on.length+' di '+R.righe.length+' · '+eur(on.reduce(function(s,r){ return s+num(r.q)*docPrezzo(r,R); },0))+'</span></summary>'+
+    h+='<div class="as-righe'+(R.righe.some(function(r){ return r.img; })?'':' no-im')+'"><details class="as-gd" open><summary class="as-g"><span>Materiale dal fornitore</span><span>'+on.length+' di '+R.righe.length+(R.prezzi?' · '+eur(on.reduce(function(s,r){ return s+num(r.q)*docPz(r,R); },0)):'')+'</span></summary>'+
       R.righe.map(function(r,i){ var pv=docPrezzo(r,R);
         return '<div class="as-dr'+(r.on?'':' off')+'"><label class="as-dr-c"><input type="checkbox" data-drr="'+i+'"'+(r.on?' checked':'')+' aria-label="Includi"></label>'+
           (r.img?'<img class="as-dr-im" src="'+r.img+'" alt="" title="'+(r.imgK==='documento'?'foto dal documento del fornitore':'foto dalla tua libreria')+'">':'<span class="as-dr-im no" aria-hidden="true"></span>')+
-          '<div class="as-dr-t"><textarea class="as-dr-d" rows="'+Math.min(3,Math.ceil(r.d.length/34))+'" data-drd="'+i+'" aria-label="Descrizione">'+esc(r.d)+'</textarea>'+
+          '<div class="as-dr-t"><textarea class="t1 as-dr-d" rows="1" data-drd="'+i+'" aria-label="Descrizione">'+esc(r.d)+'</textarea>'+
           '<small>'+(r.br?'<b>'+esc(r.br)+'</b> · ':'')+(r.code?esc(r.code)+' · ':'')+'costo '+eur(r.cost)+(r.list>r.cost?' (listino '+eur(r.list)+(r.disc?', sc. '+esc(r.disc)+'%':'')+')':'')+' · pag. '+r.pg+(r.ver?' · <span class="as-v">✓ importo verificato</span>':'')+'</small>'+
           (r.warn.length?'<small class="as-w">'+esc(r.warn.join(' · '))+'</small>':'')+(docDiverso(r.d,r.d0)?'<small class="as-o">dal fornitore: «'+esc(r.d0)+'»</small>':'')+'</div>'+
-          '<div class="as-dr-n"><label><input type="number" min="0" step="any" class="as-q" data-drq="'+i+'" value="'+r.q+'" aria-label="Quantità"> '+esc(r.u)+'</label><span>×</span><label>€ <input type="number" min="0" step="0.01" class="as-pz" data-drp="'+i+'" value="'+(r.pman!=null?r.pman:pv)+'" aria-label="Prezzo unitario al cliente"></label><b>'+eur(num(r.q)*(r.pman!=null?r.pman:pv))+'</b></div></div>'; }).join('')+'</details>';
+          '<div class="as-dr-n"><label><input type="number" min="0" step="any" inputmode="decimal" class="as-q" data-drq="'+i+'" value="'+r.q+'" aria-label="Quantità"> '+esc(r.u)+'</label>'+(R.prezzi?'<span>×</span><label>€ <input type="number" min="0" step="0.01" inputmode="decimal" class="as-pz" data-drp="'+i+'" value="'+(r.pman!=null?r.pman:pv)+'" aria-label="Prezzo unitario al cliente"></label><b>'+eur(num(r.q)*docPz(r,R))+'</b>':'<em class="as-np">senza prezzo</em>')+'</div></div>'; }).join('')+'</details>';
     // 5. posa dal mio listino
     if(R.posa.length) h+='<details class="as-gd" open><summary class="as-g"><span>Posa e lavori · dal tuo listino</span><span>'+R.posa.filter(function(x){ return x.on; }).length+' di '+R.posa.length+'</span></summary>'+R.posa.map(function(x,i){
       return '<label class="as-r'+(x.on?'':' off')+'"><input type="checkbox" data-dpo="'+i+'"'+(x.on?' checked':'')+'><span class="as-d">'+esc(x.d)+(x.perche?'<small class="as-why">'+esc(x.perche)+'</small>':'')+'</span><input type="number" min="0" step="any" class="as-q" data-dpq="'+i+'" value="'+x.q+'" aria-label="Quantità"><span class="as-u">'+esc(x.u)+'</span><span class="as-pr">'+eur(num(x.q)*num(x.p))+'</span></label>'; }).join('')+'</details>';
@@ -718,7 +758,7 @@ function docRender(){
   }
   var vuoto=!S.lines.length, solo=!R.righe.length;
   h+='<div class="row">'+(solo?'<button type="button" class="btn" id="as-dcli-go"'+(C&&C.n?'':' disabled')+'>Usa questi dati del cliente</button>':'<button type="button" class="btn" id="as-dok">'+(vuoto?'Crea il preventivo':'Nuovo preventivo con queste voci')+'</button>'+(vuoto?'':'<button type="button" class="btn ghost" id="as-dadd">Aggiungi alle voci attuali</button>'))+'<button type="button" class="btn ghost" id="as-dx">Annulla</button></div>'+
-    '<p class="hint">Ho letto il documento qui sul dispositivo, senza mandarlo a nessuno. Ogni voce viene da una riga vera del fornitore: quelle con un avviso sono da controllare, quelle spente non le aggiungo.</p>';
+    '<p class="hint">'+(solo?'Ho letto i dati qui sul dispositivo, senza mandarli a nessuno. Controllali e correggili prima di usarli.':'Ho letto il documento qui sul dispositivo, senza mandarlo a nessuno. Ogni voce viene da una riga vera del fornitore: quelle con un avviso sono da controllare, quelle spente non le aggiungo.')+'</p>';
   box.innerHTML=h;
 }
 function docCliente(R){
@@ -740,7 +780,7 @@ function docApplica(nuovo){
   var nc=docCliente(R);
   var sup=R.forn&&R.forn.nome||'', foto=0, nuoveSchede=0, noFoto=0;
   righe.forEach(function(r){
-    var l={d:String(r.d).trim(),u:r.u,q:num(r.q),p:r.pman!=null?num(r.pman):docPrezzo(r,R),s:0};
+    var l={d:String(r.d).trim(),u:r.u,q:num(r.q),p:docPz(r,R),s:0};
     if(r.br) l.br=r.br; if(!nuovo) brTag(l);
     if(S.model==='app'&&curKey()&&!nuovo) l.r=curKey();
     S.lines.push(l);
@@ -755,7 +795,7 @@ function docApplica(nuovo){
     a.cost=r.cost; a.price=artPrice(a); if(r.img&&!(a.photos||[]).length) a.photos=[r.img]; a.sdate=dt; a.upd=Date.now(); }); DB.arts.sort(byName); dbSave(); try{ renderArts(); renderAq(); }catch(e){} }
   if(S.model==='vcit') vmSync();
   AS.doc=null; renderAll(); touch(); syncFields();
-  var msg=righe.length+' voci dal fornitore'+(posa.length?' e '+posa.length+' di posa':'')+(foto?' · '+foto+' foto':'')+(nc?' · dati del cliente':'');
+  var msg=righe.length+' voci dal fornitore'+(R.prezzi?'':' senza prezzo')+(posa.length?' e '+posa.length+' di posa':'')+(foto?' · '+foto+' foto':'')+(nc?' · dati del cliente':'');
   toast((nuovo?'Preventivo preparato: ':'Aggiunte: ')+msg);
   var box=$('as-out'); if(box) box.innerHTML='<div class="as-ok">✓ Fatto: '+esc(msg)+'.'+(na?' '+na+' articoli nuovi salvati in Fornitori.':'')+'</div>'+(noFoto&&iwMode()!=='off'?'<div class="row"><button type="button" class="btn ghost" id="as-dfoto">Cerca le foto mancanti ('+noFoto+')</button></div>':'');
   try{ var lb=$('lines'); if(lb) lb.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
@@ -767,6 +807,7 @@ function docSoloCliente(){
 (function(){
   var go=$('as-doc'); if(!go) return;
   go.addEventListener('change',function(e){ var fl=e.target.files; docApri(fl); e.target.value=''; });
+  var cf_=$('as-cli-foto'); if(cf_) cf_.addEventListener('change',function(e){ var fl=e.target.files; docApri(fl,{cliente:true}); e.target.value=''; });
   var ta=$('as-txt'), zona=ta.closest('.accb')||ta;
   ['dragover','dragleave','drop'].forEach(function(ev){ zona.addEventListener(ev,function(e){ if(!e.dataTransfer||!Array.prototype.some.call(e.dataTransfer.types||[],function(t){ return t==='Files'; })) return; e.preventDefault(); zona.classList.toggle('as-over',ev==='dragover'); if(ev==='drop') docApri(e.dataTransfer.files); }); });
   ta.addEventListener('paste',function(e){ var fl=e.clipboardData&&e.clipboardData.files; if(fl&&fl.length){ e.preventDefault(); docApri(fl); } });
@@ -792,6 +833,7 @@ function docSoloCliente(){
     else if((a=t.getAttribute('data-dcl'))!=null){ R.cliente[a]=t.value.trim(); }
     else if(t.id==='as-dcli-on'){ R.cliOff=!t.checked; }
     else if(t.id==='as-darc'){ R.arch=t.checked; }
+    else if(t.id==='as-dprezzi'){ R.prezzi=t.checked; try{ localStorage.setItem('ieci-doc-prezzi',t.checked?'1':'0'); }catch(x){} docRender(); }
     else if(t.id==='as-dtit'){ R.titolo=t.value; }
     else if(t.id==='as-dmk'){ R.prezzo.mk=Math.max(0,num(t.value)); try{ localStorage.setItem('ieci-doc-mk',String(R.prezzo.mk)); }catch(x){} R.righe.forEach(function(r){ r.pman=null; }); docRender(); }
     else if(t.id==='as-dmod'){ R.tipo.model=t.value; R.tipo.perc=0; R.posa=docPosa(t.value,R.righe); var nt=(TTL_T[t.value]||MODELS[t.value].name); if(!R.titolo||Object.keys(TTL_T).some(function(k){ return TTL_T[k]===R.titolo; })||R.titolo===TTL_G) R.titolo=nt; docRender(); }

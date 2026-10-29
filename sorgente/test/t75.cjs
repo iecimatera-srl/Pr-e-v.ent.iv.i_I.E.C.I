@@ -14,7 +14,7 @@ ok(st.blob>=3&&st.data===0,'foto del fascicolo come blob (decodificate una volta
 await S(()=>[...document.querySelectorAll('#doc > .page')].forEach((pg,i)=>pg.__id='p'+i));
 const n0=await S(()=>document.querySelectorAll('#doc > .page').length);
 await A.mostra(p,'#lines');
-await p.click('#lines .line input[data-f="d"]'); await p.keyboard.type(' XYZ',{delay:30}); await p.waitForTimeout(700);
+await p.click('#lines .line [data-f="d"]'); await p.keyboard.type(' XYZ',{delay:30}); await p.waitForTimeout(700);
 st=await S(()=>{ const pgs=[...document.querySelectorAll('#doc > .page')]; return {n:pgs.length,same:pgs.filter(x=>x.__id).length,changed:pgs.filter(x=>!x.__id).map(x=>x.innerText.slice(0,40)),has:/XYZ/.test(document.getElementById('doc').innerText)}; });
 console.log(JSON.stringify(st));
 ok(st.has&&st.n===n0&&st.changed.length>=1&&st.same>=st.n-2,'scrivendo cambia solo la pagina interessata ('+st.changed.length+' su '+st.n+')');

@@ -110,3 +110,17 @@
 .brsug button img{height:18px;max-width:54px;object-fit:contain;background:#fff;border-radius:4px}
 /* telefoni: campi a 16px (sotto questa misura iPhone ingrandisce la pagina a ogni tocco e i riquadri saltano) */
 @media (pointer:coarse){input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea{font-size:16px}}
+/* caselle di testo su una riga che vanno a capo: il testo lungo si legge tutto anche sul telefono */
+textarea.t1{resize:none;overflow:hidden;min-height:44px;field-sizing:content;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;vertical-align:top;display:block}
+textarea.t1.mnn,textarea.t1.gn,textarea.t1.gname{min-height:34px;display:block}
+textarea.t1.as-dr-d{min-height:0}
+@media (max-width:560px){.lsh{flex-wrap:wrap}.lsh .gname{flex:1 1 calc(100% - 48px)}.lsh em{margin-left:40px}}
+/* barra in alto sui telefoni stretti: i cinque pulsanti stanno sempre tutti dentro */
+@media (max-width:620px){.qb-act{grid-template-columns:minmax(0,1.15fr) minmax(0,.9fr) minmax(0,.95fr) minmax(0,1fr) minmax(0,1.15fr);gap:4px}.qb-act .btn{padding:6px 1px;font-size:clamp(.66rem,3.05vw,.8rem);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:clip}}
+#as-txt{field-sizing:content;min-height:110px;max-height:50vh}
+@media (max-width:520px){#acc-as .accb>.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}#acc-as .accb>.row .btn{justify-content:center;text-align:center;padding-left:6px;padding-right:6px}#acc-as .accb>.row #as-go{grid-column:1/-1}}
+@media (max-width:340px){.qb-act .btn{font-size:.62rem}}
+.ltools .lt{flex:none;white-space:nowrap}
+#acc-as .chk input[type=checkbox]{width:22px;height:22px;flex:none}
+.as-righe.no-im .as-dr{grid-template-columns:auto 1fr}.as-righe.no-im .as-dr-im{display:none}
+@media (max-width:520px){.as-righe.no-im .as-dr{grid-template-columns:auto 1fr}}

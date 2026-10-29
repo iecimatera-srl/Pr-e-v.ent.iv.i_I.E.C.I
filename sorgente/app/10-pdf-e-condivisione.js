@@ -176,10 +176,10 @@ function renderMenuEd(){
   var last=MENU.groups.length-1;
   el.innerHTML=MENU.groups.map(function(g,gi){
     var its=MENU.items.filter(function(i){ return i.g===g.id; });
-    return '<div class="mgc2" data-gid="'+g.id+'"><div class="mngrp"><input type="text" class="gn" data-gn="'+g.id+'" value="'+esc(g.n)+'" aria-label="Nome del gruppo" placeholder="Nome del gruppo"><button type="button" class="sq" data-gm="'+g.id+':-1"'+(gi===0?' disabled':'')+' aria-label="Sposta il gruppo su">▲</button><button type="button" class="sq" data-gm="'+g.id+':1"'+(gi===last?' disabled':'')+' aria-label="Sposta il gruppo giù">▼</button>'+(MENU.groups.length>1?'<button type="button" class="sq x" data-gd="'+g.id+'" aria-label="Elimina il gruppo">✕</button>':'')+'</div><div class="mgc">'+
+    return '<div class="mgc2" data-gid="'+g.id+'"><div class="mngrp"><textarea rows="1" class="t1 gn" data-gn="'+g.id+'" aria-label="Nome del gruppo" placeholder="Nome del gruppo">'+esc(g.n)+'</textarea><button type="button" class="sq" data-gm="'+g.id+':-1"'+(gi===0?' disabled':'')+' aria-label="Sposta il gruppo su">▲</button><button type="button" class="sq" data-gm="'+g.id+':1"'+(gi===last?' disabled':'')+' aria-label="Sposta il gruppo giù">▼</button>'+(MENU.groups.length>1?'<button type="button" class="sq x" data-gd="'+g.id+'" aria-label="Elimina il gruppo">✕</button>':'')+'</div><div class="mgc">'+
       its.map(function(i){
         var ren=!!(MENU.names[i.p]);
-        return '<div class="mnrow'+(i.on?'':' off')+'" data-p="'+i.p+'"><span class="dh" aria-label="Trascina per spostare" title="Trascina">≡</span><input type="text" class="mnn" data-nm="'+i.p+'" value="'+esc(secLabel(i.p))+'" placeholder="'+esc(secDef(i.p))+'" aria-label="Nome della sezione '+esc(secDef(i.p))+'">'+
+        return '<div class="mnrow'+(i.on?'':' off')+'" data-p="'+i.p+'"><span class="dh" aria-label="Trascina per spostare" title="Trascina">≡</span><textarea rows="1" class="t1 mnn" data-nm="'+i.p+'" placeholder="'+esc(secDef(i.p))+'" aria-label="Nome della sezione '+esc(secDef(i.p))+'">'+esc(secLabel(i.p))+'</textarea>'+
           '<label class="sw" title="Mostra nel menu"><input type="checkbox" data-mv="'+i.p+'"'+(i.on?' checked':'')+(i.p==='menu'?' disabled':'')+'><span></span></label>'+
           '<button type="button" class="sq" data-mm="'+i.p+':-1" aria-label="Su">▲</button><button type="button" class="sq" data-mm="'+i.p+':1" aria-label="Giù">▼</button></div>';
       }).join('')+'</div></div>';

@@ -6,7 +6,7 @@ function photoBox(src,attr,label){
 function renderTrust(){
   var T=S.trust;
   $('tr-ba').innerHTML=T.ba.map(function(b,i){
-    return '<div class="rowc"><label class="f">Titolo (facoltativo)<input type="text" data-tf="ba:'+i+':title" value="'+esc(b.title)+'"></label>'+
+    return '<div class="rowc"><label class="f">Titolo (facoltativo)<textarea rows="1" class="t1" data-tf="ba:'+i+':title">'+esc(b.title)+'</textarea></label>'+
       '<div class="row">'+photoBox(b.before,'data-bap="'+i+':before"','Foto prima')+'</div><div class="row">'+photoBox(b.after,'data-bap="'+i+':after"','Foto dopo')+'</div>'+
       '<button type="button" class="btn x" data-bard="'+i+'" aria-label="Rimuovi">×</button></div>';
   }).join('')||'<div class="empty">Nessuna coppia di foto.</div>';
@@ -26,7 +26,7 @@ function renderTrust(){
   }).join('')||'<div class="empty">Nessuna recensione.</div>';
   var BGs=T.bgroups||(T.bgroups=[]);
   $('tr-brand').innerHTML=BGs.map(function(g,gi){
-    return '<div class="bgx" data-bg="'+gi+'"><div class="mngrp"><input type="text" class="gn" data-bgt="'+gi+'" value="'+esc(g.t)+'" aria-label="Titolo della riga" placeholder="Titolo (es. Domotica)" list="bg-sug"><button type="button" class="sq" data-bgm="'+gi+':-1"'+(gi===0?' disabled':'')+' aria-label="Sposta su">▲</button><button type="button" class="sq" data-bgm="'+gi+':1"'+(gi===BGs.length-1?' disabled':'')+' aria-label="Sposta giù">▼</button><button type="button" class="sq" data-bgd="'+gi+'" aria-label="Elimina la riga">×</button></div>'+
+    return '<div class="bgx" data-bg="'+gi+'"><div class="mngrp"><textarea rows="1" class="t1 gn" data-bgt="'+gi+'" aria-label="Titolo della riga" placeholder="Titolo (es. Domotica)">'+esc(g.t)+'</textarea><button type="button" class="sq" data-bgm="'+gi+':-1"'+(gi===0?' disabled':'')+' aria-label="Sposta su">▲</button><button type="button" class="sq" data-bgm="'+gi+':1"'+(gi===BGs.length-1?' disabled':'')+' aria-label="Sposta giù">▼</button><button type="button" class="sq" data-bgd="'+gi+'" aria-label="Elimina la riga">×</button></div>'+
       '<div class="thumbs">'+(g.items.map(function(b,j){ return '<div class="thumb logo" title="'+esc(b.name)+'"><img src="'+b.img+'" alt=""><button type="button" data-brd="'+gi+':'+j+'" aria-label="Rimuovi">×</button></div>'; }).join('')||'<div class="empty" style="width:100%">Nessun logo in questa riga.</div>')+'</div>'+
       '<div class="iw-q"><input type="text" data-bgn="'+gi+'" placeholder="Scrivi le marche: Bticino, Vimar…" aria-label="Marche da aggiungere" autocomplete="off" enterkeyhint="go"><button type="button" class="btn ghost sm" data-bgw="'+gi+'">Aggiungi i loghi</button></div>'+
       '<div class="row"><label class="btn ghost sm">+ Carica loghi dal dispositivo<input type="file" accept="image/*" multiple hidden data-bgf="'+gi+'"></label></div></div>';

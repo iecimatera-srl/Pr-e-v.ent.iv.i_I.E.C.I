@@ -217,3 +217,12 @@ function lineTotal(l){ return r2(num(l.q)*num(l.p)*(1-num(l.s)/100)); }
 var toastT;
 function toast(msg){ var t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(function(){t.hidden=true;},2600); }
 
+/* caselle di testo su una riga che vanno a capo (textarea.t1): sul telefono il testo lungo si legge tutto.
+   Invio non va a capo; dove il browser non allarga da solo la casella (field-sizing) la adatto io. */
+var T1_JS=!(window.CSS&&CSS.supports&&CSS.supports('field-sizing','content')), T1_RAF=0;
+function t1Fit(el){ if(!T1_JS||!el||!el.offsetParent) return; el.style.height='auto'; var h=el.scrollHeight+(el.offsetHeight-el.clientHeight); if(h>8) el.style.height=h+'px'; }
+function t1All(){ T1_RAF=0; if(!T1_JS) return; Array.prototype.forEach.call(document.querySelectorAll('textarea.t1'),t1Fit); }
+function t1Soon(){ if(T1_JS&&!T1_RAF) T1_RAF=requestAnimationFrame(t1All); }
+document.addEventListener('keydown',function(e){ var t=e.target; if(e.key==='Enter'&&t&&t.tagName==='TEXTAREA'&&t.classList.contains('t1')){ e.preventDefault(); if(/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) t.blur(); } },true);
+document.addEventListener('input',function(e){ var t=e.target; if(!t||t.tagName!=='TEXTAREA'||!t.classList.contains('t1')) return; if(/[\r\n]/.test(t.value)){ var p=t.selectionStart; t.value=t.value.replace(/\s*[\r\n]+\s*/g,' '); try{ t.setSelectionRange(p,p); }catch(x){} } t1Fit(t); },true);
+if(T1_JS){ try{ new MutationObserver(t1Soon).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','open','class']}); }catch(e){} window.addEventListener('resize',t1Soon); document.addEventListener('toggle',t1Soon,true); }

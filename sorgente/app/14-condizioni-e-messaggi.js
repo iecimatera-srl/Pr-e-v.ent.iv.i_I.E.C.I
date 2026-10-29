@@ -56,11 +56,11 @@ function renderMt(){
   el.innerHTML=S.mtpl.map(function(t,i){
     var def=t.id===S.mdef, open=mtOpen===t.id||(mtOpen==null&&def);
     return '<details class="mt'+(def?' def':'')+'" data-mtid="'+esc(t.id)+'"'+(open?' open':'')+'><summary><span class="mtn">'+esc(t.n||'Senza nome')+'</span>'+(def?'<span class="mtd">Predefinito</span>':'')+'</summary><div class="mtb">'+
-      '<label class="f">Nome del messaggio<input type="text" data-mtf="n" value="'+esc(t.n)+'" placeholder="es. Invio preventivo condominio"></label>'+
+      '<label class="f">Nome del messaggio<textarea rows="1" class="t1" data-mtf="n" placeholder="es. Invio preventivo condominio">'+esc(t.n)+'</textarea></label>'+
       '<label class="f">Testo per WhatsApp<textarea data-mtf="wa" rows="5">'+esc(t.wa)+'</textarea></label>'+
       '<div class="mtph"><small>Inserisci:</small>'+MT_PH.map(function(p){ return '<button type="button" class="chip" data-mtph="'+p[0]+'">'+p[1]+'</button>'; }).join('')+'</div>'+
       '<div class="mtp"><small>Anteprima con questo preventivo</small><div class="msgprev" data-mtprev>'+esc(fillMsg(t.wa))+'</div></div>'+
-      '<details class="sv"><summary>Testo per l\'email</summary><label class="f">Oggetto<input type="text" data-mtf="subj" value="'+esc(t.subj)+'"></label><label class="f">Testo<textarea data-mtf="body" rows="7">'+esc(t.body)+'</textarea></label></details>'+
+      '<details class="sv"><summary>Testo per l\'email</summary><label class="f">Oggetto<textarea rows="1" class="t1" data-mtf="subj">'+esc(t.subj)+'</textarea></label><label class="f">Testo<textarea data-mtf="body" rows="7">'+esc(t.body)+'</textarea></label></details>'+
       '<div class="row">'+(def?'':'<button type="button" class="btn sm" data-mta="def">Usa come predefinito</button>')+'<button type="button" class="btn ghost sm" data-mta="use">Usa ora in questo preventivo</button><button type="button" class="btn ghost sm" data-mta="dup">Duplica</button>'+(S.mtpl.length>1?'<button type="button" class="btn ghost sm" data-mta="del">Elimina</button>':'')+'</div></div></details>';
   }).join('');
 }

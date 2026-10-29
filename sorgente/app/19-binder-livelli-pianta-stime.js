@@ -35,7 +35,7 @@ function renderEcon(){
   if(econOn()){
     h+='<div class="grid2">'+(brOn()?vcFreeFields():vcBothFlag()?'<label class="f">Totale: '+esc(S.tiers.names[0]||'soluzione 1')+' (€)<input type="number" step="any" min="0" data-b="cond.tc"></label><label class="f">Totale: '+esc(S.tiers.names[1]||'soluzione 2')+' (€)<input type="number" step="any" min="0" data-b="cond.tv"></label>':'<label class="f">Totale (€)<input type="number" step="any" min="0" data-b="econ.total" placeholder="es. 4500"></label>')+
       '<label class="f">Il totale è<select data-b="econ.vat"><option value="incl">IVA inclusa</option><option value="excl">IVA esclusa (si aggiunge)</option></select></label></div>'+
-      '<label class="f">Dicitura del totale (facoltativa)<input type="text" data-b="econ.label" placeholder="es. Totale lavori chiavi in mano"></label>'+
+      '<label class="f">Dicitura del totale (facoltativa)<textarea rows="1" class="t1" data-b="econ.label" placeholder="es. Totale lavori chiavi in mano"></textarea></label>'+
       '<label class="chk"><input type="checkbox" data-b="econ.breakdown">Mostra imponibile e IVA sopra il totale</label>'+
       '<label class="f">Nota sotto il totale (facoltativa)<textarea data-b="econ.note" style="min-height:60px" placeholder="es. Comprensivo di materiali, manodopera e dichiarazione di conformità"></textarea></label>'+
       '<p class="hint">Le righe qui sotto servono solo a descrivere i lavori e non mostrano prezzi. Sconto % e offerta a livelli non si applicano.</p>';

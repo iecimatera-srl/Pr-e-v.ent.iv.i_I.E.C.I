@@ -57,4 +57,26 @@ const erp=`<div class="pg" style="font-size:8.5px"><table style="width:100%;marg
     await p.pdf({path:path.join(OUT,nome),format:'A4',printBackground:true});
     console.log('creato',nome);
   }
+  // foto dei dati del cliente (documenti di prova, dati inventati): leggermente storte e sfocate come una foto vera
+  const foto=[
+   ['cliente-carta-identita.jpg',`<div style="width:860px;height:540px;border-radius:28px;background:linear-gradient(135deg,#e9eef3,#cfdbe6);padding:30px 36px;box-sizing:border-box;font-family:Arial;color:#1d2733;position:relative">
+     <div style="font-size:22px;letter-spacing:2px">REPUBBLICA ITALIANA</div><div style="font-size:30px;font-weight:bold;margin-bottom:18px">CARTA DI IDENTITÀ <span style="font-size:16px;color:#b00">FAC-SIMILE DI PROVA</span></div>
+     <div style="display:flex;gap:30px"><div style="width:190px;height:240px;background:#9aa9b8;border-radius:8px"></div><div style="font-size:21px;line-height:1.25">
+     <div style="font-size:15px;color:#566">COGNOME / SURNAME</div><div style="font-size:28px;font-weight:bold">ESPOSITO</div>
+     <div style="font-size:15px;color:#566;margin-top:8px">NOME / NAME</div><div style="font-size:28px;font-weight:bold">GENNARO</div>
+     <div style="font-size:15px;color:#566;margin-top:8px">LUOGO E DATA DI NASCITA / PLACE AND DATE OF BIRTH</div><div>NAPOLI (NA) 15.04.1968</div>
+     <div style="font-size:15px;color:#566;margin-top:8px">CODICE FISCALE / FISCAL CODE</div><div style="font-size:26px;font-weight:bold;letter-spacing:1px">SPSGNR68D15F839S</div>
+     <div style="font-size:15px;color:#566;margin-top:8px">INDIRIZZO DI RESIDENZA / RESIDENCE</div><div>VIA CERERIE 9 MATERA (MT)</div></div></div></div>`],
+   ['cliente-biglietto.jpg',`<div style="width:900px;height:500px;background:#fffdf7;padding:46px 56px;box-sizing:border-box;font-family:Georgia,serif;color:#2b2b2b;border-left:22px solid #7a5c3e">
+     <div style="font-size:30px;letter-spacing:6px;color:#7a5c3e">STUDIO ROSSI</div><div style="font-size:44px;margin:26px 0 6px">Arch. Giulia Rossi</div><div style="font-size:24px;color:#555;margin-bottom:30px">progettazione e interni</div>
+     <div style="font-size:26px;line-height:1.5;font-family:Arial">Corso Umberto I, 45 - 75100 Matera (MT)<br>Tel. 0835 123456 - Cell. 338 1234567<br>giulia@studiorossi.it<br>C.F. RSSGLI85M41F052O</div></div>`],
+   ['cliente-messaggio.jpg',`<div style="width:720px;padding:30px;background:#efe7dd;font-family:Arial;box-sizing:border-box"><div style="background:#fff;border-radius:16px;padding:20px 24px;font-size:28px;line-height:1.4;color:#111;max-width:640px">
+     Buongiorno, sono Anna Verdi. Vi lascio i miei dati per il preventivo: Via Dante 10, 75100 Matera. Cell. 347 1234567, email anna.verdi@gmail.com, codice fiscale VRDNNA80A41F052D.<div style="text-align:right;font-size:18px;color:#888">10:42</div></div></div>`]];
+  // preventivo del fornitore fotografato con il telefono (stessa tabella del gestionale, un po' storto)
+  await p.setViewportSize({width:1100,height:900}); await p.setContent('<style>'+css+'</style><body style="margin:0;background:#555;padding:30px"><div style="background:#fff;transform:rotate(0.8deg);filter:blur(0.35px);width:1000px;padding:10px">'+erp.replace('font-size:8.5px','font-size:15px').replace('font-size:8.5px','font-size:15px')+'</div></body>');
+  await p.screenshot({path:path.join(OUT,'fornitore-foto.jpg'),type:'jpeg',quality:75}); console.log('creato fornitore-foto.jpg');
+  for(const [nome,html] of foto){
+    await p.setViewportSize({width:1000,height:700}); await p.setContent('<body style="margin:0;background:#6b6b6b;display:grid;place-items:center;height:700px"><div style="transform:rotate(-1.6deg);filter:blur(0.5px)">'+html+'</div></body>');
+    await p.screenshot({path:path.join(OUT,nome),type:'jpeg',quality:72}); console.log('creato',nome);
+  }
   await b.close(); })();

@@ -32,3 +32,4 @@
 @media (max-width:520px){.as-dr{grid-template-columns:auto 46px 1fr}.as-dr-im{width:46px;height:46px}.as-dr-n{grid-column:1/-1;padding-left:4px}}
 .as-chips .as-k,.as-cli .as-k{display:inline-block;font-size:.76rem;border-radius:99px;padding:2px 9px;background:color-mix(in srgb,#15803D 12%,var(--surface));border:1px solid color-mix(in srgb,#15803D 35%,var(--line));font-weight:700}
 .as-chips .as-k.m,.as-cli .as-k.m{background:color-mix(in srgb,var(--danger) 12%,var(--surface));border-color:color-mix(in srgb,var(--danger) 40%,var(--line))}
+.as-dpz{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 12px;align-items:end;padding:10px 12px;border:1px solid var(--line);border-radius:12px}.as-dpz>.chk,.as-dpz>.hint{grid-column:1/-1;margin:0}.as-np{font-size:.8rem;color:var(--muted)}

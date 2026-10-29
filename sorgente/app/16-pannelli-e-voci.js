@@ -49,7 +49,7 @@ function renderLines0(){
     if(l.pc) extra+='<span class="hint">Per ogni condomino: la quantità segue il numero dei condomini ('+vcN()+')</span>';
     if(S.model==='app') extra+='<label class="f rsel">Stanza<select data-f="r">'+roomOpts(l.r)+'</select></label>';
     extra+=prodChip(l,i)+'</div>';
-    return '<div class="line'+(l.off?' off':'')+(SYNC.set.has(l)?' sync':'')+'" data-i="'+i+'"><div class="ltools"><span class="lnum">'+(i+1)+'</span><span class="sp"></span><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su"'+(i?'':' disabled')+'>▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù"'+(i<S.lines.length-1?'':' disabled')+'>▼</button><button type="button" class="lt" data-ldup="'+i+'">Duplica</button><button type="button" class="lt del" data-rm="'+i+'" aria-label="Rimuovi riga">Elimina</button></div><input type="text" data-f="d" value="'+esc(l.d)+'" aria-label="Descrizione">'+lineBrandHtml(l)+'<div class="nums">'+
+    return '<div class="line'+(l.off?' off':'')+(SYNC.set.has(l)?' sync':'')+'" data-i="'+i+'"><div class="ltools"><span class="lnum">'+(i+1)+'</span><span class="sp"></span><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su"'+(i?'':' disabled')+'>▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù"'+(i<S.lines.length-1?'':' disabled')+'>▼</button><button type="button" class="lt" data-ldup="'+i+'">Duplica</button><button type="button" class="lt del" data-rm="'+i+'" aria-label="Rimuovi riga">Elimina</button></div><textarea rows="1" class="t1" data-f="d" aria-label="Descrizione">'+esc(l.d)+'</textarea>'+lineBrandHtml(l)+'<div class="nums">'+
       '<label class="f">Q.tà<input type="number" step="any" min="0" data-f="q" value="'+esc(l.q)+'"></label>'+
       '<label class="f">U.m.<input type="text" data-f="u" value="'+esc(l.u)+'"></label>'+
       (FREE()?'':'<label class="f">€ unit.<input type="number" step="any" min="0" data-f="p" value="'+esc(l.p)+'"></label>'+
@@ -122,13 +122,13 @@ function renderProducts0(){
       '<div class="subs" style="padding-left:0"><label class="chk sub"><input type="checkbox" data-px="on" data-pi="'+i+'"'+(p.on===false?'':' checked')+'><b>Includi nel fascicolo</b></label>'+
       [['photos','Foto'],['desc','Descrizione'],['specs','Caratteristiche'],['tags','Etichette'],['link','Link scheda'],['pdf','PDF allegato']].map(function(o){ return '<label class="chk sub"><input type="checkbox" data-px="'+o[0]+'" data-pi="'+i+'"'+((p.x&&p.x[o[0]])?'':' checked')+'>'+o[1]+'</label>'; }).join('')+'</div>'+
       (brOn()?prodSysSel(p,i):S.model==='vcit'?'<label class="f">Questo prodotto fa parte di<select data-pf="sol" data-pi="'+i+'"><option value=""'+(p.sol?'':' selected')+'>Tutte le soluzioni</option><option value="video"'+(p.sol==='video'?' selected':'')+'>Solo soluzione videocitofono</option><option value="cit"'+(p.sol==='cit'?' selected':'')+'>Solo soluzione citofono</option></select></label>':'')+
-      '<div class="grid2"><label class="f">Nome prodotto<input type="text" data-pf="name" data-pi="'+i+'" value="'+esc(p.name)+'"></label>'+
+      '<div class="grid2"><label class="f">Nome prodotto<textarea rows="1" class="t1" data-pf="name" data-pi="'+i+'">'+esc(p.name)+'</textarea></label>'+
       '<label class="f">Marca<input type="text" data-pf="brand" data-pi="'+i+'" data-brsug autocomplete="off" autocapitalize="words" spellcheck="false" value="'+esc(p.brand)+'"></label>'+
       '<label class="f">Modello / codice<input type="text" data-pf="code" data-pi="'+i+'" value="'+esc(p.code)+'"></label>'+
       '<label class="f">Etichette (separate da virgola)<input type="text" data-pf="tags" data-pi="'+i+'" value="'+esc(p.tags)+'"></label></div>'+
       '<label class="f">Descrizione<textarea data-pf="desc" data-pi="'+i+'">'+esc(p.desc)+'</textarea></label>'+
       '<label class="f">Caratteristiche tecniche (una per riga: voce: valore)<textarea data-pf="specs" data-pi="'+i+'" style="min-height:100px">'+esc(p.specs)+'</textarea></label>'+
-      '<label class="f">Link alla scheda tecnica (https://…)<input type="url" data-pf="link" data-pi="'+i+'" value="'+esc(p.link)+'"></label>'+
+      '<label class="f">Link alla scheda tecnica (https://…)<textarea rows="1" class="t1" inputmode="url" autocapitalize="off" spellcheck="false" data-pf="link" data-pi="'+i+'">'+esc(p.link)+'</textarea></label>'+
       '<div class="row"><label class="btn ghost sm">'+(p.pdf?'Sostituisci scheda PDF':'Allega scheda tecnica PDF')+'<input type="file" accept="application/pdf,.pdf" hidden data-ppdf="'+i+'"></label>'+(p.pdf?'<span class="hint">'+esc(p.pdf.name)+'</span><button type="button" class="btn x" data-rpdf="'+i+'" aria-label="Rimuovi PDF">×</button>':'')+'</div>'+
       '<div class="row"><button type="button" class="btn ghost sm" data-act="lib" data-pi="'+i+'">Salva in libreria</button></div>'+
       '<label class="f">Grandezza della foto nel documento: <b class="psv">'+Math.max(15,Math.min(100,num(p.ps)||45))+'%</b><input type="range" min="15" max="100" step="5" value="'+Math.max(15,Math.min(100,num(p.ps)||45))+'" data-pf="ps" data-pi="'+i+'"></label>'+
@@ -265,13 +265,13 @@ function renderListini(){
     if(q&&!idx.length) return; if(!sc.g&&!all) return;
     var key=sc.g||'~', closed=!q&&lsClosed[m+'|'+key];
     html+='<section class="lsg"><div class="lsh"><button type="button" class="lt" data-gtog="'+esc(key)+'" aria-label="Apri o chiudi" aria-expanded="'+(!closed)+'">'+(closed?'▸':'▾')+'</button>'+
-      (sc.g?'<input type="text" class="gname" data-gren="'+sc.gi+'" value="'+esc(sc.g)+'" aria-label="Nome categoria" maxlength="60">':'<span class="gname plain">Senza categoria</span>')+
+      (sc.g?'<textarea rows="1" class="t1 gname" data-gren="'+sc.gi+'" aria-label="Nome categoria" maxlength="60">'+esc(sc.g)+'</textarea>':'<span class="gname plain">Senza categoria</span>')+
       '<em>'+all+'</em>'+
       (sc.g?'<button type="button" class="lt" data-gup="'+sc.gi+'" aria-label="Sposta categoria su"'+(sc.gi?'':' disabled')+'>▲</button><button type="button" class="lt" data-gdn="'+sc.gi+'" aria-label="Sposta categoria giù"'+(sc.gi<gl.length-1?'':' disabled')+'>▼</button><button type="button" class="btn x" data-gdel="'+sc.gi+'" aria-label="Elimina categoria">×</button>':'')+'</div>';
     if(!closed){
       html+=idx.map(function(i){
         var it=items[i];
-        return '<div class="lsr" data-i="'+i+'"><input type="text" class="ld" data-lf="d" value="'+esc(it[0])+'" aria-label="Descrizione">'+
+        return '<div class="lsr" data-i="'+i+'"><textarea rows="1" class="t1 ld" data-lf="d" aria-label="Descrizione">'+esc(it[0])+'</textarea>'+
           '<div class="lr2"><label class="f sm">u.m.<input type="text" class="lu" data-lf="u" value="'+esc(it[1])+'"></label><label class="f sm">Prezzo €<input type="number" step="any" min="0" class="lp" data-lf="p" value="'+esc(it[2])+'"></label>'+
           '<label class="f sm lg">Categoria<select data-lf="g">'+groupOpts(m,sc.g)+'</select></label>'+
           '<span class="lacts"><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su">▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù">▼</button><button type="button" class="btn x" data-ldel="'+i+'" aria-label="Elimina voce">×</button></span></div>'+

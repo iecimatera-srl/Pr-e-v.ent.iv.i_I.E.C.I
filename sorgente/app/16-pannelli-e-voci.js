@@ -126,7 +126,7 @@ function renderProducts0(){
       '<label class="f">Marca<input type="text" data-pf="brand" data-pi="'+i+'" data-brsug autocomplete="off" autocapitalize="words" spellcheck="false" value="'+esc(p.brand)+'"></label>'+
       '<label class="f">Modello / codice<input type="text" data-pf="code" data-pi="'+i+'" value="'+esc(p.code)+'"></label>'+
       '<label class="f">Etichette (separate da virgola)<input type="text" data-pf="tags" data-pi="'+i+'" value="'+esc(p.tags)+'"></label></div>'+
-      '<label class="f">Descrizione<textarea data-pf="desc" data-pi="'+i+'">'+esc(p.desc)+'</textarea></label>'+
+      pcBox(p,i)+'<label class="f">Descrizione<textarea data-pf="desc" data-pi="'+i+'">'+esc(p.desc)+'</textarea></label>'+
       '<label class="f">Caratteristiche tecniche (una per riga: voce: valore)<textarea data-pf="specs" data-pi="'+i+'" style="min-height:100px">'+esc(p.specs)+'</textarea></label>'+
       '<label class="f">Link alla scheda tecnica (https://…)<textarea rows="1" class="t1" inputmode="url" autocapitalize="off" spellcheck="false" data-pf="link" data-pi="'+i+'">'+esc(p.link)+'</textarea></label>'+
       '<div class="row"><label class="btn ghost sm">'+(p.pdf?'Sostituisci scheda PDF':'Allega scheda tecnica PDF')+'<input type="file" accept="application/pdf,.pdf" hidden data-ppdf="'+i+'"></label>'+(p.pdf?'<span class="hint">'+esc(p.pdf.name)+'</span><button type="button" class="btn x" data-rpdf="'+i+'" aria-label="Rimuovi PDF">×</button>':'')+'</div>'+
@@ -156,7 +156,7 @@ function renderLogoPrev(){ var u=S.style.logo; $('logo-prev').innerHTML=u?'<div 
 function renderAll(){ try{ renderCondSave(); }catch(e){} if(S.products[0]&&openP[S.products[0].id]===undefined) openP[S.products[0].id]=true; renderTabs(); renderRooms(); renderVc(); renderCat(); renderLines(); renderProducts(); renderContent(); renderOrder(); renderCustom(); renderEcon(); renderTiers(); renderTrust(); renderIcons(); renderTpl(); syncFields(); sigDraw('cli'); sigDraw('dit'); renderStamp(); renderPlan(); renderFvRes(); renderInvio(); renderArchivio(); renderGd(); renderGh(); renderQbar(); renderAiSet(); renderImp(); renderArts(); renderAq(); schedule(); refreshVariants(); }
 var docVer=0;
 var lastEdit=0;
-function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); libSoon(); }
+function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); libSoon(); pcSoon(); }
 
 var TTL_G='Rifacimento impianto appartamento', TTL_T={wb:'Installazione wallbox per ricarica auto elettrica',rip:'Riparazione impianto elettrico',vid:'Impianto di videosorveglianza',all:'Impianto di allarme antintrusione',vcit:'Impianto videocitofonico',aut:'Automazione cancello e accessi',fv:'Impianto fotovoltaico',tv:'Impianto TV e antenna',ind:'Impianto elettrico industriale',sw:'Programmazione e messa in servizio'};
 function typeTitle(prev){ if(S.meta.title===TTL_G||S.meta.title===TTL_T[prev]||(prev&&S.meta.title===(MODELS[prev]||{}).name)){ S.meta.title=TTL_T[S.model]||TTL_G; if($('m-title')) $('m-title').value=S.meta.title; } }

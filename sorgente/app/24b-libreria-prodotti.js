@@ -4,7 +4,7 @@
    con lo sfondo), link, scheda PDF, etichette, grandezza della foto e l'ultimo prezzo e unità usati nel preventivo.
    Modificando la scheda si aggiorna anche la libreria. Un prodotto eliminato dalla libreria non torna da solo. */
 var LIB={t:0, sig:{}};
-var LIB_VIA=['on','sys','sol','libId','x'];
+var LIB_VIA=['on','sys','sol','libId','x','pc','pcs'];
 function libKey(p){ return lc(p.name)+'|'+lc(p.code); }
 function libVuoto(v){ return v==null||v===''||(Array.isArray(v)&&!v.length)||(typeof v==='object'&&!Array.isArray(v)&&!Object.keys(v).length); }
 function libSig(p,pz){ var ph=(p.photos||[]).map(function(u){ return iwH(u); }).join(','); return [p.name,p.brand,p.code,p.desc,p.specs,p.link,p.tags,p.ps,p.bg,ph,p.pdf?p.pdf.name+String(p.pdf.data||'').length:'',pz?pz.p+'/'+pz.u:''].join('§'); }

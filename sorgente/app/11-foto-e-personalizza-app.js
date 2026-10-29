@@ -107,7 +107,7 @@ function cutAll(){
     cutHalo(a[0][a[1]],function(r,ok){ if(ok){ a[0][a[1]]=r; okn++; } setTimeout(next,0); }); })();
 }
 /* ---------- personalizza app ---------- */
-var APP={cut:'on',cutt:38,halo:'soft',autop:'on',webimg:'auto',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''};
+var APP={cut:'on',cutt:38,halo:'soft',autop:'on',webimg:'auto',pcomp:'auto',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''};
 function apLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-app')||'null'); if(o) Object.keys(o).forEach(function(k){ if(k in APP) APP[k]=o[k]; }); }catch(e){} }
 function apStore(){ try{ var o={}; Object.keys(APP).forEach(function(k){ if(k!=='view') o[k]=APP[k]; }); localStorage.setItem('ieci-app',JSON.stringify(o)); }catch(e){ toast('Memoria piena: logo non salvato'); } }
 function procLogo(url,mode,cb){
@@ -184,7 +184,7 @@ function apInit(){
   });
   $('ap-orig').addEventListener('click',function(){ APP.logo=LOGO0; APP.lm='own'; APP.bg='keep'; apStore(); apUI(); apRefresh(); toast('Logo IECI originale ripristinato'); });
   $('ap-toq').addEventListener('click',function(){ var u=APP.lm==='own'&&APP.logo?APP.logo:LOGO0; S.style.logo=u; V={t:'',w:'',src:''}; refreshVariants(); touch(); toast('Logo usato anche nei preventivi'); });
-  $('ap-reset').addEventListener('click',function(){ if(!confirm('Ripristinare nome, logo e aspetto originali dell\'app?')) return; APP={cut:'on',cutt:38,halo:'soft',autop:'on',webimg:'auto',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''}; apStore(); apUI(); apApply(); apRefresh(); });
+  $('ap-reset').addEventListener('click',function(){ if(!confirm('Ripristinare nome, logo e aspetto originali dell\'app?')) return; APP={cut:'on',cutt:38,halo:'soft',autop:'on',webimg:'auto',pcomp:'auto',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''}; apStore(); apUI(); apApply(); apRefresh(); });
 }
 apLoad();
 

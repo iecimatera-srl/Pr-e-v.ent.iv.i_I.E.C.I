@@ -141,3 +141,8 @@ textarea.t1.as-dr-d{min-height:0}
 .libr{align-items:flex-start;gap:10px}.libim{width:56px;height:56px;flex:none;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:8px}.libim.no{background:repeating-linear-gradient(45deg,var(--field),var(--field) 6px,transparent 6px,transparent 12px)}
 .liblg{height:14px;max-width:60px;vertical-align:-2px;object-fit:contain;background:#fff;border-radius:3px}.libd{margin-top:2px}.libb{display:flex;flex-wrap:wrap;gap:6px;flex:1 1 100%;justify-content:flex-end}
 .plib{align-items:center}.plib .hint{flex:1 1 180px;margin:0}
+/* completa la scheda prodotto */
+.pcbox{display:grid;gap:8px;padding:10px 12px;border:1px dashed color-mix(in srgb,var(--brand) 45%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--brand) 5%,var(--surface))}
+.pcbox .pcgo{font-weight:800}.pcnota{margin:0}.pcres{display:grid;gap:10px}.pcit{display:grid;gap:4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.pcit small{color:var(--muted);font-size:.74rem}.pcit p{margin:0;font-size:.9rem}.pcit pre{margin:0;white-space:pre-wrap;font:inherit;font-size:.84rem}.pcit .btn{justify-self:start}
+.pcimg{display:flex;flex-wrap:wrap;gap:6px}.pcimg button{border:1px solid var(--line);border-radius:8px;background:#fff;padding:2px;cursor:pointer}.pcimg img{width:72px;height:72px;object-fit:contain;display:block}

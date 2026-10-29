@@ -66,6 +66,7 @@ app/24b-libreria-prodotti.js
 app/25-prontuario-materiali-e-marche.js
 app/26-assistente.js
 app/27-immagini-dal-web.js
+app/27b-compila-schede-prodotto.js
 app/28-controllo-invio.js
 app/28b-assistente-documenti-e-clienti.js
 app/29-pubblicazione-installazione-avvio.js

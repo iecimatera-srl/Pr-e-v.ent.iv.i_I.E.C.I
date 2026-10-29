@@ -56,6 +56,26 @@ function pnum(s){
   var v=parseFloat(t); return isFinite(v)?{v:v,pct:pct,dec:dec}:null;
 }
 function close(a,b){ return Math.abs(a-b)<=Math.max(0.02,Math.abs(b)*0.012); }
+/* riga con i numeri nell'ordine sbagliato o letti male (foto): la ricostruisco con le regole del preventivo
+   listino × (1 − sconto) = netto, quantità × netto = importo. Restituisce null se nessuna combinazione torna. */
+function solveRow(vs,discStr){
+  vs=(vs||[]).filter(function(v){ return v>0; }); if(vs.length<2) return null;
+  var d=discStr?parseDisc(discStr):1, best=null, cl=function(a,b){ return Math.abs(a-b)<=Math.max(0.02,Math.abs(b)*0.006); }, intero=function(v){ return Math.abs(v-Math.round(v))<0.001&&v>=1&&v<10000; };
+  function prova(list,net,usati,base){
+    var rest=vs.filter(function(v,k){ return usati.indexOf(k)<0; }), qs=rest.filter(intero), sol=null, alt=list?list*d:net;
+    qs.concat([1]).forEach(function(q){ if(sol) return; rest.forEach(function(t){ if(sol||(q===t&&q!==1)) return; if(cl(q*net,t)) sol={q:q,tot:t,net:net}; else if(cl(q*alt,t)) sol={q:q,tot:t,net:Math.round(t/q*10000)/10000}; }); });
+    var q=sol?sol.q:(qs.length?qs[0]:1), sc=base+(sol?3:0)+(intero(q)?1:0);
+    if(!best||sc>best.score) best={q:q,net:sol?sol.net:r2(net),list:list,tot:sol?sol.tot:null,score:sc};
+  }
+  var i,j;
+  if(d<1){
+    for(i=0;i<vs.length;i++) for(j=0;j<vs.length;j++){ if(i===j||!(vs[i]>vs[j])) continue; var nd=vs[i]*d; if(cl(nd,vs[j])) prova(vs[i],Math.abs(vs[j]-Math.round(vs[j]))<0.001&&Math.abs(nd-vs[j])>0.004?nd:vs[j],[i,j],3); }
+    if(!best) for(i=0;i<vs.length;i++) if(!intero(vs[i])||vs[i]>=100) prova(vs[i],vs[i]*d,[i],2);
+  } else {
+    for(i=0;i<vs.length;i++) for(j=0;j<vs.length;j++){ if(i===j||!intero(vs[i])) continue; var u=[i,j]; vs.forEach(function(t,k){ if(u.indexOf(k)<0&&cl(vs[i]*vs[j],t)&&!(best&&best.score>=5)){ var lr=vs.filter(function(v,z){ return z!==i&&z!==j&&z!==k&&v>vs[j]; })[0]; best={q:vs[i],net:vs[j],list:lr||null,tot:t,score:5}; } }); }
+  }
+  return best&&best.score>=3?best:null;
+}
 /* elementi {x,w,h,y,s} -> righe di celle [{x,x2,s}] */
 function itemsToLines(items,gapK){
   gapK=gapK||0.6;
@@ -175,13 +195,16 @@ function parseLines(lines){
       else if(m2===3){ if(close(rest[2],q*rest[1])){ list=rest[0]; net=rest[1]; tot=rest[2]; } else if(rest[1]<100&&close(rest[0]*(1-rest[1]/100),rest[2])){ list=rest[0]; disc=String(rest[1]).replace('.',','); net=rest[2]; } else { list=rest[0]; net=rest[1]; tot=rest[2]; dubbio=true; } }
       else if(m2>=4){ if(rest[1]<100&&close(rest[0]*(1-rest[1]/100),rest[2])){ list=rest[0]; disc=String(rest[1]).replace('.',','); net=rest[2]; tot=rest[3]; } else { list=rest[0]; net=rest[m2-2]; tot=rest[m2-1]; dubbio=true; } }
     }
+    var cons=net!=null&&qty&&tot!=null&&close(net*qty,tot), dOk=!(list!=null&&disc&&net!=null)||close(list*parseDisc(disc),net);
+    if((!cons||!dOk||(disc&&list==null))&&(!used||dubbio||!dOk)){ var sv=solveRow(vals.map(function(v){ return v.v; }),disc);
+      if(sv&&(sv.score>=6||(tot==null&&!dOk)||(tot==null&&disc&&list==null)||(tot!=null&&!cons&&sv.tot!=null))){ qty=sv.q; net=sv.net; list=sv.list; tot=sv.tot; dubbio=false; } }
     if(net==null&&list!=null){ net=disc?list*parseDisc(disc):list; }
     if(net==null&&tot!=null&&qty){ net=tot/qty; }
     if(qty==null&&tot!=null&&net){ var qq=tot/net; if(qq>=1&&Math.abs(qq-Math.round(qq))<0.02) qty=Math.round(qq); }
     if(net!=null&&qty&&tot!=null&&!close(net*qty,tot)&&!(list!=null&&disc&&close(list*parseDisc(disc)*qty,tot))) dubbio=true;
     if(net==null||!(net>0)) return;
     if(descr.length<3&&!code) return;
-    rows.push({codice:code,descrizione:descr,marca:marca||inferBrand(descr+' '+code),um:um||'',qta:qty||1,prezzo_listino:list,sconto:disc,prezzo_netto:Math.round(net*100)/100,note:note,dubbio:dubbio,importo:tot,_pg:pos.pg,_y0:pos.y,_y1:pos.yb,_h:pos.h,_hdr:!!hdr,_marcaCol:!!marca});
+    rows.push({codice:code,descrizione:descr,marca:marca||inferBrand(descr+' '+code),um:um||'',qta:qty||1,prezzo_listino:list,sconto:disc,prezzo_netto:Math.round(net*100)/100,note:note,dubbio:dubbio,importo:tot,_pg:pos.pg,_y0:pos.y,_y1:pos.yb,_h:pos.h,_vals:vals.map(function(v){ return v.v; }),_hdr:!!hdr,_marcaCol:!!marca});
   });
   var d=rows.length;
   return {fornitore:supplier,data:date,righe:rows};

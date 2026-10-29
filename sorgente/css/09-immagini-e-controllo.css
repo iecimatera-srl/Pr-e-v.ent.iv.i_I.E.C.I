@@ -134,3 +134,6 @@ textarea.t1.as-dr-d{min-height:0}
 .rubr .rubck{padding:0 4px 0 0}.rubr .rubck input{width:22px;height:22px}.rubr.sel{outline:2px solid color-mix(in srgb,var(--danger) 45%,transparent);outline-offset:-2px;border-radius:10px}
 .rowc .rubx{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}
 .toast.az{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 16px;max-width:calc(100vw - 24px);z-index:60}.toast-b{flex:none;border:0;border-radius:8px;background:var(--brand);color:#fff;font:inherit;font-weight:800;padding:8px 12px;cursor:pointer}
+/* numero dei preventivi salvati: pallino sul pulsante, non testo che allarga */
+#qb-list{position:relative;overflow:visible}#qb-n{position:absolute;top:-7px;right:-5px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:var(--brand);color:#fff;font-size:.68rem;font-weight:800;line-height:20px;text-align:center;letter-spacing:0;box-shadow:0 0 0 2px var(--surface)}#qb-n[hidden]{display:none}
+@media (max-width:620px){.qb-act #qb-list{overflow:visible}}

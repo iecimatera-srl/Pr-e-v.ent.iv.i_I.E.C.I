@@ -33,3 +33,17 @@
 .as-chips .as-k,.as-cli .as-k{display:inline-block;font-size:.76rem;border-radius:99px;padding:2px 9px;background:color-mix(in srgb,#15803D 12%,var(--surface));border:1px solid color-mix(in srgb,#15803D 35%,var(--line));font-weight:700}
 .as-chips .as-k.m,.as-cli .as-k.m{background:color-mix(in srgb,var(--danger) 12%,var(--surface));border-color:color-mix(in srgb,var(--danger) 40%,var(--line))}
 .as-dpz{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 12px;align-items:end;padding:10px 12px;border:1px solid var(--line);border-radius:12px}.as-dpz>.chk,.as-dpz>.hint{grid-column:1/-1;margin:0}.as-np{font-size:.8rem;color:var(--muted)}
+/* niente può allargare il riquadro dell'assistente oltre lo schermo: testi lunghi (nomi di file, codici) vanno a capo */
+#acc-as .accb>*,#as-out,#as-out *{min-width:0}
+#as-out{max-width:100%;overflow-wrap:break-word}#as-out small,#as-out .as-doc-r{overflow-wrap:anywhere}
+#as-out .as-sum{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}#as-out .as-sum b{white-space:normal;overflow-wrap:anywhere;font-size:clamp(.88rem,4vw,1rem)}
+#as-out .as-doc-r>div{flex:1;min-width:0;overflow-wrap:anywhere}
+#as-out .as-dset,#as-out .as-dpz{grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr))}
+#as-out .grid2{grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr))}
+#as-out .as-dr{grid-template-columns:auto 56px minmax(0,1fr)}#as-out .as-righe.no-im .as-dr{grid-template-columns:auto minmax(0,1fr)}
+#as-out select,#as-out textarea,#as-out input:not([type=checkbox]):not([type=radio]){max-width:100%}
+#as-out .as-r{grid-template-columns:auto minmax(0,1fr) 64px 44px auto}
+@media (max-width:520px){#as-out .as-dr{grid-template-columns:auto 46px minmax(0,1fr)}
+#as-out .as-r{grid-template-columns:auto 70px auto minmax(0,1fr);grid-template-areas:"c d d d" ". q u p";row-gap:6px}
+#as-out .as-r>input[type=checkbox]{grid-area:c}#as-out .as-r>.as-d{grid-area:d}#as-out .as-r>.as-q{grid-area:q}#as-out .as-r>.as-u{grid-area:u;display:inline}#as-out .as-r>.as-pr,#as-out .as-r>.as-e{grid-area:p;justify-self:end}}
+#as-out .as-pr,#as-out .as-e{white-space:nowrap}

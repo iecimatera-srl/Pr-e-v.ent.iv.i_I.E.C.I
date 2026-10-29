@@ -137,7 +137,7 @@ function renderQbar(){
   $('qb-tot').textContent=headTotal();
   apSub();
   renderVc();
-  $('qb-n').textContent=DB.quotes.length?'('+DB.quotes.length+')':'';
+  $('qb-n').textContent=DB.quotes.length?String(DB.quotes.length):''; $('qb-n').hidden=!DB.quotes.length;
 }
 $('qb-save').addEventListener('click',function(){ saveQuote(false); renderQbar(); });
 $('qb-new').addEventListener('click',newQuote);

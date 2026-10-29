@@ -591,6 +591,8 @@ function docFornitore(doc){
 // righe del fornitore: tengo solo quelle che sono davvero articoli
 function docVoci(doc){
   var P=parseLines(doc.tab||doc.righe), out=[], scarti=[], visti={}, T=docTotali(doc);
+  // sconto comune del fornitore (serve a rimettere a posto le righe lette male dalla foto)
+  var dc={}, Dc=''; P.righe.forEach(function(r){ var k=String(r.sconto||'').trim(); if(k) dc[k]=(dc[k]||0)+1; }); Object.keys(dc).forEach(function(k){ if(dc[k]>=2&&dc[k]>=P.righe.length*0.4&&(!Dc||dc[k]>dc[Dc])) Dc=k; });
   P.righe.forEach(function(r,i){
     var d0=String(r.descrizione||'').trim(), code=String(r.codice||'').trim(), q=num(r.qta)||1, net=num(r.prezzo_netto), imp=r.importo!=null?num(r.importo):r2(q*net);
     if(code&&!/\d/.test(code)&&code.length<=4&&maTrova(code)){ d0=code+' '+d0; code=''; }
@@ -601,9 +603,15 @@ function docVoci(doc){
     if(new RegExp('^(?:'+CL_VIA+'|tel|fax|e-?mail|iban|p\\.?\\s?iva|c\\.f\\.|cap\\.? soc|rea|banca|pagamento|scadenza|consegna|resa|validit)\\b','i').test(d0)){ scarti.push({t:txt,perche:'dati del documento, non un articolo'}); return; }
     if(!(net>0)){ scarti.push({t:txt,perche:'senza prezzo'}); return; }
     if(!code&&/\b(preventivo|offerta|ordine|rif\.|riferimento|cliente|spett|tel\.?|cell\.?|c\.f\.|p\.?\s?iva|iban|del\s+\d{1,2}[\/.\-]\d{1,2})\b|\b\d{5}\s+[A-Z][a-z]/i.test(d0)){ scarti.push({t:txt,perche:'intestazione del documento, non un articolo'}); return; }
-    if(q>=10000&&!/^(m|mt|ml|metri)$/i.test(String(r.um||''))){ scarti.push({t:txt,perche:'quantità non credibile ('+q+')'}); return; }
+    var list=num(r.prezzo_listino)||0, disc=r.sconto||'', ric=false;
     var ver=r.importo!=null&&Math.abs(r2(q*net)-num(r.importo))<=Math.max(0.03,num(r.importo)*0.006), sc=0, warn=[];
-    if(code) sc+=2; if(ver) sc+=2; if(r._hdr) sc+=1; if(r.um) sc+=1; if(d0.split(/\s+/).length>=2) sc+=1; if(/,\d{2}/.test(String(r.prezzo_netto))||net%1) sc+=0;
+    var dOk=!(list&&disc)||Math.abs(list*parseDisc(disc)-net)<=Math.max(0.02,net*0.006);
+    if((!ver||!dOk)&&r._vals&&r._vals.length>=2){ var dsc=disc||Dc, sv=solveRow(r._vals,dsc);
+      if(sv&&(sv.tot!=null||(dsc&&sv.list))&&(sv.q!==q||Math.abs(sv.net-net)>0.004)){ q=sv.q; net=sv.net; if(sv.list) list=sv.list; if(dsc&&sv.list) disc=dsc; if(sv.tot!=null){ imp=sv.tot; r.importo=sv.tot; } else { r.importo=null; imp=r2(q*net); } r.dubbio=false; ric=true;
+        ver=r.importo!=null&&Math.abs(r2(q*net)-num(r.importo))<=Math.max(0.03,num(r.importo)*0.006); } }
+    if(q>=10000&&!/^(m|mt|ml|metri)$/i.test(String(r.um||''))){ scarti.push({t:txt,perche:'quantità non credibile ('+q+')'}); return; }
+    if(ric) warn.push('numeri rimessi in ordine con listino e sconto'+(ver?'':': controlla la quantità'));
+    if(code) sc+=2; if(ver) sc+=2; if(list&&disc&&Math.abs(list*parseDisc(disc)-net)<=Math.max(0.02,net*0.006)) sc+=2; if(r._hdr) sc+=1; if(r.um) sc+=1; if(d0.split(/\s+/).length>=2) sc+=1; if(/,\d{2}/.test(String(r.prezzo_netto))||net%1) sc+=0;
     if(r.dubbio){ sc-=3; warn.push('i prezzi della riga non tornano: controlla'); }
     if(r.importo!=null&&!ver&&!r.dubbio){ sc-=1; warn.push('importo diverso da quantità × prezzo'); }
     var key=lc(code+'|'+d0+'|'+q+'|'+net); if(visti[key]){ warn.push('riga uguale a un\'altra: forse ripetuta'); sc-=4; } visti[key]=1;
@@ -614,7 +622,7 @@ function docVoci(doc){
     txt=(code+' '+d0).trim();
     var mk=asMarche(docN(txt),txt), br=String(r.marca||'').trim(); if(br){ var bm=maTrova(br)||(asMarche(docN(br),br)[0]?{n:asMarche(docN(br),br)[0].b}:null); br=bm?bm.n:clTitolo(br); } if(!br&&mk[0]) br=mk[0].b;
     var brands=mk.map(function(x){ return x.b; }); if(br&&brands.indexOf(br)<0) brands.push(br);
-    out.push({on:sc>=2,vera:true,d0:d0,d:docPulisci(d0,brands),code:code,br:br,u:docUm(r.um),q:q,cost:r2(net),list:num(r.prezzo_listino)||0,disc:r.sconto||'',imp:r2(imp),ver:ver,sc:sc,warn:warn,pg:r._pg||1,y0:r._y0,y1:r._y1,h:r._h||9,img:'',imgK:'',doc:doc});
+    out.push({on:sc>=2,vera:true,d0:d0,d:docPulisci(d0,brands),code:code,br:br,u:docUm(r.um),q:q,cost:Math.round(net*10000)/10000,list:list,disc:disc,imp:r2(imp),ver:ver,sc:sc,warn:warn,pg:r._pg||1,y0:r._y0,y1:r._y1,h:r._h||9,img:'',imgK:'',doc:doc});
   });
   return {righe:out,scarti:scarti,T:T,P:P};
 }

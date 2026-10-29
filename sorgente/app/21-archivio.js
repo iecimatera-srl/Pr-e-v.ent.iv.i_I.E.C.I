@@ -73,7 +73,7 @@ function openQuote(id,asCopy){
   /* ditta, profilo, loghi dei marchi e messaggi sono dell'app, non del singolo preventivo: restano quelli attuali (un preventivo vecchio non li riporta indietro) */
   d.trust=JSON.parse(JSON.stringify((trustLogos(S.trust)===0&&trustLogos(e.data.trust)>0)?e.data.trust:S.trust)); d.profile=JSON.parse(JSON.stringify(S.profile)); d.company=JSON.parse(JSON.stringify(S.company)); d.msgs=JSON.parse(JSON.stringify(S.msgs)); d.ccond=JSON.parse(JSON.stringify(S.ccond||{})); d.mtpl=JSON.parse(JSON.stringify(S.mtpl||[])); d.mdef=S.mdef;
   if(asCopy){ d.meta.num=nextNum(); d.meta.title=(d.meta.title||'')+' (copia)'; d.meta.date=today(); d.sign={cli:{img:'',name:'',place:'',date:''},dit:{img:'',name:''}}; d.tiers.sel=-1; }
-  S=normalize(d); doSave(); renderAll();
+  S=normalize(d); AS.cliRecente=null; doSave(); renderAll();
   if(asCopy){ saveQuote(true); toast('Copia creata: n. '+S.meta.num); } else toast('Aperto: n. '+S.meta.num);
   showPanel('dati');
 }
@@ -84,7 +84,7 @@ function newQuote(){
   S=base; Object.keys(keep).forEach(function(k){ S[k]=keep[k]; });
   ['planimetria','fv','crono','conferma','lavoro','collaudo'].forEach(function(k){ S.show[k]=false; });
   condApplyNew(); (function(){ var t=mtDef(); if(t) S.msgs={tpl:t.id,wa:t.wa,subj:t.subj,body:t.body}; })(); S.products=[]; S.lines=[]; S.client={name:'',addr:'',tel:'',email:'',cf:''}; S.meta.title=''; S.meta.num=nextNum(); S.meta.date=today(); S.meta.slogan=''; S.qid='';
-  doSave(); renderAll(); showPanel('dati'); try{ window.scrollTo(0,0); }catch(e){}
+  AS.cliRecente=null; doSave(); renderAll(); showPanel('dati'); try{ window.scrollTo(0,0); }catch(e){}
   toast('Nuovo preventivo vuoto n. '+S.meta.num+': ditta, stile e listino mantenuti');
 }
 function delTwice(key,fn,btn){

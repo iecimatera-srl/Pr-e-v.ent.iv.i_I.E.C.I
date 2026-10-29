@@ -35,11 +35,15 @@ else {
 }
 // preventivo del fornitore fotografato
 if(ocr){ await pulisci(); await p.setInputFiles('#as-doc',path.join(DOCS,'fornitore-foto.jpg')); await attendi();
-  const r=await S(()=>{ const R=window.IECI_T.AS().doc; return R&&{on:R.righe.filter(x=>x.on).map(x=>[x.code,x.br,x.q,x.cost]),ctrl:R.ctrl,cli:R.cliente&&[R.cliente.name,R.cliente.cf,R.cliente.tel].join('|'),sc:R.scarti.length}; });
+  const r=await S(()=>{ const R=window.IECI_T.AS().doc; return R&&{on:R.righe.filter(x=>x.on).map(x=>[x.code,x.br,x.q,x.cost]),ctrl:R.ctrl,cli:R.cliente&&[R.cliente.name,R.cliente.cf,R.cliente.tel].join('|'),sc:R.scarti.length,note:R.note.join(' ')}; });
   console.log(JSON.stringify(r));
   ok(r&&r.on.length===6&&r.ctrl.ok&&r.ctrl.somma===557.3,'foto del preventivo del fornitore: 6 voci e totale che torna');
   ok(r.on[0][0]==='KM4001'&&r.on[0][1]==='Bticino'&&r.on[5][0]==='FS17-2,5-BL'&&r.on[5][2]===200,'codici e marche giusti anche senza intestazione della tabella');
-  ok(r.cli==='Esposito Gennaro|SPSGNR68D15F839S|339 7654321'&&r.sc>=1,'cliente dal «Rif. cliente» e intestazione scartata (non è un articolo)');
+  ok(r.cli==='Anna Verdi|VRDNNA80A41F052D|347 1234567'&&/Esposito Gennaro/.test(r.note)&&r.sc>=1,'resta il cliente appena inserito dalla foto (avviso sul «Rif. cliente» Esposito Gennaro); intestazione scartata');
+  await S(()=>{ window.IECI_T.AS().cliRecente=null; const s=window.IECI_T.S(); s.client={name:'',addr:'',tel:'',email:'',cf:''}; });
+  await pulisci(); await p.setInputFiles('#as-doc',path.join(DOCS,'fornitore-foto.jpg')); await attendi();
+  const r2=await S(()=>{ const R=window.IECI_T.AS().doc; return R.cliente&&[R.cliente.name,R.cliente.cf,R.cliente.tel].join('|'); });
+  ok(r2==='Esposito Gennaro|SPSGNR68D15F839S|339 7654321','senza cliente inserito: lo legge dal «Rif. cliente» della foto');
 }
 // riparazione del codice fiscale letto male dalla foto (O/0, I/1, S/5): solo se il carattere di controllo torna
 st=await S(()=>[window.IECI_T.clLeggi('CODICE FISCALE SPSGNR68DI5F839S','contatto').cf,window.IECI_T.clLeggi('Codice fiscale VRDNNA8OA41FO52D','contatto').cf,window.IECI_T.clLeggi('Codice fiscale VRDNNA8OA41FO52X','contatto').cf]);

@@ -659,6 +659,7 @@ function docAnalizza(docs,opt){
   // cliente: prima i documenti del cliente (contatto, messaggio), poi i riferimenti nel preventivo del fornitore
   clienti.sort(function(a,b){ return b.p-a.p||b.c.n-a.c.n; });
   if(clienti.length){ var C=clienti[0].c; clienti.slice(1).forEach(function(x){ if(x.c.name&&C.name&&lc(x.c.name)!==lc(C.name)) R.note.push('Nel documento «'+x.doc+'» c\'è anche «'+x.c.name+'»: ho usato i dati di «'+C.name+'» ('+clienti[0].doc+'). Se il cliente è l\'altro, correggilo qui sotto.'); if(x.c.name&&C.name&&lc(x.c.name)!==lc(C.name)) return; ['name','addr','tel','email','cf'].forEach(function(k){ if(!C[k]&&x.c[k]){ C[k]=x.c[k]; C.fonti[k]=x.c.fonti[k]; } }); }); C.doc=clienti[0].doc; R.cliente=C; }
+  if(R.righe.length) docTieniCliente(R);
   if(R.righe.length){
     R.tipo=docTipoLavoro(R.righe);
     R.righe.forEach(function(r){ if(!r.box){ var lf=docLibFoto(r); if(lf){ r.img=lf; r.imgK='libreria'; } } });
@@ -728,7 +729,7 @@ function docRender(){
     if(C.rubrica) chips.push('<span class="as-k">già in rubrica</span>');
     if(C.escl.length) chips.push('<span class="as-k">non confusi con i '+esc(C.escl.join(' e i '))+'</span>');
     h+='<div class="as-dcli"><label class="chk"><input type="checkbox" id="as-dcli-on"'+(R.cliOff?'':' checked')+'><b>Dati del cliente</b></label>'+(chips.length?'<div class="as-chips">'+chips.join('')+'</div>':'')+
-      '<div class="grid2">'+['name','addr','tel','email','cf'].map(function(k){ var FO={documento:'dal documento d\'identità',etichetta:'dal documento',testo:'dal testo',contatto:'dal contatto',presentazione:'si presenta così',rubrica:'dalla rubrica',titolo:'dal biglietto da visita',intestazione:'dall\'intestazione',firma:'dalla firma'}, fo=C.fonti[k]; return '<label class="f">'+lab[k]+(C[k]&&fo?' <small class="as-src">'+esc(/^«/.test(fo)?'da '+fo:(FO[fo]||fo))+'</small>':'')+'<textarea rows="1" class="t1" data-dcl="'+k+'">'+esc(C[k]||'')+'</textarea></label>'; }).join('')+'</div></div>';
+      '<div class="grid2">'+['name','addr','tel','email','cf'].map(function(k){ var FO={'già inserito da te':'già inserito da te',documento:'dal documento d\'identità',etichetta:'dal documento',testo:'dal testo',contatto:'dal contatto',presentazione:'si presenta così',rubrica:'dalla rubrica',titolo:'dal biglietto da visita',intestazione:'dall\'intestazione',firma:'dalla firma'}, fo=C.fonti[k]; return '<label class="f">'+lab[k]+(C[k]&&fo?' <small class="as-src">'+esc(/^«/.test(fo)?'da '+fo:(FO[fo]||fo))+'</small>':'')+'<textarea rows="1" class="t1" data-dcl="'+k+'">'+esc(C[k]||'')+'</textarea></label>'; }).join('')+'</div></div>';
   }
   if(R.righe.length){
     // 3. tipo, prezzi, titolo
@@ -761,23 +762,47 @@ function docRender(){
     '<p class="hint">'+(solo?'Ho letto i dati qui sul dispositivo, senza mandarli a nessuno. Controllali e correggili prima di usarli.':'Ho letto il documento qui sul dispositivo, senza mandarlo a nessuno. Ogni voce viene da una riga vera del fornitore: quelle con un avviso sono da controllare, quelle spente non le aggiungo.')+'</p>';
   box.innerHTML=h;
 }
-function docCliente(R){
-  if(!R.cliente||R.cliOff) return 0; var n=0, C=R.cliente;
-  ['name','addr','tel','email','cf'].forEach(function(k){ var v=String(C[k]||'').trim(); if(v&&S.client[k]!==v){ S.client[k]=v; n++; } });
+// cliente nel preventivo: se è un'altra persona sostituisco tutta la scheda (niente dati mescolati);
+// se è la stessa completo solo quello che manca. soloVuoti: non tocco un cliente già presente (aggiunta di voci)
+var CL_K=['name','addr','tel','email','cf'];
+function docCliente(R,soloVuoti){
+  if(!R.cliente||R.cliOff) return 0; var n=0, C=R.cliente, cur=S.client||{}, nome=String(C.name||'').trim();
+  if(cur.name==='Mario Rossi'&&/^Via Verdi 12/.test(cur.addr||'')){ S.client={name:'',addr:'',tel:'',email:'',cf:''}; cur=S.client; } // cliente dell'esempio
+  var altro=nome&&String(cur.name||'').trim()&&lc(cur.name)!==lc(nome);
+  if(altro&&soloVuoti) return 0;
+  if(altro||!String(cur.name||'').trim()&&nome){ var nc={}; CL_K.forEach(function(k){ nc[k]=String(C[k]||'').trim(); if(nc[k]) n++; }); S.client=nc; return n; }
+  CL_K.forEach(function(k){ var v=String(C[k]||'').trim(); if(v&&String(cur[k]||'').trim()!==v&&!(soloVuoti&&String(cur[k]||'').trim())){ S.client[k]=v; n++; } });
   return n;
+}
+// cliente che hai appena inserito tu (foto, contatto, messaggio): resta anche quando carichi poi il preventivo del fornitore
+function docClienteScelto(){
+  var r=AS.cliRecente; if(r&&r.c&&String(r.c.name||'').trim()) return r.c;
+  var c=S.client||{}, demo=c.name==='Mario Rossi'&&/^Via Verdi 12/.test(c.addr||'');
+  if(!S.lines.length&&String(c.name||'').trim()&&!demo) return copy(c); // preventivo nuovo con il cliente già scritto
+  return null;
+}
+function docTieniCliente(R){
+  var k=docClienteScelto(); if(!k) return;
+  var D=R.cliente;
+  if(D&&D.name&&lc(D.name)!==lc(k.name)) R.note.push('Nel documento il cliente indicato è «'+D.name+'»: tengo «'+k.name+'», che hai inserito tu. Se è l\'altro, correggilo qui sotto.');
+  var C={name:'',addr:'',tel:'',email:'',cf:'',pec:'',sdi:'',fonti:{},chk:{},escl:D?D.escl:[]};
+  CL_K.forEach(function(x){ C[x]=String(k[x]||''); if(C[x]) C.fonti[x]='già inserito da te'; });
+  if(D&&D.name&&lc(D.name)===lc(k.name)) CL_K.forEach(function(x){ if(!C[x]&&D[x]){ C[x]=D[x]; C.fonti[x]=D.fonti[x]; } });
+  if(/^[A-Z]{6}\d/.test(C.cf)){ C.chk.cf=clCfOk(C.cf); C.chk.nomeCf=!!clCfNome(C.name,C.cf); } else if(/P\.IVA/.test(C.cf)) C.chk.piva=clPivaOk(C.cf);
+  C.n=CL_K.filter(function(x){ return C[x]; }).length; C.tenuto=1; R.cliente=C;
 }
 function docApplica(nuovo){
   var R=AS.doc; if(!R) return;
   var righe=R.righe.filter(function(r){ return r.on&&num(r.q)>0; }), posa=R.posa.filter(function(x){ return x.on&&num(x.q)>0; });
   if(!righe.length&&!posa.length){ toast('Nessuna voce selezionata'); return; }
   var model=R.tipo?R.tipo.model:S.model, prev=S.model;
-  if(nuovo&&(S.lines.length||String(S.client.name||'').trim())){
-    if(S.lines.length&&!confirm('Creo un nuovo preventivo con le '+(righe.length+posa.length)+' voci lette? Quello aperto resta salvato nell\'archivio.')) return;
+  if(nuovo&&S.lines.length){
+    if(!confirm('Creo un nuovo preventivo con le '+(righe.length+posa.length)+' voci lette? Quello aperto resta salvato nell\'archivio.')) return;
     newQuote(); showPanel('prev'); var acc=$('acc-as'); if(acc) acc.open=true;
   }
   if(nuovo&&model!==S.model){ S.model=model; typeTitle(prev); condSwitch(prev); }
   var tit=$('as-dtit')?$('as-dtit').value.trim():R.titolo; if(nuovo&&tit) S.meta.title=tit;
-  var nc=docCliente(R);
+  var nc=docCliente(R,!nuovo&&!(R.cliente&&R.cliente.tenuto));
   var sup=R.forn&&R.forn.nome||'', foto=0, nuoveSchede=0, noFoto=0;
   righe.forEach(function(r){
     var l={d:String(r.d).trim(),u:r.u,q:num(r.q),p:docPz(r,R),s:0};
@@ -794,15 +819,20 @@ function docApplica(nuovo){
   var na=0; if(R.arch&&sup){ var dt=today(); righe.forEach(function(r){ var a=findArt(sup,r.code,r.d0||r.d); if(!a){ a={id:uid(),sup:sup,code:r.code,name:r.d,brand:r.br||'',um:r.u,cost:0,markup:num(R.prezzo.mk),price:0,desc:'',specs:'',link:'',pdfurl:'',photos:[],hist:[],upd:0}; DB.arts.push(a); na++; } else if(num(a.cost)!==num(r.cost)) (a.hist=a.hist||[]).push({d:dt,c:a.cost});
     a.cost=r.cost; a.price=artPrice(a); if(r.img&&!(a.photos||[]).length) a.photos=[r.img]; a.sdate=dt; a.upd=Date.now(); }); DB.arts.sort(byName); dbSave(); try{ renderArts(); renderAq(); }catch(e){} }
   if(S.model==='vcit') vmSync();
-  AS.doc=null; renderAll(); touch(); syncFields();
+  AS.doc=null; AS.cliRecente=null; renderAll(); touch(); syncFields();
+  if(dbReady&&String(S.client.name||'').trim()){ saveClient(true); saveQuote(true); }
   var msg=righe.length+' voci dal fornitore'+(R.prezzi?'':' senza prezzo')+(posa.length?' e '+posa.length+' di posa':'')+(foto?' · '+foto+' foto':'')+(nc?' · dati del cliente':'');
   toast((nuovo?'Preventivo preparato: ':'Aggiunte: ')+msg);
   var box=$('as-out'); if(box) box.innerHTML='<div class="as-ok">✓ Fatto: '+esc(msg)+'.'+(na?' '+na+' articoli nuovi salvati in Fornitori.':'')+'</div>'+(noFoto&&iwMode()!=='off'?'<div class="row"><button type="button" class="btn ghost" id="as-dfoto">Cerca le foto mancanti ('+noFoto+')</button></div>':'');
   try{ var lb=$('lines'); if(lb) lb.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){}
 }
 function docSoloCliente(){
-  var R=AS.doc; if(!R) return; var n=docCliente(R); AS.doc=null; syncFields(); try{ renderInvio(); }catch(e){} touch(); asRender();
-  toast(n?'Dati del cliente inseriti: '+(S.client.name||''):'Dati del cliente già uguali');
+  var R=AS.doc; if(!R) return; var n=docCliente(R); AS.doc=null;
+  AS.cliRecente={c:copy(S.client),t:Date.now()};
+  if(String(S.client.name||'').trim()) saveClient(true);
+  syncFields(); try{ renderInvio(); }catch(e){} touch(); asRender();
+  var box=$('as-out'); if(box) box.innerHTML='<div class="as-ok">✓ Cliente inserito e salvato in rubrica: <b>'+esc(S.client.name||'')+'</b>'+(S.client.addr?' · '+esc(S.client.addr):'')+'. Ora puoi caricare il preventivo del fornitore o descrivere il lavoro: il cliente resta questo.</div>';
+  toast(n?'Cliente inserito: '+(S.client.name||''):'Dati del cliente già uguali');
 }
 (function(){
   var go=$('as-doc'); if(!go) return;

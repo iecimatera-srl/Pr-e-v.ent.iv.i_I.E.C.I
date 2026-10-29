@@ -1,7 +1,7 @@
 /* ===== Assistente: dal testo (scritto o dettato) al preventivo. Gratis, senza internet, nessun dato inviato =====
    Capisce anche richieste brevi («fv 6», «citofono 10», «8 cam»), errori di battitura, serie delle marche (Living Now, Plana…),
    comandi sul preventivo aperto («togli il quadro», «porta le prese a 20», «sconto 10%») e impara le parole che usi tu. */
-var AS={res:null, doc:null, docPrima:null, rec:null, ascolto:false, aperti:{}, lt:0, diz:null, dizK:'', fix:{}, tk:{}};
+var AS={res:null, doc:null, docPrima:null, cliRecente:null, rec:null, ascolto:false, aperti:{}, lt:0, diz:null, dizK:'', fix:{}, tk:{}};
 var AS_NUM={un:1,uno:1,una:1,due:2,tre:3,quattro:4,cinque:5,sei:6,sette:7,otto:8,nove:9,dieci:10,undici:11,dodici:12,tredici:13,quattordici:14,quindici:15,sedici:16,diciassette:17,diciotto:18,diciannove:19,venti:20,ventiquattro:24,trenta:30,quaranta:40,cinquanta:50,sessanta:60,settanta:70,ottanta:80,novanta:90,cento:100,mezzo:0.5,mezza:0.5};
 var AS_STOP=' di da del dello della dei degli delle con per il lo la i gli le un una uno e ed a ad in su tipo nuovo nuova nuovi nuove anche circa tutto tutta tutti tutte al alla alle ai agli nel nella nei nelle sul sulla sui ogni mio mia vorrei voglio serve servono fare metti mettere mettimi aggiungi aggiungere inserisci ancora altri altre altro altra preventivo impianto installazione fornitura posa ';
 // abbreviazioni e parole tronche di chi scrive di fretta

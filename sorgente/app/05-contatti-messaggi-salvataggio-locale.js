@@ -215,7 +215,9 @@ function lines(t){ return String(t||'').split('\n').map(function(x){return x.tri
 function activeLines(){ return S.lines.filter(function(l){return !l.off;}); }
 function lineTotal(l){ return r2(num(l.q)*num(l.p)*(1-num(l.s)/100)); }
 var toastT;
-function toast(msg){ var t=$('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(function(){t.hidden=true;},2600); }
+function toast(msg){ var t=$('toast'); t.classList.remove('az'); t.textContent=msg; t.hidden=false; clearTimeout(toastT); toastT=setTimeout(function(){t.hidden=true;},2600); }
+// avviso con un pulsante (es. «Annulla») che resta qualche secondo in più
+function toastAzione(msg,lab,fn){ var t=$('toast'); t.textContent=''; var sp=document.createElement('span'); sp.textContent=msg; var b=document.createElement('button'); b.type='button'; b.className='toast-b'; b.textContent=lab; b.onclick=function(){ t.hidden=true; clearTimeout(toastT); fn(); }; t.appendChild(sp); t.appendChild(b); t.hidden=false; t.classList.add('az'); clearTimeout(toastT); toastT=setTimeout(function(){ t.hidden=true; t.classList.remove('az'); },7000); }
 
 /* caselle di testo su una riga che vanno a capo (textarea.t1): sul telefono il testo lungo si legge tutto.
    Invio non va a capo; dove il browser non allarga da solo la casella (field-sizing) la adatto io. */

@@ -23,6 +23,16 @@ function saveClient(silent){
   DB.clients.sort(byName); dbSave(); renderArchivio();
   if(!silent) toast(ex?'Cliente aggiornato':'Cliente salvato in rubrica');
 }
+var RUB={sel:{},tolti:null};
+function clientQuotes(c){ var n=lc(c.name); return DB.quotes.filter(function(q){ return lc(q.client)===n; }).length; }
+function rubElimina(ids){
+  ids=ids.filter(function(id){ return DB.clients.some(function(c){ return c.id===id; }); }); if(!ids.length) return;
+  var tolti=DB.clients.filter(function(c){ return ids.indexOf(c.id)>-1; }), t=Date.now();
+  DB.clients=DB.clients.filter(function(c){ return ids.indexOf(c.id)<0; }); ids.forEach(function(id){ DB.del[id]=t; delete RUB.sel[id]; });
+  RUB.tolti=tolti; dbSave(); renderArchivio(); if(!$('k-list').hidden) kList(true);
+  toastAzione((tolti.length===1?'«'+tolti[0].name+'» eliminato':tolti.length+' clienti eliminati')+' dalla rubrica. I preventivi salvati restano.','Annulla',function(){
+    var r=RUB.tolti||[]; RUB.tolti=null; r.forEach(function(c){ delete DB.del[c.id]; if(!DB.clients.some(function(x){ return x.id===c.id; })) DB.clients.push(c); }); DB.clients.sort(byName); dbSave(); renderArchivio(); if(!$('k-list').hidden) kList(true); toast(r.length===1?'«'+r[0].name+'» rimesso in rubrica':r.length+' clienti rimessi in rubrica'); });
+}
 function useClient(id){
   var c=DB.clients.filter(function(x){ return x.id===id; })[0]; if(!c) return;
   S.client={name:c.name,addr:c.addr,tel:c.tel,email:c.email,cf:c.cf||''}; syncFields(); renderInvio(); touch(); toast('Cliente inserito: '+c.name);
@@ -116,11 +126,15 @@ function renderArchivio(){
     return '<div class="rowc"><div style="flex:1 1 200px;min-width:0"><b>'+esc(qName(q))+(cur?' <span class="hint">(aperto)</span>':'')+'</b> <button type="button" class="chip st-'+qSt(q)+'" data-qst="'+q.id+'" title="Tocca per cambiare stato">'+STL[qSt(q)]+'</button><div class="hint">n. '+esc(q.num)+' · '+esc(q.title)+' · '+esc(MODELS[q.model]?MODELS[q.model].short:'')+' · '+esc(dateIt(new Date(q.upd).toISOString().slice(0,10)))+' · '+eur(q.tot)+'</div></div>'+
       '<button type="button" class="btn sm" data-qo="'+q.id+'">Apri</button><button type="button" class="btn ghost sm" data-qc="'+q.id+'">Duplica</button><button type="button" class="btn x" data-qx="'+q.id+'" aria-label="Elimina">×</button></div>';
   }).join('')||'<div class="empty">'+(DB.quotes.length?'Nessun risultato.':'Nessun preventivo salvato. Premi «Salva preventivo».')+'</div>';
-  var C=DB.clients.filter(function(c){ return !fc||lc(c.name+' '+c.addr+' '+c.tel).indexOf(fc)>-1; });
-  $('c-list').innerHTML=C.map(function(c){
-    return '<div class="rowc"><div style="flex:1 1 200px;min-width:0"><b>'+esc(c.name)+'</b><div class="hint">'+esc([c.addr,c.tel,c.email].filter(Boolean).join(' · '))+'</div></div>'+
-      '<button type="button" class="btn sm" data-cu="'+c.id+'">Usa</button><button type="button" class="btn x" data-cx="'+c.id+'" aria-label="Elimina">×</button></div>';
-  }).join('')||'<div class="empty">'+(DB.clients.length?'Nessun risultato.':'Rubrica vuota. I clienti si salvano con il preventivo o col pulsante qui sopra.')+'</div>';
+  var C=DB.clients.filter(function(c){ return !fc||lc(c.name+' '+c.addr+' '+c.tel+' '+(c.email||'')+' '+(c.cf||'')).indexOf(fc)>-1; });
+  Object.keys(RUB.sel).forEach(function(id){ if(!DB.clients.some(function(c){ return c.id===id; })) delete RUB.sel[id]; });
+  var nsel=Object.keys(RUB.sel).length;
+  $('c-list').innerHTML=(DB.clients.length?'<div class="rubbar"><span>'+DB.clients.length+(DB.clients.length===1?' cliente':' clienti')+'</span><button type="button" class="btn ghost sm" data-csz>Seleziona chi non ha preventivi</button>'+(C.length?'<button type="button" class="btn ghost sm" data-csa>'+(nsel&&C.every(function(c){ return RUB.sel[c.id]; })?'Togli la selezione':'Seleziona tutti'+(fc?' quelli trovati':''))+'</button>':'')+'</div>':'')+
+    (nsel?'<div class="rubdel"><b>'+nsel+(nsel===1?' cliente selezionato':' clienti selezionati')+'</b><button type="button" class="btn sm rubx" data-cxs>Elimina dalla rubrica</button><button type="button" class="btn ghost sm" data-csn>Annulla</button></div>':'')+
+    (C.map(function(c){ var nq=clientQuotes(c);
+    return '<div class="rowc rubr'+(RUB.sel[c.id]?' sel':'')+'"><label class="chk rubck" aria-label="Seleziona '+esc(c.name)+'"><input type="checkbox" data-csel="'+c.id+'"'+(RUB.sel[c.id]?' checked':'')+'></label><div style="flex:1 1 180px;min-width:0"><b>'+esc(c.name)+'</b><div class="hint">'+esc([c.addr,c.tel,c.email,c.cf].filter(Boolean).join(' · '))+'</div><div class="hint">'+(nq?nq+(nq===1?' preventivo':' preventivi')+' in archivio':'nessun preventivo in archivio')+'</div></div>'+
+      '<button type="button" class="btn sm" data-cu="'+c.id+'">Usa</button><button type="button" class="btn ghost sm rubx" data-cx="'+c.id+'" aria-label="Elimina '+esc(c.name)+'">Elimina</button></div>';
+  }).join('')||'<div class="empty">'+(DB.clients.length?'Nessun risultato.':'Rubrica vuota. I clienti si salvano con il preventivo o col pulsante qui sopra.')+'</div>');
   var P=DB.prods.filter(function(p){ return !fl||lc(p.name+' '+p.brand+' '+p.code).indexOf(fl)>-1; });
   $('l-list').innerHTML=P.map(function(p){
     return '<div class="rowc"><div style="flex:1 1 200px;min-width:0"><b>'+esc(p.name)+'</b><div class="hint">'+esc([p.brand,p.code].filter(Boolean).join(' · '))+((p.photos||[]).length?' · '+p.photos.length+' foto':'')+(p.pdf?' · PDF':'')+'</div></div>'+
@@ -136,11 +150,16 @@ function archClick(e){
   if((b=t.closest('[data-qc]'))) return openQuote(b.getAttribute('data-qc'),true);
   if((b=t.closest('[data-qx]'))){ var id=b.getAttribute('data-qx'); return delTwice('q'+id,function(){ DB.del[id]=Date.now(); DB.quotes=DB.quotes.filter(function(q){ return q.id!==id; }); if(S.qid===id){ S.qid=''; save(); } dbSave(); renderArchivio(); toast('Preventivo eliminato dall\'archivio'); },b); }
   if((b=t.closest('[data-cu]'))) return useClient(b.getAttribute('data-cu'));
-  if((b=t.closest('[data-cx]'))){ var cid=b.getAttribute('data-cx'); return delTwice('c'+cid,function(){ DB.del[cid]=Date.now(); DB.clients=DB.clients.filter(function(c){ return c.id!==cid; }); dbSave(); renderArchivio(); },b); }
+  if((b=t.closest('[data-cx]'))){ var cid=b.getAttribute('data-cx'); return delTwice('c'+cid,function(){ rubElimina([cid]); },b); }
+  if((b=t.closest('[data-cxs]'))) return rubElimina(Object.keys(RUB.sel));
+  if((b=t.closest('[data-csn]'))){ RUB.sel={}; return renderArchivio(); }
+  if((b=t.closest('[data-csa]'))){ var fc=lc($('c-search').value), vis=DB.clients.filter(function(c){ return !fc||lc(c.name+' '+c.addr+' '+c.tel+' '+(c.email||'')+' '+(c.cf||'')).indexOf(fc)>-1; }), tutti=vis.length&&vis.every(function(c){ return RUB.sel[c.id]; }); vis.forEach(function(c){ if(tutti) delete RUB.sel[c.id]; else RUB.sel[c.id]=1; }); return renderArchivio(); }
+  if((b=t.closest('[data-csz]'))){ RUB.sel={}; DB.clients.forEach(function(c){ if(!clientQuotes(c)) RUB.sel[c.id]=1; }); renderArchivio(); var n=Object.keys(RUB.sel).length; toast(n?n+(n===1?' cliente senza preventivi selezionato':' clienti senza preventivi selezionati'):'Tutti i clienti hanno almeno un preventivo'); return; }
   if((b=t.closest('[data-lu]'))) return useProd(b.getAttribute('data-lu'));
   if((b=t.closest('[data-lx]'))){ var lid=b.getAttribute('data-lx'); return delTwice('l'+lid,function(){ DB.del[lid]=Date.now(); DB.prods=DB.prods.filter(function(p){ return p.id!==lid; }); dbSave(); renderArchivio(); },b); }
 }
 $('arch').addEventListener('click',archClick);
+$('arch').addEventListener('change',function(e){ var id=e.target.getAttribute&&e.target.getAttribute('data-csel'); if(id==null) return; if(e.target.checked) RUB.sel[id]=1; else delete RUB.sel[id]; renderArchivio(); });
 $('acc-save').addEventListener('click',archClick);
 ['q-search','c-search','l-search'].forEach(function(id){ $(id).addEventListener('input',renderArchivio); });
 $('q-save').addEventListener('click',function(){ saveQuote(false); });
@@ -150,13 +169,13 @@ $('l-saveall').addEventListener('click',function(){ var n=0; S.products.forEach(
 $('lib-pick').addEventListener('change',function(e){ if(e.target.value) useProd(e.target.value); e.target.value=''; });
 $('k-name').addEventListener('change',function(e){
   var c=DB.clients.filter(function(x){ return lc(x.name)===lc(e.target.value); })[0];
-  if(c&&(!S.client.addr||confirm_fill())){ S.client={name:c.name,addr:c.addr,tel:c.tel,email:c.email}; syncFields(); renderInvio(); touch(); toast('Dati cliente inseriti dalla rubrica'); }
+  if(c&&(!S.client.addr||confirm_fill())){ S.client={name:c.name,addr:c.addr,tel:c.tel,email:c.email,cf:c.cf||''}; syncFields(); renderInvio(); touch(); toast('Dati cliente inseriti dalla rubrica'); }
 });
 function confirm_fill(){ return true; }
 function kList(all){
   var el=$('k-list'), q=all?'':lc($('k-name').value.trim());
   var list=DB.clients.filter(function(c){ return !q||lc(c.name+' '+(c.addr||'')+' '+(c.tel||'')).indexOf(q)>-1; });
-  el.innerHTML=list.length?list.map(function(c){ return '<button type="button" class="clit" role="option" data-cid="'+esc(c.id)+'"><b>'+esc(c.name)+'</b><small>'+esc([c.addr,c.tel].filter(Boolean).join(' · '))+'</small></button>'; }).join(''):
+  el.innerHTML=list.length?list.map(function(c){ return '<div class="clrow"><button type="button" class="clit" role="option" data-cid="'+esc(c.id)+'"><b>'+esc(c.name)+'</b><small>'+esc([c.addr,c.tel].filter(Boolean).join(' · '))+'</small></button><button type="button" class="clx" data-kdel="'+esc(c.id)+'" aria-label="Elimina '+esc(c.name)+' dalla rubrica" title="Elimina dalla rubrica">'+(KDEL===c.id?'Elimina?':'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>')+'</button></div>'; }).join('')+'<button type="button" class="clmore" data-kgest>Gestisci la rubrica (elimina più clienti insieme) ›</button>':
     '<div class="clempty">'+(DB.clients.length?'Nessun cliente corrisponde. Continua a scrivere per creare un cliente nuovo.':'La rubrica è vuota. Compila i dati del cliente e premi «Salva in rubrica».')+'</div>';
   el.hidden=false; $('k-open').setAttribute('aria-expanded','true');
 }
@@ -165,7 +184,12 @@ $('k-open').addEventListener('click',function(e){ e.stopPropagation(); if($('k-l
 $('k-name').addEventListener('focus',function(){ kList(true); });
 $('k-name').addEventListener('input',function(){ kList(false); });
 $('k-name').addEventListener('keydown',function(e){ if(e.key==='Escape') kClose(); });
-$('k-list').addEventListener('click',function(e){ var b=e.target.closest('[data-cid]'); if(!b) return; useClient(b.getAttribute('data-cid')); kClose(); });
+var KDEL='', KDT=0;
+$('k-list').addEventListener('click',function(e){
+  var d=e.target.closest('[data-kdel]');
+  if(d){ e.stopPropagation(); var id=d.getAttribute('data-kdel'); if(KDEL===id){ KDEL=''; clearTimeout(KDT); rubElimina([id]); } else { KDEL=id; clearTimeout(KDT); KDT=setTimeout(function(){ KDEL=''; if(!$('k-list').hidden) kList(true); },3500); kList(true); } return; }
+  if(e.target.closest('[data-kgest]')){ kClose(); showPanel('archivio'); renderArchivio(); setTimeout(function(){ var l=$('c-list'); if(l) l.scrollIntoView({behavior:'smooth',block:'start'}); },80); return; }
+  var b=e.target.closest('[data-cid]'); if(!b) return; useClient(b.getAttribute('data-cid')); kClose(); });
 $('k-save').addEventListener('click',function(){ saveClient(false); });
 document.addEventListener('click',function(e){ if(!$('k-list').hidden&&!e.target.closest('.cpk')) kClose(); });
 $('lines-to-cat').addEventListener('click',function(){

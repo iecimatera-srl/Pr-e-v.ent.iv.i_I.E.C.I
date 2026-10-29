@@ -124,3 +124,13 @@ textarea.t1.as-dr-d{min-height:0}
 #acc-as .chk input[type=checkbox]{width:22px;height:22px;flex:none}
 .as-righe.no-im .as-dr{grid-template-columns:auto 1fr}.as-righe.no-im .as-dr-im{display:none}
 @media (max-width:520px){.as-righe.no-im .as-dr{grid-template-columns:auto 1fr}}
+/* rubrica clienti: elimina uno o più clienti, con «Annulla» */
+.clrow{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}.clrow .clit{border-bottom:0;flex:1;min-width:0}
+.clx{flex:none;min-width:48px;border:0;border-left:1px solid var(--line);background:transparent;color:var(--danger);cursor:pointer;font:inherit;font-size:.8rem;font-weight:700;padding:0 10px;display:grid;place-items:center}.clx:hover,.clx:focus{background:color-mix(in srgb,var(--danger) 10%,var(--surface))}
+.clmore{display:block;width:100%;text-align:left;border:0;background:var(--field);color:var(--link);font:inherit;font-size:.85rem;font-weight:600;padding:10px 12px;cursor:pointer}
+.rubbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:4px 0 8px}.rubbar span{color:var(--muted);font-size:.85rem;margin-right:auto}
+.rubdel{position:sticky;top:120px;z-index:4;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;margin-bottom:8px;border-radius:12px;background:color-mix(in srgb,var(--danger) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--danger) 35%,var(--line))}.rubdel b{margin-right:auto}
+.rubdel .rubx{background:var(--danger);border-color:var(--danger);color:#fff}
+.rubr .rubck{padding:0 4px 0 0}.rubr .rubck input{width:22px;height:22px}.rubr.sel{outline:2px solid color-mix(in srgb,var(--danger) 45%,transparent);outline-offset:-2px;border-radius:10px}
+.rowc .rubx{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 35%,var(--line))}
+.toast.az{display:flex;align-items:center;gap:12px;padding:10px 10px 10px 16px;max-width:calc(100vw - 24px);z-index:60}.toast-b{flex:none;border:0;border-radius:8px;background:var(--brand);color:#fff;font:inherit;font-weight:800;padding:8px 12px;cursor:pointer}

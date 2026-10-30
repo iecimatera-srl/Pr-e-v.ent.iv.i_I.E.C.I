@@ -174,6 +174,9 @@ header.top h1 .an2{font-weight:700}
 .sh-st.ok{background:#E3F6EA;color:#157A43}.sh-st.err{background:#FDE9E7;color:#A3281F}
 .sh-b{display:grid;gap:8px}
 .sh-b .btn{min-height:52px;font-size:1rem}
+.sh-dopo{display:grid;gap:8px;padding:12px;border-radius:12px;background:#E3F6EA;color:#14532D;border:1px solid #9AD8B1}
+.sh-dopo p{margin:0;font-size:.9rem}.sh-dopo small{font-size:.8rem;opacity:.85}.sh-dopo small.ok{font-weight:700;opacity:1}
+.sh-dopo .btn{min-height:52px;font-size:1rem;text-decoration:none;color:#fff;justify-content:center;text-align:center}
 .sh-wa{background:#1FA855;border-color:#1FA855}.sh-ml{background:var(--brand)}
 .sh-b .btn:disabled{opacity:.45;cursor:default;filter:none}
 @media print{

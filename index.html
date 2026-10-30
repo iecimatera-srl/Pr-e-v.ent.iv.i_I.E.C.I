@@ -503,6 +503,9 @@ header.top h1 .an2{font-weight:700}
 .sh-st.ok{background:#E3F6EA;color:#157A43}.sh-st.err{background:#FDE9E7;color:#A3281F}
 .sh-b{display:grid;gap:8px}
 .sh-b .btn{min-height:52px;font-size:1rem}
+.sh-dopo{display:grid;gap:8px;padding:12px;border-radius:12px;background:#E3F6EA;color:#14532D;border:1px solid #9AD8B1}
+.sh-dopo p{margin:0;font-size:.9rem}.sh-dopo small{font-size:.8rem;opacity:.85}.sh-dopo small.ok{font-weight:700;opacity:1}
+.sh-dopo .btn{min-height:52px;font-size:1rem;text-decoration:none;color:#fff;justify-content:center;text-align:center}
 .sh-wa{background:#1FA855;border-color:#1FA855}.sh-ml{background:var(--brand)}
 .sh-b .btn:disabled{opacity:.45;cursor:default;filter:none}
 @media print{
@@ -1553,8 +1556,15 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
     <button class="btn sh-ml" id="sh-ml" type="button" disabled>Email</button>
     <button class="btn ghost" id="sh-dl" type="button" disabled>Salva file PDF</button>
   </div>
+  <div class="sh-dopo" id="sh-dopo" hidden>
+    <b>✓ PDF inviato · ora il messaggio</b>
+    <p>WhatsApp spesso non mette il testo insieme ai PDF. Tocca qui sotto: si apre la chat con il messaggio già scritto, poi premi invia.</p>
+    <a class="btn sh-wa" id="sh-wa2" target="_blank" rel="noopener">Invia il messaggio</a>
+    <small>Il messaggio è anche negli appunti: se preferisci, incollalo come didascalia del PDF.</small>
+    <small class="ok" id="sh-dopo-ok" hidden>✓ Chat aperta con il messaggio</small>
+  </div>
   <details class="sv"><summary>Solo testo, senza PDF</summary><div class="row" style="margin-top:8px"><a class="btn ghost sm" id="sh-wat" target="_blank" rel="noopener">Messaggio WhatsApp al cliente</a><a class="btn ghost sm" id="sh-mlt" target="_blank" rel="noopener">Email al cliente</a><button class="btn ghost sm" id="sh-cp" type="button">Copia messaggio</button></div></details>
-  <p class="hint">Su telefono si apre il menu di condivisione: scegli WhatsApp o Gmail e il contatto. Con WhatsApp basta un solo tocco: il PDF parte con il tuo messaggio come didascalia (su iPhone il messaggio è già copiato: incollalo nella didascalia). I testi predefiniti li gestisci in «Messaggi di invio».</p>
+  <p class="hint">Su telefono si apre il menu di condivisione: scegli WhatsApp o Gmail e il contatto. Con WhatsApp parte il PDF; subito dopo qui compare «Invia il messaggio», che apre la chat del cliente con il testo già scritto (il testo è anche negli appunti). I testi predefiniti li gestisci in «Messaggi di invio».</p>
 </div></div>
 <div class="toast" id="toast" hidden></div>
 
@@ -1584,7 +1594,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
 <script type="text/plain" id="pdfjs-wk" data-src="lib-pdfjs-worker.txt"></script>
 <script>
 var CAN_PRINT = true;
-var APP_VER = '2026.10.29.7';
+var APP_VER = '2026.10.30.1';
 (function(){
 'use strict';
 
@@ -3131,15 +3141,28 @@ function shSend(kind){
   var ok=navigator.canShare&&navigator.share; try{ ok=ok&&navigator.canShare(data); }catch(e){ ok=false; }
   if(!ok&&data.text&&navigator.canShare&&navigator.share){ try{ if(navigator.canShare({files:[f]})){ delete data.text; ios=true; ok=true; } }catch(e){} }
   if(ok){
-    if(ios) copySilent(msg);
-    navigator.share(data).then(function(){ markSent(); toast(ios?(kind==='wa'?'PDF inviato · il messaggio è negli appunti: incollalo come didascalia':'PDF condiviso · il testo è negli appunti: incollalo nell\'email'):(kind==='wa'?'PDF e messaggio inviati insieme':'PDF e testo condivisi')); })
+    // WhatsApp spesso scarta il testo quando riceve un PDF: il messaggio va sempre anche negli appunti
+    // e, dopo l'invio del PDF, un tocco lo manda direttamente nella chat del cliente
+    if(ios||kind==='wa') copySilent(msg);
+    navigator.share(data).then(function(){ markSent();
+      if(kind==='wa'){ shDopo(msg); toast('PDF inviato · ora tocca «Invia il messaggio» (è anche negli appunti)'); }
+      else toast(ios?'PDF condiviso · il testo è negli appunti: incollalo nell\'email':'PDF e testo condivisi'); })
     .catch(function(e){ if(e&&e.name==='AbortError') return; fallback(); });
   } else fallback();
+}
+// passo 2 dopo il PDF: il messaggio nella chat del cliente, già scritto
+function shDopo(msg){
+  var el=$('sh-dopo'); if(!el) return; var d=waDigits(S.client.tel), nm=String(S.client.name||'').trim(), a=$('sh-wa2');
+  a.href='https://wa.me/'+d+'?text='+encodeURIComponent(msg);
+  a.textContent=d?'Invia il messaggio'+(nm?' a '+nm:' al cliente'):'Invia il messaggio (scegli il contatto)';
+  $('sh-dopo-ok').hidden=true; el.hidden=false;
+  try{ el.scrollIntoView({block:'nearest'}); }catch(e){}
 }
 function openShare(){
   if(S.qid===''&&dbReady&&(String(S.client.name||'').trim()||S.lines.length)) saveQuote(true);
   $('sh-doc').textContent=quoteName()+' · '+headTotal();
   var np=pdfProducts().length; $('sh-att-w').hidden=!np; $('sh-att').checked=np>0;
+  if($('sh-dopo')) $('sh-dopo').hidden=true;
   $('sh-bg').hidden=false; shMsgFill(); shLinks(); ckShare(); document.body.style.overflow='hidden';
   setTimeout(shPrepare,50);
 }
@@ -3150,6 +3173,7 @@ $('sh-bg').addEventListener('click',function(e){ if(e.target===$('sh-bg')) close
 document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!$('sh-bg').hidden) closeShare(); });
 $('sh-att').addEventListener('change',shPrepare);
 $('sh-wa').addEventListener('click',function(){ shSend('wa'); });
+$('sh-wa2').addEventListener('click',function(){ $('sh-dopo-ok').hidden=false; });
 $('sh-ml').addEventListener('click',function(){ shSend('ml'); });
 $('sh-dl').addEventListener('click',function(){ if(pdfCache){ dlBlob(pdfCache.blob,fileBase()+'.pdf'); markSent(); toast('PDF salvato'); } });
 $('sh-cp').addEventListener('click',function(){ copyText(shTxt(),'Messaggio copiato'); });
@@ -6482,7 +6506,7 @@ function prVoci(){
   PR_AMBITI.forEach(function(a){ a.g.forEach(function(g){ g[1].forEach(function(s,j){ var x=s.split('|'); PR_V.push({id:a.k+'.'+PR_V.length,a:a,amb:a.k,m:a.m.split(','),g:g[0],d:x[0],u:x[1],p:num(x[2]),sin:x[3]||''}); }); }); });
   return PR_V;
 }
-function prTok(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/(\d),(\d)/g,'$1.$2').split(/[^a-z0-9.²]+/).filter(function(w){ return w&&w.length>1&&!/^(di|da|del|della|con|per|il|la|lo|le|gli|un|una|in|su|a|e)$/.test(w); }).map(function(w){ return /^\d/.test(w)?w:w.replace(/[aeiou]+$/,'').slice(0,8); }); }
+function prTok(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/(\d),(\d)/g,'$1.$2').split(/[^a-z0-9.²]+/).filter(function(w){ return w&&w.length>1&&!/^(di|da|del|della|con|per|il|la|lo|le|gli|un|una|in|su|a|e)$/.test(w); }).map(function(w){ return /^\d/.test(w)?w:w.replace(/[aeiou]+$/,'').slice(0,8); }); }
 // cerca nel prontuario: nome e sinonimi; preferisce gli ambiti del preventivo aperto
 function prCerca(q,model,max){
   var ft=prTok(q); if(!ft.length) return [];
@@ -6531,7 +6555,7 @@ function maVoci(){
   MA_V=MA_ELENCO.map(function(s){ var x=s.split('|'); return {n:x[0],a:x[1].split(','),sito:x[2]||'',serie:(x[3]||'').split(',').map(function(t){ return t.trim(); }).filter(Boolean)}; });
   return MA_V;
 }
-function maTrova(nome){ var k=String(nome||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,''), r=null; if(k.length<2) return null; maVoci().forEach(function(m){ if(!r&&m.n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'')===k) r=m; }); return r; }
+function maTrova(nome){ var k=String(nome||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''), r=null; if(k.length<2) return null; maVoci().forEach(function(m){ if(!r&&m.n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'')===k) r=m; }); return r; }
 
 /* ---------- prontuario nell'interfaccia ---------- */
 // cercando nel listino del preventivo compaiono anche le voci del prontuario
@@ -7191,7 +7215,7 @@ var IW_CO=/aziend|impres|societ|produtt|fabbric|multinazional|marchi|marca|grupp
 
 function iwMode(){ return APP.webimg||'auto'; }
 function iwNet(){ return iwMode()!=='off'&&navigator.onLine!==false; }
-function iwK(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,''); }
+function iwK(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
 function iwQs(o){ return Object.keys(o).map(function(k){ return k+'='+encodeURIComponent(o[k]); }).join('&'); }
 function iwTo(p,ms){ return new Promise(function(ok,ko){ var t=setTimeout(function(){ ko(new Error('tempo scaduto')); },ms||12000); p.then(function(v){ clearTimeout(t); ok(v); },function(e){ clearTimeout(t); ko(e); }); }); }
 function iwGet(u){ return iwTo(fetch(u,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer'}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })); }
@@ -7248,7 +7272,7 @@ function iwOv(q){
       return {thumb:r.thumbnail||r.url,full:r.url||r.thumbnail,alt:r.thumbnail||'',title:String(r.title||'').slice(0,80),lic:l==='cc0'?'CC0':l==='pdm'?'Pubblico dominio':'CC '+l.toUpperCase()+(r.license_version?' '+r.license_version:''),by:String(r.creator||'').slice(0,60),page:r.foreign_landing_url||'',src:'Openverse'}; });
   });
 }
-function iwToks(q){ return String(q||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/[^a-z0-9]+/).filter(function(w){ return w.length>=2&&!/^(di|da|il|lo|la|le|con|per|ed|in|un|una)$/.test(w); }); }
+function iwToks(q){ return String(q||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(/[^a-z0-9]+/).filter(function(w){ return w.length>=2&&!/^(di|da|il|lo|la|le|con|per|ed|in|un|una)$/.test(w); }); }
 // prima di tutto: quello che hai già (loghi salvati, marchi, libreria prodotti, articoli dei fornitori)
 function iwMine(q,kind,self){
   var tk=iwToks(q), out=[], seen={}; if(!tk.length) return out;
@@ -7664,7 +7688,7 @@ function maTutti(){
       dati, il testo viene scartato. Tutto resta sul telefono. */
 var PC={q:[], run:false, res:{}, t:0, ia:null, iaTipo:'', iaStato:'', iaProg:0};
 function pcMode(){ return APP.pcomp||'auto'; }
-function pcN(s){ return ' '+String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/(\d),(\d)/g,'$1.$2').replace(/\s+/g,' ')+' '; }
+function pcN(s){ return ' '+String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/(\d),(\d)/g,'$1.$2').replace(/\s+/g,' ')+' '; }
 function pcNum(x){ return String(x).replace('.',','); }
 // tipi di prodotto: [riconoscimento, nome leggibile, frase d'uso sempre vera per quel tipo]
 var PC_TIPI=[
@@ -8263,7 +8287,7 @@ function clCfRipara(x){
   return '';
 }
 function clPivaOk(p){ p=String(p||'').replace(/\D/g,''); if(!/^\d{11}$/.test(p)||/^0{11}$/.test(p)) return false; var s=0; for(var i=0;i<10;i++){ var d=+p[i]; if(i%2){ d*=2; if(d>9) d-=9; } s+=d; } return (10-s%10)%10===+p[10]; }
-function clLett(s){ return String(s||'').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z]/g,''); }
+function clLett(s){ return String(s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z]/g,''); }
 function clCfCog(s){ s=clLett(s); var c=s.replace(/[AEIOU]/g,''), v=s.replace(/[^AEIOU]/g,''); return (c+v+'XXX').slice(0,3); }
 function clCfNom(s){ s=clLett(s); var c=s.replace(/[AEIOU]/g,''), v=s.replace(/[^AEIOU]/g,''); if(c.length>=4) return c[0]+c[2]+c[3]; return (c+v+'XXX').slice(0,3); }
 // il codice fiscale conferma il nome e dice se è scritto «Cognome Nome» o «Nome Cognome»

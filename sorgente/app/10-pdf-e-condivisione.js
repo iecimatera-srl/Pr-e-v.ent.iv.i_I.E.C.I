@@ -96,15 +96,28 @@ function shSend(kind){
   var ok=navigator.canShare&&navigator.share; try{ ok=ok&&navigator.canShare(data); }catch(e){ ok=false; }
   if(!ok&&data.text&&navigator.canShare&&navigator.share){ try{ if(navigator.canShare({files:[f]})){ delete data.text; ios=true; ok=true; } }catch(e){} }
   if(ok){
-    if(ios) copySilent(msg);
-    navigator.share(data).then(function(){ markSent(); toast(ios?(kind==='wa'?'PDF inviato · il messaggio è negli appunti: incollalo come didascalia':'PDF condiviso · il testo è negli appunti: incollalo nell\'email'):(kind==='wa'?'PDF e messaggio inviati insieme':'PDF e testo condivisi')); })
+    // WhatsApp spesso scarta il testo quando riceve un PDF: il messaggio va sempre anche negli appunti
+    // e, dopo l'invio del PDF, un tocco lo manda direttamente nella chat del cliente
+    if(ios||kind==='wa') copySilent(msg);
+    navigator.share(data).then(function(){ markSent();
+      if(kind==='wa'){ shDopo(msg); toast('PDF inviato · ora tocca «Invia il messaggio» (è anche negli appunti)'); }
+      else toast(ios?'PDF condiviso · il testo è negli appunti: incollalo nell\'email':'PDF e testo condivisi'); })
     .catch(function(e){ if(e&&e.name==='AbortError') return; fallback(); });
   } else fallback();
+}
+// passo 2 dopo il PDF: il messaggio nella chat del cliente, già scritto
+function shDopo(msg){
+  var el=$('sh-dopo'); if(!el) return; var d=waDigits(S.client.tel), nm=String(S.client.name||'').trim(), a=$('sh-wa2');
+  a.href='https://wa.me/'+d+'?text='+encodeURIComponent(msg);
+  a.textContent=d?'Invia il messaggio'+(nm?' a '+nm:' al cliente'):'Invia il messaggio (scegli il contatto)';
+  $('sh-dopo-ok').hidden=true; el.hidden=false;
+  try{ el.scrollIntoView({block:'nearest'}); }catch(e){}
 }
 function openShare(){
   if(S.qid===''&&dbReady&&(String(S.client.name||'').trim()||S.lines.length)) saveQuote(true);
   $('sh-doc').textContent=quoteName()+' · '+headTotal();
   var np=pdfProducts().length; $('sh-att-w').hidden=!np; $('sh-att').checked=np>0;
+  if($('sh-dopo')) $('sh-dopo').hidden=true;
   $('sh-bg').hidden=false; shMsgFill(); shLinks(); ckShare(); document.body.style.overflow='hidden';
   setTimeout(shPrepare,50);
 }
@@ -115,6 +128,7 @@ $('sh-bg').addEventListener('click',function(e){ if(e.target===$('sh-bg')) close
 document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!$('sh-bg').hidden) closeShare(); });
 $('sh-att').addEventListener('change',shPrepare);
 $('sh-wa').addEventListener('click',function(){ shSend('wa'); });
+$('sh-wa2').addEventListener('click',function(){ $('sh-dopo-ok').hidden=false; });
 $('sh-ml').addEventListener('click',function(){ shSend('ml'); });
 $('sh-dl').addEventListener('click',function(){ if(pdfCache){ dlBlob(pdfCache.blob,fileBase()+'.pdf'); markSent(); toast('PDF salvato'); } });
 $('sh-cp').addEventListener('click',function(){ copyText(shTxt(),'Messaggio copiato'); });

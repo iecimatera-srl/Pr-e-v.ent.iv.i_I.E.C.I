@@ -79,7 +79,7 @@ function prVoci(){
   PR_AMBITI.forEach(function(a){ a.g.forEach(function(g){ g[1].forEach(function(s,j){ var x=s.split('|'); PR_V.push({id:a.k+'.'+PR_V.length,a:a,amb:a.k,m:a.m.split(','),g:g[0],d:x[0],u:x[1],p:num(x[2]),sin:x[3]||''}); }); }); });
   return PR_V;
 }
-function prTok(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/(\d),(\d)/g,'$1.$2').split(/[^a-z0-9.²]+/).filter(function(w){ return w&&w.length>1&&!/^(di|da|del|della|con|per|il|la|lo|le|gli|un|una|in|su|a|e)$/.test(w); }).map(function(w){ return /^\d/.test(w)?w:w.replace(/[aeiou]+$/,'').slice(0,8); }); }
+function prTok(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/(\d),(\d)/g,'$1.$2').split(/[^a-z0-9.²]+/).filter(function(w){ return w&&w.length>1&&!/^(di|da|del|della|con|per|il|la|lo|le|gli|un|una|in|su|a|e)$/.test(w); }).map(function(w){ return /^\d/.test(w)?w:w.replace(/[aeiou]+$/,'').slice(0,8); }); }
 // cerca nel prontuario: nome e sinonimi; preferisce gli ambiti del preventivo aperto
 function prCerca(q,model,max){
   var ft=prTok(q); if(!ft.length) return [];
@@ -128,7 +128,7 @@ function maVoci(){
   MA_V=MA_ELENCO.map(function(s){ var x=s.split('|'); return {n:x[0],a:x[1].split(','),sito:x[2]||'',serie:(x[3]||'').split(',').map(function(t){ return t.trim(); }).filter(Boolean)}; });
   return MA_V;
 }
-function maTrova(nome){ var k=String(nome||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,''), r=null; if(k.length<2) return null; maVoci().forEach(function(m){ if(!r&&m.n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,'')===k) r=m; }); return r; }
+function maTrova(nome){ var k=String(nome||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''), r=null; if(k.length<2) return null; maVoci().forEach(function(m){ if(!r&&m.n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'')===k) r=m; }); return r; }
 
 /* ---------- prontuario nell'interfaccia ---------- */
 // cercando nel listino del preventivo compaiono anche le voci del prontuario

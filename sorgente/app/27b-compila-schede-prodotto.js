@@ -9,7 +9,7 @@
       dati, il testo viene scartato. Tutto resta sul telefono. */
 var PC={q:[], run:false, res:{}, t:0, ia:null, iaTipo:'', iaStato:'', iaProg:0};
 function pcMode(){ return APP.pcomp||'auto'; }
-function pcN(s){ return ' '+String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/(\d),(\d)/g,'$1.$2').replace(/\s+/g,' ')+' '; }
+function pcN(s){ return ' '+String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/(\d),(\d)/g,'$1.$2').replace(/\s+/g,' ')+' '; }
 function pcNum(x){ return String(x).replace('.',','); }
 // tipi di prodotto: [riconoscimento, nome leggibile, frase d'uso sempre vera per quel tipo]
 var PC_TIPI=[

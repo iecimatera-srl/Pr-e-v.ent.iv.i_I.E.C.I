@@ -255,7 +255,7 @@ function clCfRipara(x){
   return '';
 }
 function clPivaOk(p){ p=String(p||'').replace(/\D/g,''); if(!/^\d{11}$/.test(p)||/^0{11}$/.test(p)) return false; var s=0; for(var i=0;i<10;i++){ var d=+p[i]; if(i%2){ d*=2; if(d>9) d-=9; } s+=d; } return (10-s%10)%10===+p[10]; }
-function clLett(s){ return String(s||'').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^A-Z]/g,''); }
+function clLett(s){ return String(s||'').toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^A-Z]/g,''); }
 function clCfCog(s){ s=clLett(s); var c=s.replace(/[AEIOU]/g,''), v=s.replace(/[^AEIOU]/g,''); return (c+v+'XXX').slice(0,3); }
 function clCfNom(s){ s=clLett(s); var c=s.replace(/[AEIOU]/g,''), v=s.replace(/[^AEIOU]/g,''); if(c.length>=4) return c[0]+c[2]+c[3]; return (c+v+'XXX').slice(0,3); }
 // il codice fiscale conferma il nome e dice se è scritto «Cognome Nome» o «Nome Cognome»

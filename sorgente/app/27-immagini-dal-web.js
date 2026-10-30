@@ -8,7 +8,7 @@ var IW_CO=/aziend|impres|societ|produtt|fabbric|multinazional|marchi|marca|grupp
 
 function iwMode(){ return APP.webimg||'auto'; }
 function iwNet(){ return iwMode()!=='off'&&navigator.onLine!==false; }
-function iwK(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,''); }
+function iwK(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,''); }
 function iwQs(o){ return Object.keys(o).map(function(k){ return k+'='+encodeURIComponent(o[k]); }).join('&'); }
 function iwTo(p,ms){ return new Promise(function(ok,ko){ var t=setTimeout(function(){ ko(new Error('tempo scaduto')); },ms||12000); p.then(function(v){ clearTimeout(t); ok(v); },function(e){ clearTimeout(t); ko(e); }); }); }
 function iwGet(u){ return iwTo(fetch(u,{mode:'cors',credentials:'omit',referrerPolicy:'no-referrer'}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); })); }
@@ -65,7 +65,7 @@ function iwOv(q){
       return {thumb:r.thumbnail||r.url,full:r.url||r.thumbnail,alt:r.thumbnail||'',title:String(r.title||'').slice(0,80),lic:l==='cc0'?'CC0':l==='pdm'?'Pubblico dominio':'CC '+l.toUpperCase()+(r.license_version?' '+r.license_version:''),by:String(r.creator||'').slice(0,60),page:r.foreign_landing_url||'',src:'Openverse'}; });
   });
 }
-function iwToks(q){ return String(q||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').split(/[^a-z0-9]+/).filter(function(w){ return w.length>=2&&!/^(di|da|il|lo|la|le|con|per|ed|in|un|una)$/.test(w); }); }
+function iwToks(q){ return String(q||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').split(/[^a-z0-9]+/).filter(function(w){ return w.length>=2&&!/^(di|da|il|lo|la|le|con|per|ed|in|un|una)$/.test(w); }); }
 // prima di tutto: quello che hai già (loghi salvati, marchi, libreria prodotti, articoli dei fornitori)
 function iwMine(q,kind,self){
   var tk=iwToks(q), out=[], seen={}; if(!tk.length) return out;

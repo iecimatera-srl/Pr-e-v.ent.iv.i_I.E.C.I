@@ -244,9 +244,10 @@ try{ if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventLi
 COLL.app=COLL.dom; CRONO_DEF.app=CRONO_DEF.dom; MARKT.app=MARKT.dom;
 showPanel('prev');
 // un solo disegno all'avvio, con i dati veri: prima si legge il preventivo salvato, poi si disegna (al massimo si aspetta 600 ms)
-// con il PIN attivo il disegno dell'app aspetta lo sblocco: il tastierino resta pronto a ogni tocco
+// con il PIN attivo l'app si prepara dietro il tastierino (che ha il suo motore e risponde comunque):
+// allo sblocco è già pronta, manca solo il fascicolo, che si disegna subito dopo
 var avviato=false, avvioInAttesa=false;
-function avvia(){ if(avviato) return; if(document.documentElement.classList.contains('locked')&&LK.on){ avvioInAttesa=true; return; } avviato=true; avvioInAttesa=false; renderAll(); apInit(); apApply(); apRefresh(); }
+function avvia(){ if(avviato) return; var PPd=window.PINPAD; if(PPd&&PPd.locked&&PPd.typing()){ clearTimeout(tAvvio); tAvvio=setTimeout(avvia,120); return; } avviato=true; avvioInAttesa=false; renderAll(); apInit(); apApply(); apRefresh(); }
 var tAvvio=setTimeout(avvia,600);
 idbOpen(function(ok){
   if(!ok){ clearTimeout(tAvvio); avvia(); dbLoad(afterLoad); return; }

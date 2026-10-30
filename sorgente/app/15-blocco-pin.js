@@ -1,137 +1,92 @@
-/* ===== Blocco con PIN ===== */
-var PIN=null, LK={on:false,buf:'',ask:null,busy:false,wait:false,tm:0,last:Date.now(),hid:0,okT:0}, PIN_IT=600000;
-function pinLoad(){ try{ PIN=JSON.parse(localStorage.getItem('ieci-pin')||'null'); }catch(e){ PIN=null; } if(PIN&&!PIN.h) PIN=null; }
-function pinSave(){ try{ if(PIN) localStorage.setItem('ieci-pin',JSON.stringify(PIN)); else localStorage.removeItem('ieci-pin'); }catch(e){ toast('Impossibile salvare il PIN su questo dispositivo'); } }
+/* ===== Blocco con PIN =====
+   Il tastierino, la verifica, i tentativi e lo sblocco sono nel motore che parte per primo (window.PINPAD, in testa
+   alla pagina): così ogni tocco viene preso subito, anche mentre l'app si prepara dietro. Qui ci sono le impostazioni:
+   attivare, cambiare e togliere il PIN, il blocco automatico e l'impronta. */
+var PIN=null, LK={on:false,last:Date.now(),hid:0,okT:0}, PIN_IT=600000, PP=window.PINPAD;
+function pinLoad(){ PIN=PP?PP.load():null; return PIN; }
+function pinSave(){ if(PP) PP.save(PIN); }
 function lkHex(b){ var a=new Uint8Array(b),r='',i; for(i=0;i<a.length;i++) r+=('0'+a[i].toString(16)).slice(-2); return r; }
 function lkRnd(n){ var a=new Uint8Array(n); (window.crypto||window.msCrypto).getRandomValues(a); return a; }
-function pinWeak(t,sl){ var a=0x811c9dc5,b=0x1234567,str=sl+'|'+t,r,i; for(r=0;r<3000;r++){ for(i=0;i<str.length;i++){ a^=str.charCodeAt(i); a=Math.imul(a,16777619)>>>0; b=(b+a+(b<<5))>>>0; } } return a.toString(16)+b.toString(16); }
-function pinHash(txt,salt,mode,it,cb){
-  if(mode==='p'&&window.crypto&&crypto.subtle&&window.TextEncoder){
-    var enc=new TextEncoder();
-    crypto.subtle.importKey('raw',enc.encode(txt),'PBKDF2',false,['deriveBits']).then(function(k){
-      return crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode(salt),iterations:it,hash:'SHA-256'},k,256);
-    }).then(function(b){ cb(lkHex(b)); }).catch(function(){ cb(''); });
-  } else cb(pinWeak(txt,salt));
-}
-// quante iterazioni reggono ~250 ms su QUESTO dispositivo (minimo 150.000, massimo 600.000)
+function pinMode(){ return (window.crypto&&crypto.subtle&&window.TextEncoder)?'p':'w'; }
+function pinHash(txt,salt,mode,it,cb){ PP.hash(txt,salt,mode,it,cb); }
+// quante iterazioni reggono ~200 ms su QUESTO dispositivo (minimo 150.000, massimo 600.000)
 function pinCalib(cb){
   if(pinMode()!=='p') return cb(PIN_IT);
-  var t0=performance.now(); pinHash('000000','calibrazione','p',50000,function(){ var dt=Math.max(1,performance.now()-t0); cb(Math.max(150000,Math.min(PIN_IT,Math.round(50000*250/dt/10000)*10000))); });
+  var t0=performance.now(); pinHash('000000','calibrazione','p',50000,function(){ var dt=Math.max(1,performance.now()-t0); cb(Math.max(150000,Math.min(PIN_IT,Math.round(50000*200/dt/10000)*10000))); });
 }
-function pinMode(){ return (window.crypto&&crypto.subtle&&window.TextEncoder)?'p':'w'; }
-function lkEq(a,b){ if(!a||!b||a.length!==b.length) return false; var d=0,i; for(i=0;i<a.length;i++) d|=a.charCodeAt(i)^b.charCodeAt(i); return d===0; }
-function pinCheck(code,cb){ var d=$('lk-dots'); d.classList.add('wait'); pinHash(code,PIN.s,PIN.m,PIN.i,function(h){ d.classList.remove('wait'); var ok=lkEq(h,PIN.h); cb(ok); if(ok) pinTune(code); }); }
 // un PIN creato con troppe iterazioni per questo telefono viene ricifrato in silenzio: lo sblocco diventa immediato
 function pinTune(code){
-  if(!PIN||PIN.m!=='p'||PIN.tuned) return;
-  setTimeout(function(){ pinCalib(function(it){ if(!PIN) return; if(it>=PIN.i*0.8){ PIN.tuned=1; pinSave(); return; }
-    var salt=lkHex(lkRnd(16)); pinHash(code,salt,'p',it,function(h){ if(!h||!PIN) return; if(!PIN.ri){ PIN.ri=PIN.i; } PIN.h=h; PIN.s=salt; PIN.i=it; PIN.tuned=1; pinSave(); }); }); },1500);
+  pinLoad(); if(!code||!PIN||PIN.m!=='p'||PIN.tuned) return;
+  setTimeout(function(){ pinCalib(function(it){ pinLoad(); if(!PIN) return; if(it>=PIN.i*0.8){ PIN.tuned=1; pinSave(); return; }
+    var salt=lkHex(lkRnd(16)); pinHash(code,salt,'p',it,function(h){ pinLoad(); if(!h||!PIN) return; if(!PIN.ri){ PIN.ri=PIN.i; } PIN.h=h; PIN.s=salt; PIN.i=it; PIN.tuned=1; pinSave(); }); }); },2500);
 }
 function recNorm(t){ return String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
 function recGen(){ var al='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',a=lkRnd(12),r='',i; for(i=0;i<12;i++){ r+=al.charAt(a[i]%32); if(i%4===3&&i<11) r+='-'; } return r; }
 function lkInert(on){ var w=document.querySelector('.wrap'); if(!w) return; if(on) w.setAttribute('inert',''); else w.removeAttribute('inert'); }
-function lkView(v){ ['pad','in','out'].forEach(function(k){ $('lk-v-'+k).hidden=(k!==v); }); }
-function lkMsg(t,err){ var m=$('lk-msg'); m.textContent=t||' '; m.className='lk-msg'+(err?' err':''); }
-function lkRender(){ var d=$('lk-dots').children,i; for(i=0;i<d.length;i++) d[i].className=(i<LK.buf.length)?'on':''; }
-function lkShow(o){
-  LK.ask=o; LK.buf=''; LK.busy=false;
-  var lg=$('app-logo'); $('lk-logo').innerHTML=lg?lg.innerHTML:'';
-  $('lock').hidden=false; lkInert(true); lkView('pad');
-  $('lk-title').textContent=o.title; lkMsg(o.msg||''); $('lk-cancel').hidden=!o.cancel; $('lk-forgot').hidden=!o.forgot;
-  $('lk-pad').classList.remove('dis'); lkRender(); if(o.verify) lkTick();
-}
-function lkClose(){ LK.ask=null; clearInterval(LK.tm); $('lock').hidden=true; if(!LK.on) document.documentElement.classList.remove('locked'); lkInert(LK.on); }
-function lkPress(d){ if(!LK.ask||LK.busy||LK.wait||LK.buf.length>=6) return; LK.buf+=d; lkRender(); if(LK.buf.length===6){ LK.busy=true; var c=LK.buf, a=LK.ask; setTimeout(function(){ if(LK.ask===a) a.done(c); },130); } }
-function lkDel(){ if(!LK.ask||LK.busy) return; LK.buf=LK.buf.slice(0,-1); lkRender(); }
-function lkBad(msg){ LK.busy=false; LK.buf=''; var d=$('lk-dots'); d.className='lk-dots bad'; var i; for(i=0;i<d.children.length;i++) d.children[i].className=''; setTimeout(function(){ d.className='lk-dots'; },480); lkMsg(msg,true); try{ if(navigator.vibrate) navigator.vibrate(120); }catch(e){} }
-function lkTick(){
-  clearInterval(LK.tm);
-  function t(){
-    var left=Math.ceil(((PIN&&PIN.u)||0)-Date.now())/1000; left=Math.ceil(left);
-    if(left>0){ LK.wait=true; $('lk-pad').classList.add('dis'); var m=Math.floor(left/60),s2=left%60; lkMsg('Troppi tentativi. Riprova tra '+(m?m+' min ':'')+s2+' s',true); }
-    else { clearInterval(LK.tm); if(LK.wait){ LK.wait=false; $('lk-pad').classList.remove('dis'); lkMsg(''); } }
-  }
-  t(); if(PIN&&PIN.u>Date.now()) LK.tm=setInterval(t,500);
-}
-function lkFail(rec){
-  PIN.f=(PIN.f||0)+1; var msg;
-  if(PIN.f>=5){ PIN.r=(PIN.r||0)+1; var dl=[30,60,300,900,3600][Math.min(PIN.r-1,4)]; PIN.u=Date.now()+dl*1000; PIN.f=0; pinSave(); if(rec){ lkMsg('Troppi tentativi. Riprova tra '+dl+' s',true); LK.busy=false; return; } lkBad(''); lkTick(); return; }
-  pinSave(); msg=(rec?'Codice non valido':'PIN errato')+' · restano '+(5-PIN.f)+' tentativi'; if(rec){ lkMsg(msg,true); } else lkBad(msg);
-}
-function lkUnlock(){
-  LK.on=false; LK.last=Date.now(); lkClose(); document.documentElement.classList.remove('locked'); lkInert(false); pinMark(true); pinUI();
-  if(DOCC.pend){ DOCC.pend=false; schedule(); }
+// finestre del PIN usate dalle impostazioni (non bloccano l'app)
+function lkShow(o){ lkInert(true); PP.show(o); }
+function lkClose(){ PP.hide(false); if(!PP.locked){ document.documentElement.classList.remove('locked'); lkInert(false); } }
+function lkLock(){ pinLoad(); if(!PIN) return; LK.on=true; lkInert(true); PP.lock(); pinUI(); }
+function pinMark(force){ var n=Date.now(); if(force||n-LK.okT>8000){ LK.okT=n; PP.mark(); } }
+// sblocco (arriva dal motore): l'app è già pronta dietro, si completa solo il fascicolo
+window.addEventListener('ieci-sbloccato',function(e){
+  var how=e.detail&&e.detail.how; LK.on=false; LK.last=Date.now(); lkInert(false); pinMark(true); pinLoad(); pinUI();
+  if(how==='pin') pinTune(PP.code());
+  if(how==='rec'){ toast('PIN rimosso: impostane uno nuovo qui'); showPanel('app'); window.scrollTo(0,0); }
+  if(DOCC.pend){ DOCC.pend=false; setTimeout(function(){ requestAnimationFrame(function(){ schedule(); }); },60); }
   if(typeof avvioInAttesa!=='undefined'&&avvioInAttesa) setTimeout(avvia,0);
-}
-function lkLock(){
-  if(!PIN) return; LK.on=true; try{ sessionStorage.removeItem('ieci-pin-ok'); }catch(e){}
-  document.documentElement.classList.add('locked'); lkAskUnlock(); pinUI();
-}
-function lkAskUnlock(){
-  lkShow({title:'Inserisci il PIN',forgot:true,verify:true,done:function(c){
-    if(PIN.u>Date.now()){ lkBad(''); lkTick(); return; }
-    pinCheck(c,function(ok){ if(ok){ PIN.f=0; PIN.u=0; PIN.r=0; pinSave(); lkUnlock(); } else lkFail(false); });
-  }});
-}
-function pinMark(force){ var n=Date.now(); if(force||n-LK.okT>8000){ LK.okT=n; try{ sessionStorage.setItem('ieci-pin-ok',String(n)); }catch(e){} } }
+});
 function pinNew(cb,cancel,msg){
   lkShow({title:'Scegli un PIN',msg:msg||'6 cifre facili da ricordare ma non ovvie',cancel:cancel,done:function(a){
-    if(/^(\d)\1{5}$/.test(a)||a==='123456'||a==='654321'||a==='012345'||a==='123123'){ lkBad('PIN troppo semplice: cambia le cifre'); return; }
-    lkShow({title:'Ripeti il PIN',cancel:cancel,done:function(b){
-      if(a!==b){ lkBad('I due PIN non coincidono'); setTimeout(function(){ if(LK.ask) pinNew(cb,cancel,'Non coincidevano: riprova dall\'inizio'); },900); return; }
+    if(/^(\d)\1{5}$/.test(a)||a==='123456'||a==='654321'||a==='012345'||a==='123123'){ PP.bad('PIN troppo semplice: cambia le cifre'); return; }
+    lkShow({title:'Ripeti il PIN',msg:'Scrivilo un\'altra volta per conferma',cancel:cancel,done:function(b){
+      if(a!==b){ PP.bad('I due PIN non coincidono'); setTimeout(function(){ if(PP.state.ask) pinNew(cb,cancel,'Non coincidevano: riprova dall\'inizio'); },900); return; }
       cb(a);
     }});
   }});
 }
 function pinVerify(title,okcb){
-  lkShow({title:title,cancel:lkClose,verify:true,done:function(c){
-    if(PIN.u>Date.now()){ lkBad(''); lkTick(); return; }
-    pinCheck(c,function(ok){ if(ok){ PIN.f=0; pinSave(); okcb(); } else lkFail(false); });
-  }});
+  lkShow({title:title,cancel:lkClose,verify:true,bio:true,bioOk:okcb,done:function(c){ PP.check(c,function(ok){ if(ok) okcb(c); }); }});
 }
 function recShow(code){
-  LK.ask=null; lkView('out'); $('lk-title').textContent='Codice di recupero'; $('lk-code').textContent=code;
-  lkMsg('Scrivilo su un foglio e conservalo: serve solo se dimentichi il PIN. Non verrà mostrato più.');
+  PP.state.ask=null; PP.view('out'); $('lk-title').textContent='Codice di recupero'; $('lk-code').textContent=code;
+  PP.msg('Scrivilo su un foglio e conservalo: serve solo se dimentichi il PIN. Non verrà mostrato più.');
+}
+/* ---------- impronta: chiave del dispositivo (WebAuthn), niente server ---------- */
+var BIO={ok:false};
+function bioPuo(){ return !!(window.PublicKeyCredential&&navigator.credentials&&window.crypto&&crypto.subtle&&(location.protocol==='https:'||location.hostname==='localhost')); }
+function bioControlla(){
+  BIO.ok=false; if(!bioPuo()){ pinUI(); return; }
+  var f=PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable; if(!f){ pinUI(); return; }
+  f.call(PublicKeyCredential).then(function(v){ BIO.ok=!!v; pinUI(); },function(){ pinUI(); });
+}
+function bioAttiva(){
+  pinVerify('Conferma con il PIN',function(){
+    lkClose();
+    var uid=lkRnd(16), ch=lkRnd(32);
+    navigator.credentials.create({publicKey:{rp:{name:'IECI preventivi',id:location.hostname},user:{id:uid,name:'ieci-preventivi',displayName:'IECI preventivi'},challenge:ch,
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000,attestation:'none'}})
+    .then(function(cr){
+      var r=cr.response, pk=r.getPublicKey&&r.getPublicKey(), alg=r.getPublicKeyAlgorithm?r.getPublicKeyAlgorithm():-7;
+      if(!pk){ toast('Questo browser non permette l\'impronta per l\'app'); return; }
+      pinLoad(); if(!PIN) return; PIN.bio={id:PP.b64u(cr.rawId),pk:PP.b64u(pk).replace(/-/g,'+').replace(/_/g,'/'),alg:alg}; pinSave(); pinUI(); toast('Impronta attivata: la prossima volta basta il dito');
+    },function(e){ toast(e&&e.name==='NotAllowedError'?'Impronta non attivata (annullato)':'Impronta non disponibile su questo dispositivo'); });
+  });
 }
 function pinUI(){
-  var on=!!PIN; $('pn-off').hidden=on; $('pn-on').hidden=!on; $('lk-now').hidden=!on; if(on) $('pn-auto').value=String(PIN.auto);
+  pinLoad(); var on=!!PIN; $('pn-off').hidden=on; $('pn-on').hidden=!on; $('lk-now').hidden=!on; if(on) $('pn-auto').value=String(PIN.auto);
+  var bx=$('pn-bio'); if(bx){ bx.hidden=!on||!(BIO.ok||PIN&&PIN.bio); var b=!!(PIN&&PIN.bio); $('pn-bio-on').hidden=b; $('pn-bio-off').hidden=!b; $('pn-bio-st').textContent=b?'Attiva: all\'apertura appoggi il dito e l\'app si sblocca. Il PIN resta valido.':'Più veloce del PIN: appoggi il dito e l\'app si apre. Il PIN resta valido.'; }
 }
 function pinInit(){
-  pinLoad(); pinUI();
-  var recent=false; try{ recent=Date.now()-(+sessionStorage.getItem('ieci-pin-ok')||0)<120000; }catch(e){}
-  var pad=$('lk-pad'),k, prima=window.__pinq||'';
-  if(window.__pinC){ pad.removeEventListener('click',window.__pinC); document.removeEventListener('keydown',window.__pinK,true); window.__pinC=window.__pinK=window.__pinH=null; }
-  pad.innerHTML=''; for(k=1;k<=9;k++) pad.insertAdjacentHTML('beforeend','<button type="button" data-k="'+k+'" aria-label="'+k+'">'+k+'</button>');
-  pad.insertAdjacentHTML('beforeend','<button type="button" class="lk-ph" tabindex="-1" aria-hidden="true"></button><button type="button" data-k="0" aria-label="0">0</button><button type="button" data-k="del" aria-label="Cancella"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M17 9l-5 6M12 9l5 6"/></svg></button>');
-  pad.addEventListener('click',function(e){ var b=e.target.closest('button[data-k]'); if(!b) return; var v=b.getAttribute('data-k'); if(v==='del') lkDel(); else lkPress(v); });
-  document.addEventListener('keydown',function(e){
-    if($('lock').hidden||!LK.ask||!$('lk-v-pad')||$('lk-v-pad').hidden) return;
-    if(e.key>='0'&&e.key<='9'&&e.key.length===1){ e.preventDefault(); lkPress(e.key); }
-    else if(e.key==='Backspace'){ e.preventDefault(); lkDel(); }
-    else if(e.key==='Escape'&&LK.ask.cancel){ e.preventDefault(); LK.ask.cancel(); }
-  },true);
-  $('lk-cancel').addEventListener('click',function(){ if(LK.ask&&LK.ask.cancel) LK.ask.cancel(); });
-  $('lk-forgot').addEventListener('click',function(){ lkView('in'); $('lk-title').textContent='Codice di recupero'; lkMsg('Inserisci il codice che hai ricevuto quando hai impostato il PIN'); $('lk-recin').value=''; setTimeout(function(){ $('lk-recin').focus(); },50); });
-  $('lk-recback').addEventListener('click',function(){ if(LK.on) lkAskUnlock(); else lkClose(); });
-  function recGo(){
-    if(PIN.u>Date.now()){ lkTickRec(); return; }
-    var c=recNorm($('lk-recin').value); if(c.length!==12){ lkMsg('Il codice ha 12 caratteri (XXXX-XXXX-XXXX)',true); return; }
-    pinHash(c,PIN.rs,PIN.m,PIN.ri||PIN.i,function(h){
-      if(lkEq(h,PIN.rh)){ PIN=null; pinSave(); lkUnlock(); toast('PIN rimosso: impostane uno nuovo qui'); showPanel('app'); window.scrollTo(0,0); }
-      else lkFail(true);
-    });
-  }
-  function lkTickRec(){ var l=Math.ceil((PIN.u-Date.now())/1000); lkMsg('Troppi tentativi. Riprova tra '+l+' s',true); }
-  $('lk-recok').addEventListener('click',recGo);
-  $('lk-recin').addEventListener('keydown',function(e){ if(e.key==='Enter') recGo(); });
+  pinLoad(); LK.on=!!(PP&&PP.locked); if(LK.on) lkInert(true);
   $('lk-copy').addEventListener('click',function(){ var t=$('lk-code').textContent; try{ navigator.clipboard.writeText(t).then(function(){ toast('Codice copiato'); },function(){ toast('Copia non riuscita: scrivilo a mano'); }); }catch(e){ toast('Copia non riuscita: scrivilo a mano'); } });
   $('lk-done').addEventListener('click',function(){ lkClose(); pinMark(true); pinUI(); toast('PIN attivato'); });
   $('pn-set').addEventListener('click',function(){
     pinNew(function(code){
       var mode=pinMode(), salt=lkHex(lkRnd(16)), rs=lkHex(lkRnd(16)), rec=recGen();
-      lkMsg('Proteggo il PIN…'); $('lk-dots').classList.add('wait');
+      PP.msg('Proteggo il PIN…'); $('lk-dots').className='lk-dots wait';
       pinCalib(function(it){ Promise.all([new Promise(function(r){ pinHash(code,salt,mode,it,r); }),new Promise(function(r){ pinHash(recNorm(rec),rs,mode,it,r); })]).then(function(v){
-        $('lk-dots').classList.remove('wait'); var h=v[0], rh=v[1];
+        PP.idle(); var h=v[0], rh=v[1];
         if(!h||!rh){ lkClose(); toast('Il browser non permette la cifratura: PIN non attivato'); return; }
         PIN={h:h,s:salt,m:mode,i:it,rh:rh,rs:rs,auto:5,f:0,u:0,r:0,tuned:1}; pinSave(); pinUI(); recShow(rec);
       }); });
@@ -139,32 +94,34 @@ function pinInit(){
   });
   $('pn-chg').addEventListener('click',function(){
     pinVerify('PIN attuale',function(){
-      pinNew(function(code){ var salt=lkHex(lkRnd(16)); pinHash(code,salt,PIN.m,PIN.i,function(h){ if(!h){ lkClose(); toast('Cambio non riuscito'); return; } PIN.h=h; PIN.s=salt; PIN.f=0; pinSave(); lkClose(); toast('PIN cambiato'); }); },lkClose);
+      pinNew(function(code){ pinLoad(); var salt=lkHex(lkRnd(16)); pinHash(code,salt,PIN.m,PIN.i,function(h){ if(!h){ lkClose(); toast('Cambio non riuscito'); return; } pinLoad(); PIN.h=h; PIN.s=salt; PIN.f=0; pinSave(); lkClose(); toast('PIN cambiato'); }); },lkClose);
     });
   });
   $('pn-del').addEventListener('click',function(){
     pinVerify('Inserisci il PIN per disattivarlo',function(){ PIN=null; pinSave(); lkClose(); pinUI(); try{ sessionStorage.removeItem('ieci-pin-ok'); }catch(e){} toast('PIN disattivato'); });
   });
+  $('pn-bio-on').addEventListener('click',bioAttiva);
+  $('pn-bio-off').addEventListener('click',function(){ pinLoad(); if(!PIN) return; delete PIN.bio; pinSave(); pinUI(); toast('Impronta disattivata: si sblocca con il PIN'); });
   $('pn-lock').addEventListener('click',function(){ lkLock(); });
   $('lk-now').addEventListener('click',function(){ lkLock(); });
-  $('pn-auto').addEventListener('change',function(){ if(!PIN) return; PIN.auto=parseInt($('pn-auto').value,10); pinSave(); toast('Blocco automatico impostato'); });
-  ['pointerdown','keydown','touchstart','wheel'].forEach(function(ev){ document.addEventListener(ev,function(){ if(LK.on||!PIN) return; LK.last=Date.now(); pinMark(false); },true); });
+  $('pn-auto').addEventListener('change',function(){ pinLoad(); if(!PIN) return; PIN.auto=parseInt($('pn-auto').value,10); pinSave(); toast('Blocco automatico impostato'); });
+  ['pointerdown','keydown','touchstart','wheel'].forEach(function(ev){ document.addEventListener(ev,function(){ if(LK.on||PP.locked||!PIN) return; LK.last=Date.now(); pinMark(false); },{capture:true,passive:true}); });
   setInterval(function(){
-    if(!PIN||LK.on) return; var n=Date.now();
-    if(PIN.auto>0&&n-LK.last>PIN.auto*60000&&!LK.ask) lkLock(); else if(n-LK.last<60000) pinMark(false);
+    if(!PIN||LK.on||PP.locked) return; var n=Date.now();
+    if(PIN.auto>0&&n-LK.last>PIN.auto*60000&&!PP.state.ask) lkLock(); else if(n-LK.last<60000) pinMark(false);
   },10000);
   document.addEventListener('visibilitychange',function(){
-    if(!PIN||LK.on) return;
+    if(!PIN||LK.on||PP.locked) return;
     if(document.hidden){ LK.hid=Date.now(); return; }
-    if(LK.hid&&PIN.auto>=0&&Date.now()-LK.hid>=PIN.auto*60000&&!LK.ask) lkLock();
+    if(LK.hid&&PIN.auto>=0&&Date.now()-LK.hid>=PIN.auto*60000&&!PP.state.ask) lkLock();
     LK.hid=0;
   });
-  if(PIN&&!recent){ lkLock(); if(prima){ lkMsg(''); prima.split('').forEach(function(c){ lkPress(c); }); } } else { LK.on=false; lkClose(); pinMark(true); }
-  if(PIN&&recent){ pinMark(true); }
+  if(!LK.on){ document.documentElement.classList.remove('locked'); if(PIN) pinMark(true); }
   if(!PIN){ try{ sessionStorage.removeItem('ieci-pin-ok'); }catch(e){} }
-  window.IECI_T.pin=function(){ return {PIN:PIN,LK:LK}; };
+  if(!LK.on) pinTune(PP.code());
+  pinUI(); bioControlla();
+  window.IECI_T.pin=function(){ return {PIN:pinLoad(),LK:LK,PP:PP}; };
 }
 pinInit();
 
 menuLoad();
-

@@ -26,9 +26,9 @@ function buildPdf0(withAtt,prog){
     if(!h2iLoad()) return reject(new Error('Motore immagini non disponibile'));
     var pages=Array.prototype.slice.call(document.querySelectorAll('#doc .page'));
     if(!pages.length) return reject(new Error('Nessuna pagina nel fascicolo: attiva almeno una sezione da Contenuto'));
-    var d=$('doc'), z=d.style.zoom; d.style.zoom=1;
+    var d=$('doc'), z=d.style.zoom; d.style.zoom=1; d.classList.add('cattura');
     var D=PDFLib.PDFDocument, out, fontCss='', i=0, ok=false;
-    function done(){ d.style.zoom=z; try{ fit(); }catch(e){} }
+    function done(){ d.style.zoom=z; d.classList.remove('cattura'); try{ fit(); }catch(e){} }
     D.create().then(function(o){
       out=o; out.setTitle(fileBase()); out.setAuthor(S.company.name||''); out.setCreator('IECI preventivi');
       return window.htmlToImage.getFontEmbedCSS(pages[0]).catch(function(){ return ''; });

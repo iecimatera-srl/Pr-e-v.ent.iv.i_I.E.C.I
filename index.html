@@ -556,41 +556,6 @@ header.top{position:relative}
 .lk-hbtn[hidden]{display:none}
 .lk-hbtn:hover{border-color:var(--brand);color:var(--brand)}
 .lk-hbtn svg{width:20px;height:20px}
-.locked .wrap{visibility:hidden}
-.lock{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;background:#0b1220;background:radial-gradient(120% 90% at 50% 0%,color-mix(in srgb,var(--brand) 55%,#0b1220) 0%,#0b1220 72%);color:#fff;font-family:var(--f-ui);overflow:auto;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-.lock[hidden]{display:none}
-.lk-box{width:min(330px,100%);display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center;margin:auto}
-.lk-logo{min-height:60px;display:flex;align-items:center;justify-content:center;background:#fff;border-radius:16px;padding:8px 16px;box-shadow:0 10px 34px rgba(0,0,0,.4);margin-bottom:6px}
-.lk-logo:empty{display:none}
-.lk-logo img{max-height:46px;max-width:210px;display:block}
-.lk-box h2{margin:4px 0 0;font-size:1.25rem;font-weight:700;letter-spacing:.01em;color:#fff}
-.lk-msg{min-height:1.3em;margin:0;font-size:.86rem;color:rgba(255,255,255,.72)}
-.lk-msg.err{color:#ffb4ab}
-.lk-dots{display:flex;gap:14px;margin:6px 0 10px}
-.lk-dots i{width:15px;height:15px;border-radius:50%;border:2px solid rgba(255,255,255,.65);transition:background .12s,transform .12s}
-.lk-dots i.on{background:#fff;border-color:#fff;transform:scale(1.12)}
-.lk-dots.bad{animation:lkshake .45s}
-.lk-dots.bad i{border-color:#ff8a80;background:#ff8a80}
-@keyframes lkshake{10%,90%{transform:translateX(-3px)}20%,80%{transform:translateX(6px)}30%,50%,70%{transform:translateX(-10px)}40%,60%{transform:translateX(10px)}}
-.lk-pad{display:grid;grid-template-columns:repeat(3,72px);gap:14px 20px;justify-content:center}
-.lk-pad button{width:72px;height:72px;border-radius:50%;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.1);color:#fff;font:600 1.7rem/1 var(--f-ui);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .1s,transform .1s;padding:0}
-.lk-pad button:hover{background:rgba(255,255,255,.18)}
-.lk-pad button:active{background:rgba(255,255,255,.34);transform:scale(.94)}
-.lk-pad button:focus-visible,.lk-link:focus-visible{outline:3px solid #fff;outline-offset:3px}
-.lk-pad .lk-ph{visibility:hidden}
-.lk-pad svg{width:26px;height:26px}
-.lk-pad.dis{opacity:.4;pointer-events:none}
-.lk-link{background:none;border:0;color:rgba(255,255,255,.8);font:500 .9rem var(--f-ui);text-decoration:underline;cursor:pointer;padding:8px;margin-top:4px}
-.lk-rec{display:flex;flex-direction:column;gap:12px;width:100%;align-items:stretch}
-.lk-rec[hidden],.lk-view[hidden]{display:none}
-.lk-view{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
-.lk-rec input{width:100%;padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:#fff;font:600 1.2rem var(--f-ui);text-align:center;letter-spacing:.12em;text-transform:uppercase;-webkit-user-select:text;user-select:text}
-.lk-rec input::placeholder{color:rgba(255,255,255,.4)}
-.lk-btn{padding:14px 18px;border-radius:12px;border:0;background:#fff;color:#0b1220;font:700 1rem var(--f-ui);cursor:pointer}
-.lk-btn.g{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.25)}
-.lk-code{font:700 1.55rem/1.3 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.1em;background:rgba(255,255,255,.1);border:1px dashed rgba(255,255,255,.5);border-radius:14px;padding:16px 10px;width:100%;-webkit-user-select:text;user-select:text}
-@media (max-height:640px){.lk-pad button{width:60px;height:60px;font-size:1.4rem}.lk-pad{grid-template-columns:repeat(3,60px);gap:10px 16px}.lk-logo{display:none}}
-@media (prefers-reduced-motion:reduce){.lk-dots.bad{animation:none}}
 @media print{.lock,.lk-hbtn{display:none!important}}
 .vck-w{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.vck-w.two{grid-template-columns:1fr 1fr}.vck.sm{padding:10px 6px}
 .vck{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 4px;border:2px solid var(--line);border-radius:14px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;text-align:center}
@@ -619,9 +584,6 @@ header.top{position:relative}
 .vmp{margin:14px 0;display:grid;gap:10px}.vmp>b{font-size:1rem}.vmp>small{color:var(--muted)}.vms{border:1px solid var(--line);border-radius:14px;padding:12px;display:grid;gap:10px}.vmt{font-weight:800;color:var(--brand)}.vmo{border:1px dashed var(--line);border-radius:12px;padding:10px;display:grid;gap:8px;background:color-mix(in srgb,var(--brand) 4%,var(--surface))}.vmb{border-style:solid;background:var(--surface)}.vmadv summary{cursor:pointer;color:var(--brand);font-weight:600;font-size:.9rem;padding:2px 0}.vmadv[open] summary{margin-bottom:6px}
 .vmo-h{display:flex;justify-content:space-between;align-items:center}
 .vcbox .vs{margin-top:4px;font-size:11.5px;opacity:.75}
-.lk-dots.wait i{animation:lkwait .9s ease-in-out infinite}.lk-dots.wait i:nth-child(2){animation-delay:.08s}.lk-dots.wait i:nth-child(3){animation-delay:.16s}.lk-dots.wait i:nth-child(4){animation-delay:.24s}.lk-dots.wait i:nth-child(5){animation-delay:.32s}.lk-dots.wait i:nth-child(6){animation-delay:.4s}
-@keyframes lkwait{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.7);opacity:.5}}
-@media (prefers-reduced-motion:reduce){.lk-dots.wait i{animation:none}}
 /* assistente */
 #as-txt{width:100%;box-sizing:border-box;min-height:96px;font:inherit;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);resize:vertical}
 #as-mic.on{background:#C0392B;color:#fff;border-color:#C0392B}
@@ -963,6 +925,92 @@ input:focus,select:focus,textarea:focus{border-color:var(--brand);background:var
   *,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important}
 }
 @media print{.qbar,.toast{display:none!important}body{background:#fff!important}}
+/* ===== blocco con PIN «Quadro» =====
+   Sei spie come quelle di un quadro elettrico: si accendono in giallo a ogni cifra, diventano verdi allo sblocco.
+   Tasti grandi che rispondono al primo contatto del dito. Solo animazioni di opacità e spostamento (fluide anche
+   mentre l'app si prepara dietro). */
+.locked .wrap{visibility:hidden}
+.lock{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));
+  background-color:#07101C;
+  background-image:radial-gradient(120% 70% at 50% -10%,color-mix(in srgb,var(--lkc,#2F65AE) 45%,transparent) 0%,transparent 70%),linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:100% 100%,26px 26px,26px 26px;
+  color:#fff;font-family:var(--f-ui);overflow:auto;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  animation:lkIn .2s ease-out}
+.lock[hidden]{display:none}
+.lock.out{animation:lkOut .3s cubic-bezier(.55,0,.25,1) .1s forwards;pointer-events:none}
+@keyframes lkIn{from{opacity:0}to{opacity:1}}
+@keyframes lkOut{to{opacity:0;transform:translateY(-4%)}}
+.lk-box{width:min(340px,100%);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin:auto}
+.lk-logo{display:flex;align-items:center;justify-content:center;background:#fff;border-radius:14px;padding:8px 16px;min-height:54px;box-shadow:0 12px 30px -10px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.12);margin-bottom:8px}
+.lk-logo:empty{display:none}
+.lk-logo img{max-height:44px;max-width:200px;display:block}
+.lk-box h2{margin:2px 0 0;font-family:var(--f-uid);font-size:1.32rem;font-weight:800;letter-spacing:-.01em;color:#fff}
+.lk-msg{min-height:1.35em;margin:0;font-size:.88rem;line-height:1.35;color:rgba(255,255,255,.7);max-width:30ch}
+.lk-msg.err{color:#FFB4A8}
+.lk-view{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.lk-view[hidden],.lk-rec[hidden]{display:none}
+
+/* le sei spie */
+.lk-dots{display:flex;gap:13px;margin:8px 0 16px;padding:10px 16px;border-radius:999px;background:rgba(0,0,0,.28);box-shadow:inset 0 1px 3px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.07)}
+.lk-dots i{width:14px;height:14px;border-radius:50%;background:#1A2636;box-shadow:inset 0 1px 2px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.12);transition:background .08s,box-shadow .12s}
+.lk-dots i.on{background:radial-gradient(circle at 35% 30%,#FFF4C2 0 18%,#F2B705 45%,#C98F00 100%);box-shadow:0 0 0 1px rgba(255,214,90,.6),0 0 12px 2px rgba(242,183,5,.55);animation:lkLed .16s ease-out}
+@keyframes lkLed{from{transform:scale(.6)}to{transform:scale(1)}}
+.lk-dots.wait i{animation:lkWait .8s ease-in-out infinite}
+.lk-dots.wait i:nth-child(2){animation-delay:.07s}.lk-dots.wait i:nth-child(3){animation-delay:.14s}.lk-dots.wait i:nth-child(4){animation-delay:.21s}.lk-dots.wait i:nth-child(5){animation-delay:.28s}.lk-dots.wait i:nth-child(6){animation-delay:.35s}
+@keyframes lkWait{0%,100%{opacity:1}50%{opacity:.35}}
+.lk-dots.ok i{background:radial-gradient(circle at 35% 30%,#E6FFEE 0 18%,#34D17A 45%,#14934B 100%)!important;box-shadow:0 0 0 1px rgba(110,240,160,.6),0 0 14px 3px rgba(52,209,122,.6)!important;animation:lkLed .18s ease-out both}
+.lk-dots.ok i:nth-child(2){animation-delay:.03s}.lk-dots.ok i:nth-child(3){animation-delay:.06s}.lk-dots.ok i:nth-child(4){animation-delay:.09s}.lk-dots.ok i:nth-child(5){animation-delay:.12s}.lk-dots.ok i:nth-child(6){animation-delay:.15s}
+.lk-dots.bad{animation:lkShake .42s}
+.lk-dots.bad i{background:radial-gradient(circle at 35% 30%,#FFE1DC 0 18%,#FF5A47 45%,#B3261E 100%);box-shadow:0 0 0 1px rgba(255,120,100,.6),0 0 12px 2px rgba(255,90,71,.5)}
+@keyframes lkShake{15%,85%{transform:translateX(-4px)}30%,70%{transform:translateX(8px)}45%,55%{transform:translateX(-10px)}}
+
+/* tastierino */
+.lk-pad{display:grid;grid-template-columns:repeat(3,76px);gap:16px 22px;justify-content:center;touch-action:manipulation}
+.lk-pad button{position:relative;overflow:hidden;width:76px;height:76px;border-radius:50%;border:0;padding:0;cursor:pointer;
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 0 1px rgba(255,255,255,.1),0 6px 16px -8px rgba(0,0,0,.6);
+  color:#fff;font:600 2rem/1 var(--f-uid);display:flex;align-items:center;justify-content:center;
+  transition:transform .12s cubic-bezier(.2,.8,.2,1),background .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.lk-pad button:active,.lk-pad button.p1:active,.lk-pad button.p2:active{transform:scale(.92);background:rgba(255,255,255,.2);transition-duration:0s}
+.lk-pad button::after{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(242,183,5,.55) 0,rgba(242,183,5,.18) 45%,transparent 70%);opacity:0;pointer-events:none}
+.lk-pad button.p1::after{animation:lkRip1 .38s ease-out}
+.lk-pad button.p2::after{animation:lkRip2 .38s ease-out}
+@keyframes lkRip1{from{opacity:1;transform:scale(.35)}to{opacity:0;transform:scale(1.25)}}
+@keyframes lkRip2{from{opacity:1;transform:scale(.35)}to{opacity:0;transform:scale(1.25)}}
+@media (hover:hover){.lk-pad button:hover{background:rgba(255,255,255,.15)}}
+.lk-pad button:focus-visible,.lk-link:focus-visible,.lk-btn:focus-visible{outline:3px solid #F2B705;outline-offset:3px}
+.lk-pad .lk-ph{visibility:hidden}
+.lk-pad .lk-k2{background:transparent;box-shadow:none}
+.lk-pad svg{width:28px;height:28px}
+.lk-pad .lk-bio svg{width:34px;height:34px;color:#F2B705}
+.lk-pad.dis{opacity:.32;pointer-events:none}
+.lk-links{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:6px;min-height:40px}
+.lk-link{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;color:rgba(255,255,255,.85);font:600 .86rem var(--f-ui);cursor:pointer;padding:9px 16px}
+.lk-link:active{background:rgba(255,255,255,.14)}
+
+/* codice di recupero */
+.lk-rec{display:flex;flex-direction:column;gap:12px;width:100%;align-items:stretch}
+.lk-rec input{width:100%;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font:700 1.2rem var(--f-ui);text-align:center;letter-spacing:.12em;text-transform:uppercase;-webkit-user-select:text;user-select:text;min-height:52px}
+.lk-rec input:focus{outline:none;border-color:#F2B705;box-shadow:0 0 0 4px rgba(242,183,5,.2)}
+.lk-rec input::placeholder{color:rgba(255,255,255,.35)}
+.lk-btn{padding:14px 18px;border-radius:14px;border:0;background:#F2B705;color:#1B1400;font:800 1rem var(--f-ui);cursor:pointer;min-height:52px}
+.lk-btn.g{background:rgba(255,255,255,.08);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.lk-btn:active{transform:scale(.97)}
+.lk-code{font:700 1.5rem/1.3 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.1em;background:rgba(242,183,5,.08);border:1px dashed rgba(242,183,5,.6);border-radius:14px;padding:16px 10px;width:100%;-webkit-user-select:text;user-select:text}
+
+@media (max-height:680px){.lk-pad button{width:64px;height:64px;font-size:1.6rem}.lk-pad{grid-template-columns:repeat(3,64px);gap:10px 18px}.lk-logo{display:none}.lk-dots{margin:4px 0 10px}}
+@media (max-height:540px){.lk-pad button{width:54px;height:54px;font-size:1.35rem}.lk-pad{grid-template-columns:repeat(3,54px);gap:8px 16px}}
+@media (prefers-reduced-motion:reduce){.lock,.lock.out,.lk-dots.bad,.lk-dots.wait i,.lk-dots i.on,.lk-dots.ok i,.lk-pad button::after{animation-duration:1ms!important}}
+@media print{.lock{display:none!important}}
+/* impostazioni: impronta */
+.pn-bio{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:10px;padding:12px 14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--tensione,#F2B705) 40%,var(--line));background:color-mix(in srgb,var(--tensione,#F2B705) 8%,var(--surface))}
+.pn-bio[hidden]{display:none}
+.pn-bio-t{flex:1 1 200px;display:grid;gap:2px;min-width:0}.pn-bio-t small{color:var(--muted);font-size:.8rem}
+/* fascicolo: il browser disegna solo le pagine che si vedono (le altre quando ci arrivi scorrendo);
+   per PDF e stampa si disegnano tutte */
+#doc>.page{content-visibility:auto;contain-intrinsic-size:auto 794px auto 1123px}
+#doc.cattura>.page{content-visibility:visible}
+@media print{#doc>.page{content-visibility:visible}}
 </style>
 
 <div class="lock" id="lock" hidden role="dialog" aria-modal="true" aria-label="App bloccata">
@@ -971,10 +1019,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--brand);background:var
     <h2 id="lk-title">Inserisci il PIN</h2>
     <p class="lk-msg" id="lk-msg" aria-live="polite">&nbsp;</p>
     <div class="lk-view" id="lk-v-pad">
-      <div class="lk-dots" id="lk-dots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="lk-dots" id="lk-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="lk-pad" id="lk-pad"></div>
-      <button class="lk-link" id="lk-forgot" type="button">PIN dimenticato?</button>
-      <button class="lk-link" id="lk-cancel" type="button" hidden>Annulla</button>
+      <div class="lk-links"><button class="lk-link" id="lk-forgot" type="button">PIN dimenticato?</button><button class="lk-link" id="lk-cancel" type="button" hidden>Annulla</button></div>
     </div>
     <div class="lk-rec lk-view" id="lk-v-in" hidden>
       <input id="lk-recin" type="text" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="14" aria-label="Codice di recupero">
@@ -989,17 +1036,141 @@ input:focus,select:focus,textarea:focus{border-color:var(--brand);background:var
   </div>
 </div>
 <script type="text/plain" id="pdflib-lib" data-src="lib-pdf.js"></script>
-<script>/* PIN: il tastierino compare e risponde subito, anche mentre il resto dell'app si sta ancora caricando */
-(function(){try{var P=JSON.parse(localStorage.getItem('ieci-pin')||'null'),ok=+sessionStorage.getItem('ieci-pin-ok')||0;if(!P||!P.h||Date.now()-ok<120000)return;
-document.documentElement.classList.add('locked');document.getElementById('lock').hidden=false;
-var pad=document.getElementById('lk-pad'),h='',k;for(k=1;k<=9;k++)h+='<button type="button" data-k="'+k+'" aria-label="'+k+'">'+k+'</button>';
-pad.innerHTML=h+'<button type="button" class="lk-ph" tabindex="-1" aria-hidden="true"></button><button type="button" data-k="0" aria-label="0">0</button><button type="button" data-k="del" aria-label="Cancella">&#9003;</button>';
-var W=window;W.__pinq='';function dots(){var d=document.getElementById('lk-dots').children,i;for(i=0;i<d.length;i++)d[i].className=i<W.__pinq.length?'on':'';}
-W.__pinH=function(v){if(v==='del')W.__pinq=W.__pinq.slice(0,-1);else if(W.__pinq.length<6)W.__pinq+=v;dots();if(W.__pinq.length===6)document.getElementById('lk-msg').textContent='Un attimo…';};
-pad.addEventListener('click',W.__pinC=function(e){var b=e.target.closest('button[data-k]');if(b)W.__pinH(b.getAttribute('data-k'));});
-document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='9'&&e.key.length===1){e.preventDefault();W.__pinH(e.key);}else if(e.key==='Backspace'){e.preventDefault();W.__pinH('del');}},true);
-}catch(e){}})();</script>
-<script>(function(){try{if(!localStorage.getItem('ieci-pin'))return;var t=+sessionStorage.getItem('ieci-pin-ok')||0;if(Date.now()-t<120000)return;document.getElementById('lock').hidden=false;document.documentElement.classList.add('locked');}catch(e){}})();</script>
+<script>/* Motore del PIN: parte prima di tutto il resto e non viene mai ricreato.
+   Ogni tasto conta una volta sola, al primo contatto del dito (pointerdown); il «click» che segue viene ignorato
+   (resta valido solo per Invio/Spazio da tastiera). Verifica, tentativi, attese, codice di recupero e impronta
+   sono qui, così lo sblocco funziona anche mentre il resto dell'app si sta ancora preparando. */
+(function(){
+var W=window,D=document,$=function(i){return D.getElementById(i);},P={buf:'',ask:null,busy:false,wait:false,pe:false,tm:0,rip:0,bioRun:false,code:null};
+function load(){try{var p=JSON.parse(localStorage.getItem('ieci-pin')||'null');return p&&p.h?p:null;}catch(e){return null;}}
+function save(p){try{if(p)localStorage.setItem('ieci-pin',JSON.stringify(p));else localStorage.removeItem('ieci-pin');}catch(e){}}
+function hex(b){var a=new Uint8Array(b),r='',i;for(i=0;i<a.length;i++)r+=('0'+a[i].toString(16)).slice(-2);return r;}
+function weak(t,sl){var a=0x811c9dc5,b=0x1234567,s=sl+'|'+t,r,i;for(r=0;r<3000;r++){for(i=0;i<s.length;i++){a^=s.charCodeAt(i);a=Math.imul(a,16777619)>>>0;b=(b+a+(b<<5))>>>0;}}return a.toString(16)+b.toString(16);}
+function hash(t,salt,mode,it,cb){
+  if(mode==='p'&&W.crypto&&crypto.subtle&&W.TextEncoder){var e=new TextEncoder();
+    crypto.subtle.importKey('raw',e.encode(t),'PBKDF2',false,['deriveBits']).then(function(k){return crypto.subtle.deriveBits({name:'PBKDF2',salt:e.encode(salt),iterations:it,hash:'SHA-256'},k,256);}).then(function(b){cb(hex(b));},function(){cb('');});
+  }else cb(weak(t,salt));}
+function eq(a,b){if(!a||!b||a.length!==b.length)return false;var d=0,i;for(i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0;}
+function vib(n){try{if(navigator.vibrate)navigator.vibrate(n);}catch(e){}}
+function dots(){var d=$('lk-dots').children,i;for(i=0;i<d.length;i++){var c=i<P.buf.length?'on':'';if(d[i].className!==c)d[i].className=c;}}
+function msg(t,err){var m=$('lk-msg');m.textContent=t||' ';m.className='lk-msg'+(err?' err':'');}
+function view(v){['pad','in','out'].forEach(function(k){$('lk-v-'+k).hidden=(k!==v);});}
+function recent(){try{return Date.now()-(+sessionStorage.getItem('ieci-pin-ok')||0)<120000;}catch(e){return false;}}
+function mark(){try{sessionStorage.setItem('ieci-pin-ok',String(Date.now()));}catch(e){}}
+// aspetto: logo e colore ricordati dall'app, visibili subito
+function look(){try{var l=JSON.parse(localStorage.getItem('ieci-lk-look')||'null');if(l){if(l.col)$('lock').style.setProperty('--lkc',l.col);if(l.logo&&!$('lk-logo').firstChild){var im=new Image();im.alt='';im.src=l.logo;$('lk-logo').appendChild(im);}}}catch(e){}}
+var BIO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4.6A8.5 8.5 0 0 1 20.5 12v1.2"/><path d="M3.6 8.5A8.5 8.5 0 0 0 3.5 12c0 1.5.2 3 .7 4.3"/><path d="M8.5 20.2c-.9-1.9-1.4-4.2-1.4-6.7a4.9 4.9 0 0 1 9.8 0v.6"/><path d="M12 13.2c0 3.1.7 5.8 1.9 7.8"/><path d="M16.7 17.3c.4 1 .9 1.9 1.4 2.7"/></svg>';
+function build(){
+  var pad=$('lk-pad'),h='',k;
+  for(k=1;k<=9;k++)h+='<button type="button" data-k="'+k+'" aria-label="'+k+'">'+k+'</button>';
+  h+='<button type="button" class="lk-ph lk-k2" data-k="bio" aria-label="Sblocca con l\'impronta" tabindex="-1">'+BIO+'</button><button type="button" data-k="0" aria-label="0">0</button><button type="button" class="lk-k2" data-k="del" aria-label="Cancella l\'ultima cifra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M17 9l-5 6M12 9l5 6"/></svg></button>';
+  pad.innerHTML=h;
+  // il tasto conta appena il dito tocca, una sola volta
+  pad.addEventListener('pointerdown',function(e){if(e.button>0)return;var b=e.target.closest&&e.target.closest('button[data-k]');if(!b)return;P.pe=true;P.rip=1-P.rip;b.classList.remove(P.rip?'p2':'p1');b.classList.add(P.rip?'p1':'p2');key(b.getAttribute('data-k'));});
+  // il clic che segue il tocco non conta mai (anche se arriva in ritardo, quando il telefono è occupato): vale solo Invio/Spazio da tastiera
+  pad.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button[data-k]');if(!b)return;if(e.detail>0&&P.pe)return;key(b.getAttribute('data-k'));});
+  pad.addEventListener('contextmenu',function(e){e.preventDefault();});
+  D.addEventListener('keydown',function(e){
+    if($('lock').hidden||!P.ask||$('lk-v-pad').hidden)return;
+    if(e.key>='0'&&e.key<='9'&&e.key.length===1){e.preventDefault();if(!e.repeat)key(e.key);}
+    else if(e.key==='Backspace'){e.preventDefault();key('del');}
+    else if(e.key==='Escape'&&P.ask.cancel){e.preventDefault();P.ask.cancel();}
+  },true);
+  $('lk-cancel').addEventListener('click',function(){if(P.ask&&P.ask.cancel)P.ask.cancel();});
+  $('lk-forgot').addEventListener('click',function(){view('in');$('lk-title').textContent='Codice di recupero';msg('Scrivi il codice che hai ricevuto quando hai impostato il PIN');$('lk-recin').value='';setTimeout(function(){$('lk-recin').focus();},50);});
+  $('lk-recback').addEventListener('click',function(){if(P.back)P.back();else unlockAsk();});
+  $('lk-recok').addEventListener('click',recGo);
+  $('lk-recin').addEventListener('keydown',function(e){if(e.key==='Enter')recGo();});
+}
+function key(k){
+  if(!P.ask||P.busy)return;
+  if(k==='bio'){bio(false);return;}
+  if(P.wait)return;
+  if(k==='del'){if(P.buf){P.buf=P.buf.slice(0,-1);dots();}return;}
+  if(P.buf.length>=6)return;
+  if(P.buf.length===0&&$('lk-msg').className.indexOf('err')>-1&&!P.wait)msg(P.ask.msg||'');
+  P.buf+=k;P.lastKey=Date.now();dots();vib(5);
+  if(P.buf.length===6){P.busy=true;var c=P.buf,a=P.ask;$('lk-dots').className='lk-dots wait';setTimeout(function(){if(P.ask===a)a.done(c);},40);}
+}
+function bad(m){P.busy=false;P.buf='';var d=$('lk-dots');d.className='lk-dots';void d.offsetWidth;d.className='lk-dots bad';dots();setTimeout(function(){if(d.className==='lk-dots bad')d.className='lk-dots';},460);msg(m,true);vib([50,40,70]);}
+function idle(){P.busy=false;$('lk-dots').className='lk-dots';}
+function show(o){
+  P.ask=o;P.buf='';P.busy=false;P.back=o.back||null;var L=$('lock');
+  L.classList.remove('out');L.hidden=false;if(o.lockApp)D.documentElement.classList.add('locked');look();view('pad');
+  $('lk-title').textContent=o.title;msg(o.msg||'');$('lk-cancel').hidden=!o.cancel;$('lk-forgot').hidden=!o.forgot;
+  var bk=$('lk-pad').querySelector('[data-k="bio"]');var bon=!!(o.bio&&bioOk());bk.className=bon?'lk-k2 lk-bio':'lk-ph lk-k2';bk.tabIndex=bon?0:-1;
+  $('lk-dots').className='lk-dots';$('lk-pad').classList.remove('dis');P.wait=false;dots();
+  if(o.verify)tick();
+}
+function hide(anim,cb){
+  var L=$('lock');P.ask=null;clearInterval(P.tm);
+  function fine(){L.hidden=true;L.classList.remove('out');$('lk-dots').className='lk-dots';P.buf='';dots();if(cb)cb();}
+  if(anim&&!L.hidden){$('lk-dots').className='lk-dots ok';L.classList.add('out');setTimeout(fine,430);}else fine();
+}
+function tick(){
+  clearInterval(P.tm);
+  function t(){var p=load(),left=Math.ceil((((p&&p.u)||0)-Date.now())/1000);
+    if(left>0){P.wait=true;$('lk-pad').classList.add('dis');var m=Math.floor(left/60),s=left%60;msg('Troppi tentativi. Riprova tra '+(m?m+' min ':'')+s+' s',true);}
+    else{clearInterval(P.tm);if(P.wait){P.wait=false;$('lk-pad').classList.remove('dis');msg('');}}}
+  t();var p=load();if(p&&p.u>Date.now())P.tm=setInterval(t,500);
+}
+function fail(rec){
+  var p=load();if(!p)return;p.f=(p.f||0)+1;
+  if(p.f>=5){p.r=(p.r||0)+1;var dl=[30,60,300,900,3600][Math.min(p.r-1,4)];p.u=Date.now()+dl*1000;p.f=0;save(p);if(rec){msg('Troppi tentativi. Riprova tra '+dl+' s',true);return;}bad('');tick();return;}
+  save(p);var m=(rec?'Codice non valido':'PIN errato')+' · restano '+(5-p.f)+' tentativi';if(rec)msg(m,true);else bad(m);
+}
+// controlla un PIN con i tentativi limitati; cb(true|false)
+function check(c,cb){var p=load();if(!p){cb(true);return;}if(p.u>Date.now()){bad('');tick();return;}
+  hash(c,p.s,p.m,p.i,function(h){var q=load();if(q&&eq(h,q.h)){q.f=0;q.u=0;q.r=0;save(q);cb(true);}else{fail(false);cb(false);}});}
+var on=false;
+function unlocked(code,how){
+  on=false;mark();P.code=code||null;
+  hide(true,function(){D.documentElement.classList.remove('locked');try{W.dispatchEvent(new CustomEvent('ieci-sbloccato',{detail:{how:how||'pin'}}));}catch(e){}});
+}
+function unlockAsk(){
+  on=true;P.back=null;
+  show({title:'Inserisci il PIN',forgot:true,bio:true,verify:true,lockApp:true,done:function(c){check(c,function(ok){if(ok)unlocked(c,'pin');});}});
+  var p=load();if(p&&p.bio&&bioOk()&&!(p.u>Date.now())&&D.visibilityState==='visible')setTimeout(function(){if(on&&!P.buf)bio(true);},350);
+}
+function lock(){if(!load())return;try{sessionStorage.removeItem('ieci-pin-ok');}catch(e){}unlockAsk();}
+function recNorm(t){return String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+function recGo(){
+  var p=load();if(!p)return;if(p.u>Date.now()){msg('Troppi tentativi. Riprova tra '+Math.ceil((p.u-Date.now())/1000)+' s',true);return;}
+  var c=recNorm($('lk-recin').value);if(c.length!==12){msg('Il codice ha 12 caratteri (XXXX-XXXX-XXXX)',true);return;}
+  msg('Controllo il codice…');
+  hash(c,p.rs,p.m,p.ri||p.i,function(h){if(eq(h,p.rh)){save(null);try{sessionStorage.removeItem('ieci-pin-ok');}catch(e){}on=false;hide(true,function(){D.documentElement.classList.remove('locked');try{W.dispatchEvent(new CustomEvent('ieci-sbloccato',{detail:{how:'rec'}}));}catch(e){}});}else fail(true);});
+}
+/* ---------- impronta (WebAuthn, solo sul dispositivo: nessun server) ---------- */
+function bioOk(){var p=load();if(!p||!p.bio||!W.PublicKeyCredential||!navigator.credentials||!W.crypto||!crypto.subtle)return false;return location.protocol==='https:'||location.hostname==='localhost';}
+function b64u(a){a=new Uint8Array(a);var s='',i;for(i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function unb64(s){s=String(s).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var b=atob(s),a=new Uint8Array(b.length),i;for(i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+function der2raw(d){var i=2;if(d[1]&0x80)i=2+(d[1]&0x7f);function n(){if(d[i]!==2)throw new Error('der');var l=d[i+1],v=d.slice(i+2,i+2+l);i+=2+l;while(v.length>32&&v[0]===0)v=v.slice(1);var o=new Uint8Array(32);o.set(v,32-v.length);return o;}var r=n(),s=n(),o=new Uint8Array(64);o.set(r,0);o.set(s,32);return o;}
+function bioVerify(b,ch,r){
+  var cd;try{cd=JSON.parse(new TextDecoder().decode(r.clientDataJSON));}catch(e){return Promise.resolve(false);}
+  if(cd.type!=='webauthn.get'||cd.challenge!==b64u(ch)||cd.origin!==location.origin)return Promise.resolve(false);
+  var ad=new Uint8Array(r.authenticatorData);if(!(ad[32]&4))return Promise.resolve(false);
+  var rsa=b.alg===-257,alg=rsa?{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'}:{name:'ECDSA',namedCurve:'P-256'};
+  return Promise.all([crypto.subtle.digest('SHA-256',r.clientDataJSON),crypto.subtle.digest('SHA-256',new TextEncoder().encode(location.hostname)),crypto.subtle.importKey('spki',unb64(b.pk),alg,false,['verify'])]).then(function(v){
+    var rp=new Uint8Array(v[1]),i;for(i=0;i<32;i++)if(rp[i]!==ad[i])return false;
+    var h=new Uint8Array(v[0]),data=new Uint8Array(ad.length+h.length);data.set(ad,0);data.set(h,ad.length);
+    var sig=new Uint8Array(r.signature);if(!rsa)sig=der2raw(sig);
+    return crypto.subtle.verify(rsa?alg:{name:'ECDSA',hash:'SHA-256'},v[2],sig,data);
+  }).catch(function(){return false;});
+}
+function bio(auto){
+  var p=load();if(!p||!p.bio||!bioOk()||P.bioRun||!P.ask)return;var a=P.ask;P.bioRun=true;if(!auto)msg('Appoggia il dito sul sensore');
+  var ch=crypto.getRandomValues(new Uint8Array(32));
+  navigator.credentials.get({publicKey:{challenge:ch,allowCredentials:[{type:'public-key',id:unb64(p.bio.id)}],userVerification:'required',timeout:60000,rpId:location.hostname}}).then(function(cr){return bioVerify(p.bio,ch,cr.response);}).then(function(ok){
+    P.bioRun=false;if(P.ask!==a)return;
+    if(!ok){msg('Impronta non valida: usa il PIN',true);return;}
+    var q=load();if(q){q.f=0;q.u=0;q.r=0;save(q);}
+    if(a.bioOk)a.bioOk();else{$('lk-dots').className='lk-dots';P.buf='';unlocked(null,'bio');}
+  },function(){P.bioRun=false;if(P.ask===a)msg(auto?'':'Impronta non letta: riprova o usa il PIN',!auto);});
+}
+W.PINPAD={load:load,save:save,hash:hash,eq:eq,show:show,hide:hide,bad:bad,idle:idle,msg:msg,view:view,check:check,fail:fail,lock:lock,unlockAsk:unlockAsk,mark:mark,recent:recent,bioOk:bioOk,b64u:b64u,unb64:unb64,
+  get locked(){return on;},typing:function(){return !!(P.ask&&P.buf.length>0&&P.buf.length<6&&Date.now()-(P.lastKey||0)<900);},code:function(){var c=P.code;P.code=null;return c;},state:P};
+try{build();var p=load();if(p&&!recent())unlockAsk();}catch(e){}
+})();</script>
 
 <div class="wrap">
   <header class="top noprint">
@@ -1609,7 +1780,8 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
           <div class="row"><button class="btn" id="pn-set" type="button">Imposta il PIN</button></div></div>
           <div id="pn-on" hidden><p class="hint" style="margin:0"><b>PIN attivo.</b> L'app si blocca da sola quando non la usi.</p>
           <label class="f">Blocca automaticamente<select id="pn-auto"><option value="-1">Solo quando apro l'app</option><option value="0">Appena esco dall'app</option><option value="1">Dopo 1 minuto</option><option value="5">Dopo 5 minuti</option><option value="15">Dopo 15 minuti</option><option value="60">Dopo 1 ora</option></select></label>
-          <div class="row"><button class="btn" id="pn-lock" type="button">Blocca ora</button><button class="btn ghost" id="pn-chg" type="button">Cambia PIN</button><button class="btn ghost" id="pn-del" type="button">Disattiva PIN</button></div></div>
+          <div class="row"><button class="btn" id="pn-lock" type="button">Blocca ora</button><button class="btn ghost" id="pn-chg" type="button">Cambia PIN</button><button class="btn ghost" id="pn-del" type="button">Disattiva PIN</button></div>
+          <div class="pn-bio" id="pn-bio" hidden><div class="pn-bio-t"><b>Sblocca con l'impronta</b><small id="pn-bio-st">Più veloce del PIN: appoggi il dito e l'app si apre. Il PIN resta valido.</small></div><button class="btn" id="pn-bio-on" type="button">Attiva l'impronta</button><button class="btn ghost" id="pn-bio-off" type="button" hidden>Disattiva l'impronta</button></div></div>
           <p class="hint" style="margin:0">Dopo 5 errori l'app aspetta (30 secondi, poi sempre di più). Se dimentichi il PIN serve il codice di recupero che ricevi quando lo imposti.</p>
         </div>
         <div class="apg"><b>Menu</b><p class="hint" style="margin:0">Cambia i nomi delle sezioni, il loro ordine, i gruppi e cosa mostrare.</p><div class="row"><button class="btn" id="ap-gomenu" type="button">Modifica nomi e ordine del menu</button></div></div>
@@ -1738,7 +1910,7 @@ document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='
 <script type="text/plain" id="pdfjs-wk" data-src="lib-pdfjs-worker.txt"></script>
 <script>
 var CAN_PRINT = true;
-var APP_VER = '2026.10.30.2';
+var APP_VER = '2026.10.30.3';
 (function(){
 'use strict';
 
@@ -2417,7 +2589,10 @@ function refreshVariants(){
   var u=S.style.logo;
   if(!u){ V={t:'',w:'',src:''}; return; }
   if(V.src===u) return;
-  buildVariants(u,function(t,w){ V={t:t,w:w,src:u}; renderLogoPrev(); schedule(); });
+  // le versioni del logo (scontornata e bianca) si calcolano una volta e si ricordano: l'avvio resta veloce
+  var k=imgKey(u), m=null; try{ m=JSON.parse(localStorage.getItem('ieci-logo-var')||'null'); }catch(e){}
+  if(m&&m.k===k&&m.t){ V={t:m.t,w:m.w,src:u}; return; }
+  buildVariants(u,function(t,w){ V={t:t,w:w,src:u}; renderLogoPrev(); schedule(); if(t&&(t.length+w.length)<1500000){ try{ localStorage.setItem('ieci-logo-var',JSON.stringify({k:k,t:t,w:w})); }catch(e){ try{ localStorage.removeItem('ieci-logo-var'); }catch(x){} } } });
 }
 function logoSrcPage(){ return V.src===S.style.logo&&V.t?V.t:S.style.logo; }
 function logoSrcCover(){
@@ -3018,7 +3193,17 @@ function secCollaudo(){
     '<div class="sign">'+sigBox('Il tecnico',S.sign.dit.img,D.tecnico||S.sign.dit.name||'','',S.company.stamp)+sigBox('Per ricevuta e presa in consegna, il cliente',S.sign.cli.img,S.sign.cli.name||S.client.name,'<br>Data e luogo')+'</div></div>'+pageFoot()+'</section>';
 }
 
-var lastAppLogo='';
+var lastAppLogo='', LKL='';
+// logo piccolo e colore per la schermata del PIN, che compare prima che l'app sia pronta
+function lkLook(src,col){
+  var key=(src?imgKey(src):'')+'|'+col; if(key===LKL) return; LKL=key;
+  var old=null; try{ old=JSON.parse(localStorage.getItem('ieci-lk-look')||'null'); }catch(e){}
+  if(old&&old.key===key) return;
+  function put(lg){ try{ localStorage.setItem('ieci-lk-look',JSON.stringify({key:key,col:col,logo:lg||''})); }catch(e){} }
+  if(!src){ put(''); return; }
+  var im=new Image(); im.onload=function(){ try{ var s=Math.min(1,400/im.naturalWidth,120/im.naturalHeight), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(im.naturalWidth*s)); c.height=Math.max(1,Math.round(im.naturalHeight*s)); c.getContext('2d').drawImage(im,0,0,c.width,c.height); put(c.toDataURL('image/png')); }catch(e){ put(''); } };
+  im.onerror=function(){ put(''); }; im.src=src;
+}
 function brandUI(){
   var st=S.style, r=document.documentElement.style, on=lum(st.b1)>0.6?'#111111':'#FFFFFF';
   var bc=APP.col||st.b1; on=lum(bc)>0.6?'#111111':'#FFFFFF'; r.setProperty('--brand',bc); r.setProperty('--on-brand',on); r.setProperty('--accent',bc); r.setProperty('--accent-ink',on);
@@ -3026,6 +3211,7 @@ function brandUI(){
   var src=APP.lm==='none'?'':(APP.lm==='own'&&APP.view?APP.view:(st.logo?logoSrcPage():''));
   r.setProperty('--hl',(APP.ls||86)+'px');
   if(src!==lastAppLogo){ lastAppLogo=src; var el=$('app-logo'); if(el) el.innerHTML=src?'<img src="'+src+'" alt="'+esc(S.company.name)+'">':''; }
+  lkLook(src,bc);
   var nm=String(S.company.name||'').replace(/\s*(s\.?r\.?l\.?s?|s\.?p\.?a\.?)\s*$/i,'').trim()||'';
   if(APP.name) nm=APP.name; var an=$('app-name'); if(an&&an.textContent!==(nm||'IECI')) an.textContent=nm||'IECI';
   var sf=APP.suf!==''&&APP.suf!=null?APP.suf:'preventivi', a2=document.querySelector('.an2'); if(a2){ var tx=sf?' '+sf:''; if(a2.textContent!==tx) a2.textContent=tx; }
@@ -3070,14 +3256,32 @@ function wmGen(){
 /* ---------- motore dell'anteprima ----------
    Il fascicolo viene ricostruito come testo, ma nella pagina si sostituiscono SOLO le pagine cambiate.
    Le foto (data URL di centinaia di KB) diventano indirizzi blob: brevi, decodificati una volta sola dal browser. */
-var DOCC={raw:[],wk:'',wm:'',pend:false}, IMGC={}, IMGN=0;
+var DOCC={raw:[],wk:'',wm:'',pend:false,gen:0}, IMGC={}, IMGN=0;
 function imgKey(u){ var h=5381, st=Math.max(1,Math.floor(u.length/2000)); for(var i=0;i<u.length;i+=st) h=((h<<5)+h+u.charCodeAt(i))|0; return (h>>>0).toString(36)+'_'+u.length+'_'+u.charCodeAt(u.length-3); }
 function imgBlob(u){
   var k=imgKey(u), b=IMGC[k]; if(b) return b;
   try{ var c=u.indexOf(','), bin=atob(u.slice(c+1)), n=bin.length, a=new Uint8Array(n); for(var i=0;i<n;i++) a[i]=bin.charCodeAt(i);
     b=URL.createObjectURL(new Blob([a],{type:u.slice(5,u.indexOf(';'))})); IMGC[k]=b; IMGN++; return b; }catch(e){ return u; }
 }
-function docImgs(h){ return h.indexOf('data:image/')<0?h:h.replace(/data:image\/(?:png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]{400,}/g,imgBlob); }
+// foto lunghe (data URL) → indirizzi blob. Cerco con indexOf (veloce) invece di un'espressione regolare che
+// leggerebbe carattere per carattere megabyte di testo: sul telefono passa da più di un secondo a pochi millesimi.
+var DI_T=/^data:image\/(?:png|jpe?g|webp|gif);base64,$/;
+function docImgs(h){
+  var i=h.indexOf('data:image/'); if(i<0) return h;
+  var out=[], last=0, n=h.length;
+  while(i>-1){
+    var b=h.indexOf(';base64,',i), next;
+    if(b<0) break;
+    if(b-i<=20&&DI_T.test(h.slice(i,b+8))){
+      var st=b+8, e=n, k, cs=['"',"'",')','&',' ','<','\\'];
+      for(k=0;k<cs.length;k++){ var q=h.indexOf(cs[k],st); if(q>-1&&q<e) e=q; }
+      if(e-st>=400){ out.push(h.slice(last,i),imgBlob(h.slice(i,e))); last=e; }
+      next=e;
+    } else next=i+11;
+    i=h.indexOf('data:image/',next);
+  }
+  if(!last) return h; out.push(h.slice(last)); return out.join('');
+}
 function wmPrep(){
   var d=$('doc'), w=wmGen();
   if(!w||!w.url){ if(DOCC.wm){ d.style.removeProperty('--wm'); DOCC.wm=''; } return ''; }
@@ -3092,6 +3296,7 @@ function docEl(chunk,wk){
 }
 function renderDoc(){
   if(document.documentElement.classList.contains('locked')){ DOCC.pend=true; return; }
+  var gen=++DOCC.gen;
   applyBrand();
   var order=S.layout, d=$('doc');
   var fn={cover:secCover,azienda:secAzienda,prodotti:secProdotti,prev:secPreventivo,cond:secCond,planimetria:secPlan,fv:secFv,crono:secCrono,fiducia:secFiducia,conferma:secConferma,lavoro:secLavoro,collaudo:secCollaudo};
@@ -3105,6 +3310,14 @@ function renderDoc(){
       if(kids[i]) d.replaceChild(el,kids[i]); else d.appendChild(el);
     }
     while(!full&&d.children.length>parts.length) d.removeChild(d.lastElementChild);
+  }
+  // primo disegno (apertura, sblocco): una pagina per fotogramma, così l'app risponde subito ai tocchi
+  if(full&&!d.children.length&&parts.length>2){
+    DOCC.raw=[]; DOCC.wk=wk; var n=0;
+    var step=function(){ if(gen!==DOCC.gen) return; var t0=performance.now();
+      while(n<parts.length){ var e2=docEl(parts[n],wk); if(!e2){ DOCC.gen++; d.innerHTML=docImgs(parts.join('')); DOCC.raw=[]; fit(); return; } d.appendChild(e2); DOCC.raw.push(parts[n]); n++; if(performance.now()-t0>10) break; }
+      fit(); if(n<parts.length){ if(document.hidden) setTimeout(step,30); else requestAnimationFrame(step); } };
+    step(); return;
   }
   if(full){ d.innerHTML=docImgs(parts.map(function(c){ return c.indexOf('<section class="page">')===0?'<section class="page">'+wk+c.slice(22):c; }).join('')); }
   DOCC.raw=d.children.length===parts.length?parts:[]; DOCC.wk=wk;
@@ -3218,9 +3431,9 @@ function buildPdf0(withAtt,prog){
     if(!h2iLoad()) return reject(new Error('Motore immagini non disponibile'));
     var pages=Array.prototype.slice.call(document.querySelectorAll('#doc .page'));
     if(!pages.length) return reject(new Error('Nessuna pagina nel fascicolo: attiva almeno una sezione da Contenuto'));
-    var d=$('doc'), z=d.style.zoom; d.style.zoom=1;
+    var d=$('doc'), z=d.style.zoom; d.style.zoom=1; d.classList.add('cattura');
     var D=PDFLib.PDFDocument, out, fontCss='', i=0, ok=false;
-    function done(){ d.style.zoom=z; try{ fit(); }catch(e){} }
+    function done(){ d.style.zoom=z; d.classList.remove('cattura'); try{ fit(); }catch(e){} }
     D.create().then(function(o){
       out=o; out.setTitle(fileBase()); out.setAuthor(S.company.name||''); out.setCreator('IECI preventivi');
       return window.htmlToImage.getFontEmbedCSS(pages[0]).catch(function(){ return ''; });
@@ -4191,140 +4404,95 @@ document.addEventListener('click',function(e){
   copyText(v,'Codice copiato: incollalo sull\'altro dispositivo e poi cancellalo dagli appunti');
 });
 
-/* ===== Blocco con PIN ===== */
-var PIN=null, LK={on:false,buf:'',ask:null,busy:false,wait:false,tm:0,last:Date.now(),hid:0,okT:0}, PIN_IT=600000;
-function pinLoad(){ try{ PIN=JSON.parse(localStorage.getItem('ieci-pin')||'null'); }catch(e){ PIN=null; } if(PIN&&!PIN.h) PIN=null; }
-function pinSave(){ try{ if(PIN) localStorage.setItem('ieci-pin',JSON.stringify(PIN)); else localStorage.removeItem('ieci-pin'); }catch(e){ toast('Impossibile salvare il PIN su questo dispositivo'); } }
+/* ===== Blocco con PIN =====
+   Il tastierino, la verifica, i tentativi e lo sblocco sono nel motore che parte per primo (window.PINPAD, in testa
+   alla pagina): così ogni tocco viene preso subito, anche mentre l'app si prepara dietro. Qui ci sono le impostazioni:
+   attivare, cambiare e togliere il PIN, il blocco automatico e l'impronta. */
+var PIN=null, LK={on:false,last:Date.now(),hid:0,okT:0}, PIN_IT=600000, PP=window.PINPAD;
+function pinLoad(){ PIN=PP?PP.load():null; return PIN; }
+function pinSave(){ if(PP) PP.save(PIN); }
 function lkHex(b){ var a=new Uint8Array(b),r='',i; for(i=0;i<a.length;i++) r+=('0'+a[i].toString(16)).slice(-2); return r; }
 function lkRnd(n){ var a=new Uint8Array(n); (window.crypto||window.msCrypto).getRandomValues(a); return a; }
-function pinWeak(t,sl){ var a=0x811c9dc5,b=0x1234567,str=sl+'|'+t,r,i; for(r=0;r<3000;r++){ for(i=0;i<str.length;i++){ a^=str.charCodeAt(i); a=Math.imul(a,16777619)>>>0; b=(b+a+(b<<5))>>>0; } } return a.toString(16)+b.toString(16); }
-function pinHash(txt,salt,mode,it,cb){
-  if(mode==='p'&&window.crypto&&crypto.subtle&&window.TextEncoder){
-    var enc=new TextEncoder();
-    crypto.subtle.importKey('raw',enc.encode(txt),'PBKDF2',false,['deriveBits']).then(function(k){
-      return crypto.subtle.deriveBits({name:'PBKDF2',salt:enc.encode(salt),iterations:it,hash:'SHA-256'},k,256);
-    }).then(function(b){ cb(lkHex(b)); }).catch(function(){ cb(''); });
-  } else cb(pinWeak(txt,salt));
-}
-// quante iterazioni reggono ~250 ms su QUESTO dispositivo (minimo 150.000, massimo 600.000)
+function pinMode(){ return (window.crypto&&crypto.subtle&&window.TextEncoder)?'p':'w'; }
+function pinHash(txt,salt,mode,it,cb){ PP.hash(txt,salt,mode,it,cb); }
+// quante iterazioni reggono ~200 ms su QUESTO dispositivo (minimo 150.000, massimo 600.000)
 function pinCalib(cb){
   if(pinMode()!=='p') return cb(PIN_IT);
-  var t0=performance.now(); pinHash('000000','calibrazione','p',50000,function(){ var dt=Math.max(1,performance.now()-t0); cb(Math.max(150000,Math.min(PIN_IT,Math.round(50000*250/dt/10000)*10000))); });
+  var t0=performance.now(); pinHash('000000','calibrazione','p',50000,function(){ var dt=Math.max(1,performance.now()-t0); cb(Math.max(150000,Math.min(PIN_IT,Math.round(50000*200/dt/10000)*10000))); });
 }
-function pinMode(){ return (window.crypto&&crypto.subtle&&window.TextEncoder)?'p':'w'; }
-function lkEq(a,b){ if(!a||!b||a.length!==b.length) return false; var d=0,i; for(i=0;i<a.length;i++) d|=a.charCodeAt(i)^b.charCodeAt(i); return d===0; }
-function pinCheck(code,cb){ var d=$('lk-dots'); d.classList.add('wait'); pinHash(code,PIN.s,PIN.m,PIN.i,function(h){ d.classList.remove('wait'); var ok=lkEq(h,PIN.h); cb(ok); if(ok) pinTune(code); }); }
 // un PIN creato con troppe iterazioni per questo telefono viene ricifrato in silenzio: lo sblocco diventa immediato
 function pinTune(code){
-  if(!PIN||PIN.m!=='p'||PIN.tuned) return;
-  setTimeout(function(){ pinCalib(function(it){ if(!PIN) return; if(it>=PIN.i*0.8){ PIN.tuned=1; pinSave(); return; }
-    var salt=lkHex(lkRnd(16)); pinHash(code,salt,'p',it,function(h){ if(!h||!PIN) return; if(!PIN.ri){ PIN.ri=PIN.i; } PIN.h=h; PIN.s=salt; PIN.i=it; PIN.tuned=1; pinSave(); }); }); },1500);
+  pinLoad(); if(!code||!PIN||PIN.m!=='p'||PIN.tuned) return;
+  setTimeout(function(){ pinCalib(function(it){ pinLoad(); if(!PIN) return; if(it>=PIN.i*0.8){ PIN.tuned=1; pinSave(); return; }
+    var salt=lkHex(lkRnd(16)); pinHash(code,salt,'p',it,function(h){ pinLoad(); if(!h||!PIN) return; if(!PIN.ri){ PIN.ri=PIN.i; } PIN.h=h; PIN.s=salt; PIN.i=it; PIN.tuned=1; pinSave(); }); }); },2500);
 }
 function recNorm(t){ return String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,''); }
 function recGen(){ var al='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',a=lkRnd(12),r='',i; for(i=0;i<12;i++){ r+=al.charAt(a[i]%32); if(i%4===3&&i<11) r+='-'; } return r; }
 function lkInert(on){ var w=document.querySelector('.wrap'); if(!w) return; if(on) w.setAttribute('inert',''); else w.removeAttribute('inert'); }
-function lkView(v){ ['pad','in','out'].forEach(function(k){ $('lk-v-'+k).hidden=(k!==v); }); }
-function lkMsg(t,err){ var m=$('lk-msg'); m.textContent=t||' '; m.className='lk-msg'+(err?' err':''); }
-function lkRender(){ var d=$('lk-dots').children,i; for(i=0;i<d.length;i++) d[i].className=(i<LK.buf.length)?'on':''; }
-function lkShow(o){
-  LK.ask=o; LK.buf=''; LK.busy=false;
-  var lg=$('app-logo'); $('lk-logo').innerHTML=lg?lg.innerHTML:'';
-  $('lock').hidden=false; lkInert(true); lkView('pad');
-  $('lk-title').textContent=o.title; lkMsg(o.msg||''); $('lk-cancel').hidden=!o.cancel; $('lk-forgot').hidden=!o.forgot;
-  $('lk-pad').classList.remove('dis'); lkRender(); if(o.verify) lkTick();
-}
-function lkClose(){ LK.ask=null; clearInterval(LK.tm); $('lock').hidden=true; if(!LK.on) document.documentElement.classList.remove('locked'); lkInert(LK.on); }
-function lkPress(d){ if(!LK.ask||LK.busy||LK.wait||LK.buf.length>=6) return; LK.buf+=d; lkRender(); if(LK.buf.length===6){ LK.busy=true; var c=LK.buf, a=LK.ask; setTimeout(function(){ if(LK.ask===a) a.done(c); },130); } }
-function lkDel(){ if(!LK.ask||LK.busy) return; LK.buf=LK.buf.slice(0,-1); lkRender(); }
-function lkBad(msg){ LK.busy=false; LK.buf=''; var d=$('lk-dots'); d.className='lk-dots bad'; var i; for(i=0;i<d.children.length;i++) d.children[i].className=''; setTimeout(function(){ d.className='lk-dots'; },480); lkMsg(msg,true); try{ if(navigator.vibrate) navigator.vibrate(120); }catch(e){} }
-function lkTick(){
-  clearInterval(LK.tm);
-  function t(){
-    var left=Math.ceil(((PIN&&PIN.u)||0)-Date.now())/1000; left=Math.ceil(left);
-    if(left>0){ LK.wait=true; $('lk-pad').classList.add('dis'); var m=Math.floor(left/60),s2=left%60; lkMsg('Troppi tentativi. Riprova tra '+(m?m+' min ':'')+s2+' s',true); }
-    else { clearInterval(LK.tm); if(LK.wait){ LK.wait=false; $('lk-pad').classList.remove('dis'); lkMsg(''); } }
-  }
-  t(); if(PIN&&PIN.u>Date.now()) LK.tm=setInterval(t,500);
-}
-function lkFail(rec){
-  PIN.f=(PIN.f||0)+1; var msg;
-  if(PIN.f>=5){ PIN.r=(PIN.r||0)+1; var dl=[30,60,300,900,3600][Math.min(PIN.r-1,4)]; PIN.u=Date.now()+dl*1000; PIN.f=0; pinSave(); if(rec){ lkMsg('Troppi tentativi. Riprova tra '+dl+' s',true); LK.busy=false; return; } lkBad(''); lkTick(); return; }
-  pinSave(); msg=(rec?'Codice non valido':'PIN errato')+' · restano '+(5-PIN.f)+' tentativi'; if(rec){ lkMsg(msg,true); } else lkBad(msg);
-}
-function lkUnlock(){
-  LK.on=false; LK.last=Date.now(); lkClose(); document.documentElement.classList.remove('locked'); lkInert(false); pinMark(true); pinUI();
-  if(DOCC.pend){ DOCC.pend=false; schedule(); }
+// finestre del PIN usate dalle impostazioni (non bloccano l'app)
+function lkShow(o){ lkInert(true); PP.show(o); }
+function lkClose(){ PP.hide(false); if(!PP.locked){ document.documentElement.classList.remove('locked'); lkInert(false); } }
+function lkLock(){ pinLoad(); if(!PIN) return; LK.on=true; lkInert(true); PP.lock(); pinUI(); }
+function pinMark(force){ var n=Date.now(); if(force||n-LK.okT>8000){ LK.okT=n; PP.mark(); } }
+// sblocco (arriva dal motore): l'app è già pronta dietro, si completa solo il fascicolo
+window.addEventListener('ieci-sbloccato',function(e){
+  var how=e.detail&&e.detail.how; LK.on=false; LK.last=Date.now(); lkInert(false); pinMark(true); pinLoad(); pinUI();
+  if(how==='pin') pinTune(PP.code());
+  if(how==='rec'){ toast('PIN rimosso: impostane uno nuovo qui'); showPanel('app'); window.scrollTo(0,0); }
+  if(DOCC.pend){ DOCC.pend=false; setTimeout(function(){ requestAnimationFrame(function(){ schedule(); }); },60); }
   if(typeof avvioInAttesa!=='undefined'&&avvioInAttesa) setTimeout(avvia,0);
-}
-function lkLock(){
-  if(!PIN) return; LK.on=true; try{ sessionStorage.removeItem('ieci-pin-ok'); }catch(e){}
-  document.documentElement.classList.add('locked'); lkAskUnlock(); pinUI();
-}
-function lkAskUnlock(){
-  lkShow({title:'Inserisci il PIN',forgot:true,verify:true,done:function(c){
-    if(PIN.u>Date.now()){ lkBad(''); lkTick(); return; }
-    pinCheck(c,function(ok){ if(ok){ PIN.f=0; PIN.u=0; PIN.r=0; pinSave(); lkUnlock(); } else lkFail(false); });
-  }});
-}
-function pinMark(force){ var n=Date.now(); if(force||n-LK.okT>8000){ LK.okT=n; try{ sessionStorage.setItem('ieci-pin-ok',String(n)); }catch(e){} } }
+});
 function pinNew(cb,cancel,msg){
   lkShow({title:'Scegli un PIN',msg:msg||'6 cifre facili da ricordare ma non ovvie',cancel:cancel,done:function(a){
-    if(/^(\d)\1{5}$/.test(a)||a==='123456'||a==='654321'||a==='012345'||a==='123123'){ lkBad('PIN troppo semplice: cambia le cifre'); return; }
-    lkShow({title:'Ripeti il PIN',cancel:cancel,done:function(b){
-      if(a!==b){ lkBad('I due PIN non coincidono'); setTimeout(function(){ if(LK.ask) pinNew(cb,cancel,'Non coincidevano: riprova dall\'inizio'); },900); return; }
+    if(/^(\d)\1{5}$/.test(a)||a==='123456'||a==='654321'||a==='012345'||a==='123123'){ PP.bad('PIN troppo semplice: cambia le cifre'); return; }
+    lkShow({title:'Ripeti il PIN',msg:'Scrivilo un\'altra volta per conferma',cancel:cancel,done:function(b){
+      if(a!==b){ PP.bad('I due PIN non coincidono'); setTimeout(function(){ if(PP.state.ask) pinNew(cb,cancel,'Non coincidevano: riprova dall\'inizio'); },900); return; }
       cb(a);
     }});
   }});
 }
 function pinVerify(title,okcb){
-  lkShow({title:title,cancel:lkClose,verify:true,done:function(c){
-    if(PIN.u>Date.now()){ lkBad(''); lkTick(); return; }
-    pinCheck(c,function(ok){ if(ok){ PIN.f=0; pinSave(); okcb(); } else lkFail(false); });
-  }});
+  lkShow({title:title,cancel:lkClose,verify:true,bio:true,bioOk:okcb,done:function(c){ PP.check(c,function(ok){ if(ok) okcb(c); }); }});
 }
 function recShow(code){
-  LK.ask=null; lkView('out'); $('lk-title').textContent='Codice di recupero'; $('lk-code').textContent=code;
-  lkMsg('Scrivilo su un foglio e conservalo: serve solo se dimentichi il PIN. Non verrà mostrato più.');
+  PP.state.ask=null; PP.view('out'); $('lk-title').textContent='Codice di recupero'; $('lk-code').textContent=code;
+  PP.msg('Scrivilo su un foglio e conservalo: serve solo se dimentichi il PIN. Non verrà mostrato più.');
+}
+/* ---------- impronta: chiave del dispositivo (WebAuthn), niente server ---------- */
+var BIO={ok:false};
+function bioPuo(){ return !!(window.PublicKeyCredential&&navigator.credentials&&window.crypto&&crypto.subtle&&(location.protocol==='https:'||location.hostname==='localhost')); }
+function bioControlla(){
+  BIO.ok=false; if(!bioPuo()){ pinUI(); return; }
+  var f=PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable; if(!f){ pinUI(); return; }
+  f.call(PublicKeyCredential).then(function(v){ BIO.ok=!!v; pinUI(); },function(){ pinUI(); });
+}
+function bioAttiva(){
+  pinVerify('Conferma con il PIN',function(){
+    lkClose();
+    var uid=lkRnd(16), ch=lkRnd(32);
+    navigator.credentials.create({publicKey:{rp:{name:'IECI preventivi',id:location.hostname},user:{id:uid,name:'ieci-preventivi',displayName:'IECI preventivi'},challenge:ch,
+      pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000,attestation:'none'}})
+    .then(function(cr){
+      var r=cr.response, pk=r.getPublicKey&&r.getPublicKey(), alg=r.getPublicKeyAlgorithm?r.getPublicKeyAlgorithm():-7;
+      if(!pk){ toast('Questo browser non permette l\'impronta per l\'app'); return; }
+      pinLoad(); if(!PIN) return; PIN.bio={id:PP.b64u(cr.rawId),pk:PP.b64u(pk).replace(/-/g,'+').replace(/_/g,'/'),alg:alg}; pinSave(); pinUI(); toast('Impronta attivata: la prossima volta basta il dito');
+    },function(e){ toast(e&&e.name==='NotAllowedError'?'Impronta non attivata (annullato)':'Impronta non disponibile su questo dispositivo'); });
+  });
 }
 function pinUI(){
-  var on=!!PIN; $('pn-off').hidden=on; $('pn-on').hidden=!on; $('lk-now').hidden=!on; if(on) $('pn-auto').value=String(PIN.auto);
+  pinLoad(); var on=!!PIN; $('pn-off').hidden=on; $('pn-on').hidden=!on; $('lk-now').hidden=!on; if(on) $('pn-auto').value=String(PIN.auto);
+  var bx=$('pn-bio'); if(bx){ bx.hidden=!on||!(BIO.ok||PIN&&PIN.bio); var b=!!(PIN&&PIN.bio); $('pn-bio-on').hidden=b; $('pn-bio-off').hidden=!b; $('pn-bio-st').textContent=b?'Attiva: all\'apertura appoggi il dito e l\'app si sblocca. Il PIN resta valido.':'Più veloce del PIN: appoggi il dito e l\'app si apre. Il PIN resta valido.'; }
 }
 function pinInit(){
-  pinLoad(); pinUI();
-  var recent=false; try{ recent=Date.now()-(+sessionStorage.getItem('ieci-pin-ok')||0)<120000; }catch(e){}
-  var pad=$('lk-pad'),k, prima=window.__pinq||'';
-  if(window.__pinC){ pad.removeEventListener('click',window.__pinC); document.removeEventListener('keydown',window.__pinK,true); window.__pinC=window.__pinK=window.__pinH=null; }
-  pad.innerHTML=''; for(k=1;k<=9;k++) pad.insertAdjacentHTML('beforeend','<button type="button" data-k="'+k+'" aria-label="'+k+'">'+k+'</button>');
-  pad.insertAdjacentHTML('beforeend','<button type="button" class="lk-ph" tabindex="-1" aria-hidden="true"></button><button type="button" data-k="0" aria-label="0">0</button><button type="button" data-k="del" aria-label="Cancella"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M17 9l-5 6M12 9l5 6"/></svg></button>');
-  pad.addEventListener('click',function(e){ var b=e.target.closest('button[data-k]'); if(!b) return; var v=b.getAttribute('data-k'); if(v==='del') lkDel(); else lkPress(v); });
-  document.addEventListener('keydown',function(e){
-    if($('lock').hidden||!LK.ask||!$('lk-v-pad')||$('lk-v-pad').hidden) return;
-    if(e.key>='0'&&e.key<='9'&&e.key.length===1){ e.preventDefault(); lkPress(e.key); }
-    else if(e.key==='Backspace'){ e.preventDefault(); lkDel(); }
-    else if(e.key==='Escape'&&LK.ask.cancel){ e.preventDefault(); LK.ask.cancel(); }
-  },true);
-  $('lk-cancel').addEventListener('click',function(){ if(LK.ask&&LK.ask.cancel) LK.ask.cancel(); });
-  $('lk-forgot').addEventListener('click',function(){ lkView('in'); $('lk-title').textContent='Codice di recupero'; lkMsg('Inserisci il codice che hai ricevuto quando hai impostato il PIN'); $('lk-recin').value=''; setTimeout(function(){ $('lk-recin').focus(); },50); });
-  $('lk-recback').addEventListener('click',function(){ if(LK.on) lkAskUnlock(); else lkClose(); });
-  function recGo(){
-    if(PIN.u>Date.now()){ lkTickRec(); return; }
-    var c=recNorm($('lk-recin').value); if(c.length!==12){ lkMsg('Il codice ha 12 caratteri (XXXX-XXXX-XXXX)',true); return; }
-    pinHash(c,PIN.rs,PIN.m,PIN.ri||PIN.i,function(h){
-      if(lkEq(h,PIN.rh)){ PIN=null; pinSave(); lkUnlock(); toast('PIN rimosso: impostane uno nuovo qui'); showPanel('app'); window.scrollTo(0,0); }
-      else lkFail(true);
-    });
-  }
-  function lkTickRec(){ var l=Math.ceil((PIN.u-Date.now())/1000); lkMsg('Troppi tentativi. Riprova tra '+l+' s',true); }
-  $('lk-recok').addEventListener('click',recGo);
-  $('lk-recin').addEventListener('keydown',function(e){ if(e.key==='Enter') recGo(); });
+  pinLoad(); LK.on=!!(PP&&PP.locked); if(LK.on) lkInert(true);
   $('lk-copy').addEventListener('click',function(){ var t=$('lk-code').textContent; try{ navigator.clipboard.writeText(t).then(function(){ toast('Codice copiato'); },function(){ toast('Copia non riuscita: scrivilo a mano'); }); }catch(e){ toast('Copia non riuscita: scrivilo a mano'); } });
   $('lk-done').addEventListener('click',function(){ lkClose(); pinMark(true); pinUI(); toast('PIN attivato'); });
   $('pn-set').addEventListener('click',function(){
     pinNew(function(code){
       var mode=pinMode(), salt=lkHex(lkRnd(16)), rs=lkHex(lkRnd(16)), rec=recGen();
-      lkMsg('Proteggo il PIN…'); $('lk-dots').classList.add('wait');
+      PP.msg('Proteggo il PIN…'); $('lk-dots').className='lk-dots wait';
       pinCalib(function(it){ Promise.all([new Promise(function(r){ pinHash(code,salt,mode,it,r); }),new Promise(function(r){ pinHash(recNorm(rec),rs,mode,it,r); })]).then(function(v){
-        $('lk-dots').classList.remove('wait'); var h=v[0], rh=v[1];
+        PP.idle(); var h=v[0], rh=v[1];
         if(!h||!rh){ lkClose(); toast('Il browser non permette la cifratura: PIN non attivato'); return; }
         PIN={h:h,s:salt,m:mode,i:it,rh:rh,rs:rs,auto:5,f:0,u:0,r:0,tuned:1}; pinSave(); pinUI(); recShow(rec);
       }); });
@@ -4332,35 +4500,37 @@ function pinInit(){
   });
   $('pn-chg').addEventListener('click',function(){
     pinVerify('PIN attuale',function(){
-      pinNew(function(code){ var salt=lkHex(lkRnd(16)); pinHash(code,salt,PIN.m,PIN.i,function(h){ if(!h){ lkClose(); toast('Cambio non riuscito'); return; } PIN.h=h; PIN.s=salt; PIN.f=0; pinSave(); lkClose(); toast('PIN cambiato'); }); },lkClose);
+      pinNew(function(code){ pinLoad(); var salt=lkHex(lkRnd(16)); pinHash(code,salt,PIN.m,PIN.i,function(h){ if(!h){ lkClose(); toast('Cambio non riuscito'); return; } pinLoad(); PIN.h=h; PIN.s=salt; PIN.f=0; pinSave(); lkClose(); toast('PIN cambiato'); }); },lkClose);
     });
   });
   $('pn-del').addEventListener('click',function(){
     pinVerify('Inserisci il PIN per disattivarlo',function(){ PIN=null; pinSave(); lkClose(); pinUI(); try{ sessionStorage.removeItem('ieci-pin-ok'); }catch(e){} toast('PIN disattivato'); });
   });
+  $('pn-bio-on').addEventListener('click',bioAttiva);
+  $('pn-bio-off').addEventListener('click',function(){ pinLoad(); if(!PIN) return; delete PIN.bio; pinSave(); pinUI(); toast('Impronta disattivata: si sblocca con il PIN'); });
   $('pn-lock').addEventListener('click',function(){ lkLock(); });
   $('lk-now').addEventListener('click',function(){ lkLock(); });
-  $('pn-auto').addEventListener('change',function(){ if(!PIN) return; PIN.auto=parseInt($('pn-auto').value,10); pinSave(); toast('Blocco automatico impostato'); });
-  ['pointerdown','keydown','touchstart','wheel'].forEach(function(ev){ document.addEventListener(ev,function(){ if(LK.on||!PIN) return; LK.last=Date.now(); pinMark(false); },true); });
+  $('pn-auto').addEventListener('change',function(){ pinLoad(); if(!PIN) return; PIN.auto=parseInt($('pn-auto').value,10); pinSave(); toast('Blocco automatico impostato'); });
+  ['pointerdown','keydown','touchstart','wheel'].forEach(function(ev){ document.addEventListener(ev,function(){ if(LK.on||PP.locked||!PIN) return; LK.last=Date.now(); pinMark(false); },{capture:true,passive:true}); });
   setInterval(function(){
-    if(!PIN||LK.on) return; var n=Date.now();
-    if(PIN.auto>0&&n-LK.last>PIN.auto*60000&&!LK.ask) lkLock(); else if(n-LK.last<60000) pinMark(false);
+    if(!PIN||LK.on||PP.locked) return; var n=Date.now();
+    if(PIN.auto>0&&n-LK.last>PIN.auto*60000&&!PP.state.ask) lkLock(); else if(n-LK.last<60000) pinMark(false);
   },10000);
   document.addEventListener('visibilitychange',function(){
-    if(!PIN||LK.on) return;
+    if(!PIN||LK.on||PP.locked) return;
     if(document.hidden){ LK.hid=Date.now(); return; }
-    if(LK.hid&&PIN.auto>=0&&Date.now()-LK.hid>=PIN.auto*60000&&!LK.ask) lkLock();
+    if(LK.hid&&PIN.auto>=0&&Date.now()-LK.hid>=PIN.auto*60000&&!PP.state.ask) lkLock();
     LK.hid=0;
   });
-  if(PIN&&!recent){ lkLock(); if(prima){ lkMsg(''); prima.split('').forEach(function(c){ lkPress(c); }); } } else { LK.on=false; lkClose(); pinMark(true); }
-  if(PIN&&recent){ pinMark(true); }
+  if(!LK.on){ document.documentElement.classList.remove('locked'); if(PIN) pinMark(true); }
   if(!PIN){ try{ sessionStorage.removeItem('ieci-pin-ok'); }catch(e){} }
-  window.IECI_T.pin=function(){ return {PIN:PIN,LK:LK}; };
+  if(!LK.on) pinTune(PP.code());
+  pinUI(); bioControlla();
+  window.IECI_T.pin=function(){ return {PIN:pinLoad(),LK:LK,PP:PP}; };
 }
 pinInit();
 
 menuLoad();
-
 function renderTabs(){
   $('tabs').innerHTML=ORDER.map(function(k){ return '<button type="button" class="tab" data-m="'+k+'" aria-pressed="'+(S.model===k)+'">'+esc(MODELS[k].short)+'</button>'; }).join('');
 }
@@ -9324,9 +9494,10 @@ try{ if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventLi
 COLL.app=COLL.dom; CRONO_DEF.app=CRONO_DEF.dom; MARKT.app=MARKT.dom;
 showPanel('prev');
 // un solo disegno all'avvio, con i dati veri: prima si legge il preventivo salvato, poi si disegna (al massimo si aspetta 600 ms)
-// con il PIN attivo il disegno dell'app aspetta lo sblocco: il tastierino resta pronto a ogni tocco
+// con il PIN attivo l'app si prepara dietro il tastierino (che ha il suo motore e risponde comunque):
+// allo sblocco è già pronta, manca solo il fascicolo, che si disegna subito dopo
 var avviato=false, avvioInAttesa=false;
-function avvia(){ if(avviato) return; if(document.documentElement.classList.contains('locked')&&LK.on){ avvioInAttesa=true; return; } avviato=true; avvioInAttesa=false; renderAll(); apInit(); apApply(); apRefresh(); }
+function avvia(){ if(avviato) return; var PPd=window.PINPAD; if(PPd&&PPd.locked&&PPd.typing()){ clearTimeout(tAvvio); tAvvio=setTimeout(avvia,120); return; } avviato=true; avvioInAttesa=false; renderAll(); apInit(); apApply(); apRefresh(); }
 var tAvvio=setTimeout(avvia,600);
 idbOpen(function(ok){
   if(!ok){ clearTimeout(tAvvio); avvia(); dbLoad(afterLoad); return; }

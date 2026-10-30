@@ -45,7 +45,7 @@ ok(typeof pdf==='number'&&pdf>20000&&req.some(u=>/lib-pdf\.js/.test(u)),'PDF cre
 // PIN: tastierino subito e sblocco
 await p.evaluate(async()=>{ const e=new TextEncoder(), salt='ab12'; const k=await crypto.subtle.importKey('raw',e.encode('135790'),'PBKDF2',false,['deriveBits']); const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt:e.encode(salt),iterations:600000,hash:'SHA-256'},k,256); const h=[...new Uint8Array(bits)].map(x=>('0'+x.toString(16)).slice(-2)).join(''); localStorage.setItem('ieci-pin',JSON.stringify({h,s:salt,m:'p',i:600000,rh:'x',rs:'y',auto:5,f:0,u:0,r:0})); sessionStorage.removeItem('ieci-pin-ok'); });
 await p.goto(A.SRC,{waitUntil:'commit'});
-await p.waitForFunction(()=>{ const l=document.getElementById('lock'); return l&&!l.hidden&&document.querySelectorAll('#lk-pad button[data-k]').length===11; },null,{polling:10,timeout:20000});
+await p.waitForFunction(()=>{ const l=document.getElementById('lock'); return l&&!l.hidden&&document.querySelectorAll('#lk-pad button[data-k]').length>=11; },null,{polling:10,timeout:20000});
 for(const c of '135') await p.click('#lk-pad [data-k="'+c+'"]');
 await p.waitForTimeout(1200);
 ok(await S(()=>document.querySelectorAll('#lk-dots i.on').length===3&&document.documentElement.classList.contains('locked')),'tasti premuti mentre l\'app si carica: tenuti');

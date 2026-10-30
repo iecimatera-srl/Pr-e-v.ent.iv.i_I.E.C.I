@@ -6,10 +6,9 @@
     <h2 id="lk-title">Inserisci il PIN</h2>
     <p class="lk-msg" id="lk-msg" aria-live="polite">&nbsp;</p>
     <div class="lk-view" id="lk-v-pad">
-      <div class="lk-dots" id="lk-dots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="lk-dots" id="lk-dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="lk-pad" id="lk-pad"></div>
-      <button class="lk-link" id="lk-forgot" type="button">PIN dimenticato?</button>
-      <button class="lk-link" id="lk-cancel" type="button" hidden>Annulla</button>
+      <div class="lk-links"><button class="lk-link" id="lk-forgot" type="button">PIN dimenticato?</button><button class="lk-link" id="lk-cancel" type="button" hidden>Annulla</button></div>
     </div>
     <div class="lk-rec lk-view" id="lk-v-in" hidden>
       <input id="lk-recin" type="text" placeholder="XXXX-XXXX-XXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="14" aria-label="Codice di recupero">
@@ -23,17 +22,141 @@
     </div>
   </div>
 </div>
-<script>/* PIN: il tastierino compare e risponde subito, anche mentre il resto dell'app si sta ancora caricando */
-(function(){try{var P=JSON.parse(localStorage.getItem('ieci-pin')||'null'),ok=+sessionStorage.getItem('ieci-pin-ok')||0;if(!P||!P.h||Date.now()-ok<120000)return;
-document.documentElement.classList.add('locked');document.getElementById('lock').hidden=false;
-var pad=document.getElementById('lk-pad'),h='',k;for(k=1;k<=9;k++)h+='<button type="button" data-k="'+k+'" aria-label="'+k+'">'+k+'</button>';
-pad.innerHTML=h+'<button type="button" class="lk-ph" tabindex="-1" aria-hidden="true"></button><button type="button" data-k="0" aria-label="0">0</button><button type="button" data-k="del" aria-label="Cancella">&#9003;</button>';
-var W=window;W.__pinq='';function dots(){var d=document.getElementById('lk-dots').children,i;for(i=0;i<d.length;i++)d[i].className=i<W.__pinq.length?'on':'';}
-W.__pinH=function(v){if(v==='del')W.__pinq=W.__pinq.slice(0,-1);else if(W.__pinq.length<6)W.__pinq+=v;dots();if(W.__pinq.length===6)document.getElementById('lk-msg').textContent='Un attimo…';};
-pad.addEventListener('click',W.__pinC=function(e){var b=e.target.closest('button[data-k]');if(b)W.__pinH(b.getAttribute('data-k'));});
-document.addEventListener('keydown',W.__pinK=function(e){if(e.key>='0'&&e.key<='9'&&e.key.length===1){e.preventDefault();W.__pinH(e.key);}else if(e.key==='Backspace'){e.preventDefault();W.__pinH('del');}},true);
-}catch(e){}})();</script>
-<script>(function(){try{if(!localStorage.getItem('ieci-pin'))return;var t=+sessionStorage.getItem('ieci-pin-ok')||0;if(Date.now()-t<120000)return;document.getElementById('lock').hidden=false;document.documentElement.classList.add('locked');}catch(e){}})();</script>
+<script>/* Motore del PIN: parte prima di tutto il resto e non viene mai ricreato.
+   Ogni tasto conta una volta sola, al primo contatto del dito (pointerdown); il «click» che segue viene ignorato
+   (resta valido solo per Invio/Spazio da tastiera). Verifica, tentativi, attese, codice di recupero e impronta
+   sono qui, così lo sblocco funziona anche mentre il resto dell'app si sta ancora preparando. */
+(function(){
+var W=window,D=document,$=function(i){return D.getElementById(i);},P={buf:'',ask:null,busy:false,wait:false,pe:false,tm:0,rip:0,bioRun:false,code:null};
+function load(){try{var p=JSON.parse(localStorage.getItem('ieci-pin')||'null');return p&&p.h?p:null;}catch(e){return null;}}
+function save(p){try{if(p)localStorage.setItem('ieci-pin',JSON.stringify(p));else localStorage.removeItem('ieci-pin');}catch(e){}}
+function hex(b){var a=new Uint8Array(b),r='',i;for(i=0;i<a.length;i++)r+=('0'+a[i].toString(16)).slice(-2);return r;}
+function weak(t,sl){var a=0x811c9dc5,b=0x1234567,s=sl+'|'+t,r,i;for(r=0;r<3000;r++){for(i=0;i<s.length;i++){a^=s.charCodeAt(i);a=Math.imul(a,16777619)>>>0;b=(b+a+(b<<5))>>>0;}}return a.toString(16)+b.toString(16);}
+function hash(t,salt,mode,it,cb){
+  if(mode==='p'&&W.crypto&&crypto.subtle&&W.TextEncoder){var e=new TextEncoder();
+    crypto.subtle.importKey('raw',e.encode(t),'PBKDF2',false,['deriveBits']).then(function(k){return crypto.subtle.deriveBits({name:'PBKDF2',salt:e.encode(salt),iterations:it,hash:'SHA-256'},k,256);}).then(function(b){cb(hex(b));},function(){cb('');});
+  }else cb(weak(t,salt));}
+function eq(a,b){if(!a||!b||a.length!==b.length)return false;var d=0,i;for(i=0;i<a.length;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0;}
+function vib(n){try{if(navigator.vibrate)navigator.vibrate(n);}catch(e){}}
+function dots(){var d=$('lk-dots').children,i;for(i=0;i<d.length;i++){var c=i<P.buf.length?'on':'';if(d[i].className!==c)d[i].className=c;}}
+function msg(t,err){var m=$('lk-msg');m.textContent=t||' ';m.className='lk-msg'+(err?' err':'');}
+function view(v){['pad','in','out'].forEach(function(k){$('lk-v-'+k).hidden=(k!==v);});}
+function recent(){try{return Date.now()-(+sessionStorage.getItem('ieci-pin-ok')||0)<120000;}catch(e){return false;}}
+function mark(){try{sessionStorage.setItem('ieci-pin-ok',String(Date.now()));}catch(e){}}
+// aspetto: logo e colore ricordati dall'app, visibili subito
+function look(){try{var l=JSON.parse(localStorage.getItem('ieci-lk-look')||'null');if(l){if(l.col)$('lock').style.setProperty('--lkc',l.col);if(l.logo&&!$('lk-logo').firstChild){var im=new Image();im.alt='';im.src=l.logo;$('lk-logo').appendChild(im);}}}catch(e){}}
+var BIO='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 4.6A8.5 8.5 0 0 1 20.5 12v1.2"/><path d="M3.6 8.5A8.5 8.5 0 0 0 3.5 12c0 1.5.2 3 .7 4.3"/><path d="M8.5 20.2c-.9-1.9-1.4-4.2-1.4-6.7a4.9 4.9 0 0 1 9.8 0v.6"/><path d="M12 13.2c0 3.1.7 5.8 1.9 7.8"/><path d="M16.7 17.3c.4 1 .9 1.9 1.4 2.7"/></svg>';
+function build(){
+  var pad=$('lk-pad'),h='',k;
+  for(k=1;k<=9;k++)h+='<button type="button" data-k="'+k+'" aria-label="'+k+'">'+k+'</button>';
+  h+='<button type="button" class="lk-ph lk-k2" data-k="bio" aria-label="Sblocca con l\'impronta" tabindex="-1">'+BIO+'</button><button type="button" data-k="0" aria-label="0">0</button><button type="button" class="lk-k2" data-k="del" aria-label="Cancella l\'ultima cifra"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 5H9l-6 7 6 7h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1z"/><path d="M17 9l-5 6M12 9l5 6"/></svg></button>';
+  pad.innerHTML=h;
+  // il tasto conta appena il dito tocca, una sola volta
+  pad.addEventListener('pointerdown',function(e){if(e.button>0)return;var b=e.target.closest&&e.target.closest('button[data-k]');if(!b)return;P.pe=true;P.rip=1-P.rip;b.classList.remove(P.rip?'p2':'p1');b.classList.add(P.rip?'p1':'p2');key(b.getAttribute('data-k'));});
+  // il clic che segue il tocco non conta mai (anche se arriva in ritardo, quando il telefono è occupato): vale solo Invio/Spazio da tastiera
+  pad.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button[data-k]');if(!b)return;if(e.detail>0&&P.pe)return;key(b.getAttribute('data-k'));});
+  pad.addEventListener('contextmenu',function(e){e.preventDefault();});
+  D.addEventListener('keydown',function(e){
+    if($('lock').hidden||!P.ask||$('lk-v-pad').hidden)return;
+    if(e.key>='0'&&e.key<='9'&&e.key.length===1){e.preventDefault();if(!e.repeat)key(e.key);}
+    else if(e.key==='Backspace'){e.preventDefault();key('del');}
+    else if(e.key==='Escape'&&P.ask.cancel){e.preventDefault();P.ask.cancel();}
+  },true);
+  $('lk-cancel').addEventListener('click',function(){if(P.ask&&P.ask.cancel)P.ask.cancel();});
+  $('lk-forgot').addEventListener('click',function(){view('in');$('lk-title').textContent='Codice di recupero';msg('Scrivi il codice che hai ricevuto quando hai impostato il PIN');$('lk-recin').value='';setTimeout(function(){$('lk-recin').focus();},50);});
+  $('lk-recback').addEventListener('click',function(){if(P.back)P.back();else unlockAsk();});
+  $('lk-recok').addEventListener('click',recGo);
+  $('lk-recin').addEventListener('keydown',function(e){if(e.key==='Enter')recGo();});
+}
+function key(k){
+  if(!P.ask||P.busy)return;
+  if(k==='bio'){bio(false);return;}
+  if(P.wait)return;
+  if(k==='del'){if(P.buf){P.buf=P.buf.slice(0,-1);dots();}return;}
+  if(P.buf.length>=6)return;
+  if(P.buf.length===0&&$('lk-msg').className.indexOf('err')>-1&&!P.wait)msg(P.ask.msg||'');
+  P.buf+=k;P.lastKey=Date.now();dots();vib(5);
+  if(P.buf.length===6){P.busy=true;var c=P.buf,a=P.ask;$('lk-dots').className='lk-dots wait';setTimeout(function(){if(P.ask===a)a.done(c);},40);}
+}
+function bad(m){P.busy=false;P.buf='';var d=$('lk-dots');d.className='lk-dots';void d.offsetWidth;d.className='lk-dots bad';dots();setTimeout(function(){if(d.className==='lk-dots bad')d.className='lk-dots';},460);msg(m,true);vib([50,40,70]);}
+function idle(){P.busy=false;$('lk-dots').className='lk-dots';}
+function show(o){
+  P.ask=o;P.buf='';P.busy=false;P.back=o.back||null;var L=$('lock');
+  L.classList.remove('out');L.hidden=false;if(o.lockApp)D.documentElement.classList.add('locked');look();view('pad');
+  $('lk-title').textContent=o.title;msg(o.msg||'');$('lk-cancel').hidden=!o.cancel;$('lk-forgot').hidden=!o.forgot;
+  var bk=$('lk-pad').querySelector('[data-k="bio"]');var bon=!!(o.bio&&bioOk());bk.className=bon?'lk-k2 lk-bio':'lk-ph lk-k2';bk.tabIndex=bon?0:-1;
+  $('lk-dots').className='lk-dots';$('lk-pad').classList.remove('dis');P.wait=false;dots();
+  if(o.verify)tick();
+}
+function hide(anim,cb){
+  var L=$('lock');P.ask=null;clearInterval(P.tm);
+  function fine(){L.hidden=true;L.classList.remove('out');$('lk-dots').className='lk-dots';P.buf='';dots();if(cb)cb();}
+  if(anim&&!L.hidden){$('lk-dots').className='lk-dots ok';L.classList.add('out');setTimeout(fine,430);}else fine();
+}
+function tick(){
+  clearInterval(P.tm);
+  function t(){var p=load(),left=Math.ceil((((p&&p.u)||0)-Date.now())/1000);
+    if(left>0){P.wait=true;$('lk-pad').classList.add('dis');var m=Math.floor(left/60),s=left%60;msg('Troppi tentativi. Riprova tra '+(m?m+' min ':'')+s+' s',true);}
+    else{clearInterval(P.tm);if(P.wait){P.wait=false;$('lk-pad').classList.remove('dis');msg('');}}}
+  t();var p=load();if(p&&p.u>Date.now())P.tm=setInterval(t,500);
+}
+function fail(rec){
+  var p=load();if(!p)return;p.f=(p.f||0)+1;
+  if(p.f>=5){p.r=(p.r||0)+1;var dl=[30,60,300,900,3600][Math.min(p.r-1,4)];p.u=Date.now()+dl*1000;p.f=0;save(p);if(rec){msg('Troppi tentativi. Riprova tra '+dl+' s',true);return;}bad('');tick();return;}
+  save(p);var m=(rec?'Codice non valido':'PIN errato')+' · restano '+(5-p.f)+' tentativi';if(rec)msg(m,true);else bad(m);
+}
+// controlla un PIN con i tentativi limitati; cb(true|false)
+function check(c,cb){var p=load();if(!p){cb(true);return;}if(p.u>Date.now()){bad('');tick();return;}
+  hash(c,p.s,p.m,p.i,function(h){var q=load();if(q&&eq(h,q.h)){q.f=0;q.u=0;q.r=0;save(q);cb(true);}else{fail(false);cb(false);}});}
+var on=false;
+function unlocked(code,how){
+  on=false;mark();P.code=code||null;
+  hide(true,function(){D.documentElement.classList.remove('locked');try{W.dispatchEvent(new CustomEvent('ieci-sbloccato',{detail:{how:how||'pin'}}));}catch(e){}});
+}
+function unlockAsk(){
+  on=true;P.back=null;
+  show({title:'Inserisci il PIN',forgot:true,bio:true,verify:true,lockApp:true,done:function(c){check(c,function(ok){if(ok)unlocked(c,'pin');});}});
+  var p=load();if(p&&p.bio&&bioOk()&&!(p.u>Date.now())&&D.visibilityState==='visible')setTimeout(function(){if(on&&!P.buf)bio(true);},350);
+}
+function lock(){if(!load())return;try{sessionStorage.removeItem('ieci-pin-ok');}catch(e){}unlockAsk();}
+function recNorm(t){return String(t||'').toUpperCase().replace(/[^A-Z0-9]/g,'');}
+function recGo(){
+  var p=load();if(!p)return;if(p.u>Date.now()){msg('Troppi tentativi. Riprova tra '+Math.ceil((p.u-Date.now())/1000)+' s',true);return;}
+  var c=recNorm($('lk-recin').value);if(c.length!==12){msg('Il codice ha 12 caratteri (XXXX-XXXX-XXXX)',true);return;}
+  msg('Controllo il codice…');
+  hash(c,p.rs,p.m,p.ri||p.i,function(h){if(eq(h,p.rh)){save(null);try{sessionStorage.removeItem('ieci-pin-ok');}catch(e){}on=false;hide(true,function(){D.documentElement.classList.remove('locked');try{W.dispatchEvent(new CustomEvent('ieci-sbloccato',{detail:{how:'rec'}}));}catch(e){}});}else fail(true);});
+}
+/* ---------- impronta (WebAuthn, solo sul dispositivo: nessun server) ---------- */
+function bioOk(){var p=load();if(!p||!p.bio||!W.PublicKeyCredential||!navigator.credentials||!W.crypto||!crypto.subtle)return false;return location.protocol==='https:'||location.hostname==='localhost';}
+function b64u(a){a=new Uint8Array(a);var s='',i;for(i=0;i<a.length;i++)s+=String.fromCharCode(a[i]);return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
+function unb64(s){s=String(s).replace(/-/g,'+').replace(/_/g,'/');while(s.length%4)s+='=';var b=atob(s),a=new Uint8Array(b.length),i;for(i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+function der2raw(d){var i=2;if(d[1]&0x80)i=2+(d[1]&0x7f);function n(){if(d[i]!==2)throw new Error('der');var l=d[i+1],v=d.slice(i+2,i+2+l);i+=2+l;while(v.length>32&&v[0]===0)v=v.slice(1);var o=new Uint8Array(32);o.set(v,32-v.length);return o;}var r=n(),s=n(),o=new Uint8Array(64);o.set(r,0);o.set(s,32);return o;}
+function bioVerify(b,ch,r){
+  var cd;try{cd=JSON.parse(new TextDecoder().decode(r.clientDataJSON));}catch(e){return Promise.resolve(false);}
+  if(cd.type!=='webauthn.get'||cd.challenge!==b64u(ch)||cd.origin!==location.origin)return Promise.resolve(false);
+  var ad=new Uint8Array(r.authenticatorData);if(!(ad[32]&4))return Promise.resolve(false);
+  var rsa=b.alg===-257,alg=rsa?{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'}:{name:'ECDSA',namedCurve:'P-256'};
+  return Promise.all([crypto.subtle.digest('SHA-256',r.clientDataJSON),crypto.subtle.digest('SHA-256',new TextEncoder().encode(location.hostname)),crypto.subtle.importKey('spki',unb64(b.pk),alg,false,['verify'])]).then(function(v){
+    var rp=new Uint8Array(v[1]),i;for(i=0;i<32;i++)if(rp[i]!==ad[i])return false;
+    var h=new Uint8Array(v[0]),data=new Uint8Array(ad.length+h.length);data.set(ad,0);data.set(h,ad.length);
+    var sig=new Uint8Array(r.signature);if(!rsa)sig=der2raw(sig);
+    return crypto.subtle.verify(rsa?alg:{name:'ECDSA',hash:'SHA-256'},v[2],sig,data);
+  }).catch(function(){return false;});
+}
+function bio(auto){
+  var p=load();if(!p||!p.bio||!bioOk()||P.bioRun||!P.ask)return;var a=P.ask;P.bioRun=true;if(!auto)msg('Appoggia il dito sul sensore');
+  var ch=crypto.getRandomValues(new Uint8Array(32));
+  navigator.credentials.get({publicKey:{challenge:ch,allowCredentials:[{type:'public-key',id:unb64(p.bio.id)}],userVerification:'required',timeout:60000,rpId:location.hostname}}).then(function(cr){return bioVerify(p.bio,ch,cr.response);}).then(function(ok){
+    P.bioRun=false;if(P.ask!==a)return;
+    if(!ok){msg('Impronta non valida: usa il PIN',true);return;}
+    var q=load();if(q){q.f=0;q.u=0;q.r=0;save(q);}
+    if(a.bioOk)a.bioOk();else{$('lk-dots').className='lk-dots';P.buf='';unlocked(null,'bio');}
+  },function(){P.bioRun=false;if(P.ask===a)msg(auto?'':'Impronta non letta: riprova o usa il PIN',!auto);});
+}
+W.PINPAD={load:load,save:save,hash:hash,eq:eq,show:show,hide:hide,bad:bad,idle:idle,msg:msg,view:view,check:check,fail:fail,lock:lock,unlockAsk:unlockAsk,mark:mark,recent:recent,bioOk:bioOk,b64u:b64u,unb64:unb64,
+  get locked(){return on;},typing:function(){return !!(P.ask&&P.buf.length>0&&P.buf.length<6&&Date.now()-(P.lastKey||0)<900);},code:function(){var c=P.code;P.code=null;return c;},state:P};
+try{build();var p=load();if(p&&!recent())unlockAsk();}catch(e){}
+})();</script>
 
 <div class="wrap">
   <header class="top noprint">

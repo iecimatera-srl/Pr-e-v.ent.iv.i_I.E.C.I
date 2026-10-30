@@ -402,7 +402,17 @@ function secCollaudo(){
     '<div class="sign">'+sigBox('Il tecnico',S.sign.dit.img,D.tecnico||S.sign.dit.name||'','',S.company.stamp)+sigBox('Per ricevuta e presa in consegna, il cliente',S.sign.cli.img,S.sign.cli.name||S.client.name,'<br>Data e luogo')+'</div></div>'+pageFoot()+'</section>';
 }
 
-var lastAppLogo='';
+var lastAppLogo='', LKL='';
+// logo piccolo e colore per la schermata del PIN, che compare prima che l'app sia pronta
+function lkLook(src,col){
+  var key=(src?imgKey(src):'')+'|'+col; if(key===LKL) return; LKL=key;
+  var old=null; try{ old=JSON.parse(localStorage.getItem('ieci-lk-look')||'null'); }catch(e){}
+  if(old&&old.key===key) return;
+  function put(lg){ try{ localStorage.setItem('ieci-lk-look',JSON.stringify({key:key,col:col,logo:lg||''})); }catch(e){} }
+  if(!src){ put(''); return; }
+  var im=new Image(); im.onload=function(){ try{ var s=Math.min(1,400/im.naturalWidth,120/im.naturalHeight), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(im.naturalWidth*s)); c.height=Math.max(1,Math.round(im.naturalHeight*s)); c.getContext('2d').drawImage(im,0,0,c.width,c.height); put(c.toDataURL('image/png')); }catch(e){ put(''); } };
+  im.onerror=function(){ put(''); }; im.src=src;
+}
 function brandUI(){
   var st=S.style, r=document.documentElement.style, on=lum(st.b1)>0.6?'#111111':'#FFFFFF';
   var bc=APP.col||st.b1; on=lum(bc)>0.6?'#111111':'#FFFFFF'; r.setProperty('--brand',bc); r.setProperty('--on-brand',on); r.setProperty('--accent',bc); r.setProperty('--accent-ink',on);
@@ -410,6 +420,7 @@ function brandUI(){
   var src=APP.lm==='none'?'':(APP.lm==='own'&&APP.view?APP.view:(st.logo?logoSrcPage():''));
   r.setProperty('--hl',(APP.ls||86)+'px');
   if(src!==lastAppLogo){ lastAppLogo=src; var el=$('app-logo'); if(el) el.innerHTML=src?'<img src="'+src+'" alt="'+esc(S.company.name)+'">':''; }
+  lkLook(src,bc);
   var nm=String(S.company.name||'').replace(/\s*(s\.?r\.?l\.?s?|s\.?p\.?a\.?)\s*$/i,'').trim()||'';
   if(APP.name) nm=APP.name; var an=$('app-name'); if(an&&an.textContent!==(nm||'IECI')) an.textContent=nm||'IECI';
   var sf=APP.suf!==''&&APP.suf!=null?APP.suf:'preventivi', a2=document.querySelector('.an2'); if(a2){ var tx=sf?' '+sf:''; if(a2.textContent!==tx) a2.textContent=tx; }

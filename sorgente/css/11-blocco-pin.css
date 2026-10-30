@@ -1,0 +1,86 @@
+/* ===== blocco con PIN «Quadro» =====
+   Sei spie come quelle di un quadro elettrico: si accendono in giallo a ogni cifra, diventano verdi allo sblocco.
+   Tasti grandi che rispondono al primo contatto del dito. Solo animazioni di opacità e spostamento (fluide anche
+   mentre l'app si prepara dietro). */
+.locked .wrap{visibility:hidden}
+.lock{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));
+  background-color:#07101C;
+  background-image:radial-gradient(120% 70% at 50% -10%,color-mix(in srgb,var(--lkc,#2F65AE) 45%,transparent) 0%,transparent 70%),linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:100% 100%,26px 26px,26px 26px;
+  color:#fff;font-family:var(--f-ui);overflow:auto;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  animation:lkIn .2s ease-out}
+.lock[hidden]{display:none}
+.lock.out{animation:lkOut .3s cubic-bezier(.55,0,.25,1) .1s forwards;pointer-events:none}
+@keyframes lkIn{from{opacity:0}to{opacity:1}}
+@keyframes lkOut{to{opacity:0;transform:translateY(-4%)}}
+.lk-box{width:min(340px,100%);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin:auto}
+.lk-logo{display:flex;align-items:center;justify-content:center;background:#fff;border-radius:14px;padding:8px 16px;min-height:54px;box-shadow:0 12px 30px -10px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.12);margin-bottom:8px}
+.lk-logo:empty{display:none}
+.lk-logo img{max-height:44px;max-width:200px;display:block}
+.lk-box h2{margin:2px 0 0;font-family:var(--f-uid);font-size:1.32rem;font-weight:800;letter-spacing:-.01em;color:#fff}
+.lk-msg{min-height:1.35em;margin:0;font-size:.88rem;line-height:1.35;color:rgba(255,255,255,.7);max-width:30ch}
+.lk-msg.err{color:#FFB4A8}
+.lk-view{display:flex;flex-direction:column;align-items:center;gap:12px;width:100%}
+.lk-view[hidden],.lk-rec[hidden]{display:none}
+
+/* le sei spie */
+.lk-dots{display:flex;gap:13px;margin:8px 0 16px;padding:10px 16px;border-radius:999px;background:rgba(0,0,0,.28);box-shadow:inset 0 1px 3px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.07)}
+.lk-dots i{width:14px;height:14px;border-radius:50%;background:#1A2636;box-shadow:inset 0 1px 2px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.12);transition:background .08s,box-shadow .12s}
+.lk-dots i.on{background:radial-gradient(circle at 35% 30%,#FFF4C2 0 18%,#F2B705 45%,#C98F00 100%);box-shadow:0 0 0 1px rgba(255,214,90,.6),0 0 12px 2px rgba(242,183,5,.55);animation:lkLed .16s ease-out}
+@keyframes lkLed{from{transform:scale(.6)}to{transform:scale(1)}}
+.lk-dots.wait i{animation:lkWait .8s ease-in-out infinite}
+.lk-dots.wait i:nth-child(2){animation-delay:.07s}.lk-dots.wait i:nth-child(3){animation-delay:.14s}.lk-dots.wait i:nth-child(4){animation-delay:.21s}.lk-dots.wait i:nth-child(5){animation-delay:.28s}.lk-dots.wait i:nth-child(6){animation-delay:.35s}
+@keyframes lkWait{0%,100%{opacity:1}50%{opacity:.35}}
+.lk-dots.ok i{background:radial-gradient(circle at 35% 30%,#E6FFEE 0 18%,#34D17A 45%,#14934B 100%)!important;box-shadow:0 0 0 1px rgba(110,240,160,.6),0 0 14px 3px rgba(52,209,122,.6)!important;animation:lkLed .18s ease-out both}
+.lk-dots.ok i:nth-child(2){animation-delay:.03s}.lk-dots.ok i:nth-child(3){animation-delay:.06s}.lk-dots.ok i:nth-child(4){animation-delay:.09s}.lk-dots.ok i:nth-child(5){animation-delay:.12s}.lk-dots.ok i:nth-child(6){animation-delay:.15s}
+.lk-dots.bad{animation:lkShake .42s}
+.lk-dots.bad i{background:radial-gradient(circle at 35% 30%,#FFE1DC 0 18%,#FF5A47 45%,#B3261E 100%);box-shadow:0 0 0 1px rgba(255,120,100,.6),0 0 12px 2px rgba(255,90,71,.5)}
+@keyframes lkShake{15%,85%{transform:translateX(-4px)}30%,70%{transform:translateX(8px)}45%,55%{transform:translateX(-10px)}}
+
+/* tastierino */
+.lk-pad{display:grid;grid-template-columns:repeat(3,76px);gap:16px 22px;justify-content:center;touch-action:manipulation}
+.lk-pad button{position:relative;overflow:hidden;width:76px;height:76px;border-radius:50%;border:0;padding:0;cursor:pointer;
+  background:linear-gradient(180deg,rgba(255,255,255,.11),rgba(255,255,255,.05));box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 0 0 1px rgba(255,255,255,.1),0 6px 16px -8px rgba(0,0,0,.6);
+  color:#fff;font:600 2rem/1 var(--f-uid);display:flex;align-items:center;justify-content:center;
+  transition:transform .12s cubic-bezier(.2,.8,.2,1),background .12s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.lk-pad button:active,.lk-pad button.p1:active,.lk-pad button.p2:active{transform:scale(.92);background:rgba(255,255,255,.2);transition-duration:0s}
+.lk-pad button::after{content:'';position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle,rgba(242,183,5,.55) 0,rgba(242,183,5,.18) 45%,transparent 70%);opacity:0;pointer-events:none}
+.lk-pad button.p1::after{animation:lkRip1 .38s ease-out}
+.lk-pad button.p2::after{animation:lkRip2 .38s ease-out}
+@keyframes lkRip1{from{opacity:1;transform:scale(.35)}to{opacity:0;transform:scale(1.25)}}
+@keyframes lkRip2{from{opacity:1;transform:scale(.35)}to{opacity:0;transform:scale(1.25)}}
+@media (hover:hover){.lk-pad button:hover{background:rgba(255,255,255,.15)}}
+.lk-pad button:focus-visible,.lk-link:focus-visible,.lk-btn:focus-visible{outline:3px solid #F2B705;outline-offset:3px}
+.lk-pad .lk-ph{visibility:hidden}
+.lk-pad .lk-k2{background:transparent;box-shadow:none}
+.lk-pad svg{width:28px;height:28px}
+.lk-pad .lk-bio svg{width:34px;height:34px;color:#F2B705}
+.lk-pad.dis{opacity:.32;pointer-events:none}
+.lk-links{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:6px;min-height:40px}
+.lk-link{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:999px;color:rgba(255,255,255,.85);font:600 .86rem var(--f-ui);cursor:pointer;padding:9px 16px}
+.lk-link:active{background:rgba(255,255,255,.14)}
+
+/* codice di recupero */
+.lk-rec{display:flex;flex-direction:column;gap:12px;width:100%;align-items:stretch}
+.lk-rec input{width:100%;padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font:700 1.2rem var(--f-ui);text-align:center;letter-spacing:.12em;text-transform:uppercase;-webkit-user-select:text;user-select:text;min-height:52px}
+.lk-rec input:focus{outline:none;border-color:#F2B705;box-shadow:0 0 0 4px rgba(242,183,5,.2)}
+.lk-rec input::placeholder{color:rgba(255,255,255,.35)}
+.lk-btn{padding:14px 18px;border-radius:14px;border:0;background:#F2B705;color:#1B1400;font:800 1rem var(--f-ui);cursor:pointer;min-height:52px}
+.lk-btn.g{background:rgba(255,255,255,.08);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.lk-btn:active{transform:scale(.97)}
+.lk-code{font:700 1.5rem/1.3 ui-monospace,Menlo,Consolas,monospace;letter-spacing:.1em;background:rgba(242,183,5,.08);border:1px dashed rgba(242,183,5,.6);border-radius:14px;padding:16px 10px;width:100%;-webkit-user-select:text;user-select:text}
+
+@media (max-height:680px){.lk-pad button{width:64px;height:64px;font-size:1.6rem}.lk-pad{grid-template-columns:repeat(3,64px);gap:10px 18px}.lk-logo{display:none}.lk-dots{margin:4px 0 10px}}
+@media (max-height:540px){.lk-pad button{width:54px;height:54px;font-size:1.35rem}.lk-pad{grid-template-columns:repeat(3,54px);gap:8px 16px}}
+@media (prefers-reduced-motion:reduce){.lock,.lock.out,.lk-dots.bad,.lk-dots.wait i,.lk-dots i.on,.lk-dots.ok i,.lk-pad button::after{animation-duration:1ms!important}}
+@media print{.lock{display:none!important}}
+/* impostazioni: impronta */
+.pn-bio{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:10px;padding:12px 14px;border-radius:14px;border:1px solid color-mix(in srgb,var(--tensione,#F2B705) 40%,var(--line));background:color-mix(in srgb,var(--tensione,#F2B705) 8%,var(--surface))}
+.pn-bio[hidden]{display:none}
+.pn-bio-t{flex:1 1 200px;display:grid;gap:2px;min-width:0}.pn-bio-t small{color:var(--muted);font-size:.8rem}
+/* fascicolo: il browser disegna solo le pagine che si vedono (le altre quando ci arrivi scorrendo);
+   per PDF e stampa si disegnano tutte */
+#doc>.page{content-visibility:auto;contain-intrinsic-size:auto 794px auto 1123px}
+#doc.cattura>.page{content-visibility:visible}
+@media print{#doc>.page{content-visibility:visible}}

@@ -25,14 +25,32 @@ function wmGen(){
 /* ---------- motore dell'anteprima ----------
    Il fascicolo viene ricostruito come testo, ma nella pagina si sostituiscono SOLO le pagine cambiate.
    Le foto (data URL di centinaia di KB) diventano indirizzi blob: brevi, decodificati una volta sola dal browser. */
-var DOCC={raw:[],wk:'',wm:'',pend:false}, IMGC={}, IMGN=0;
+var DOCC={raw:[],wk:'',wm:'',pend:false,gen:0}, IMGC={}, IMGN=0;
 function imgKey(u){ var h=5381, st=Math.max(1,Math.floor(u.length/2000)); for(var i=0;i<u.length;i+=st) h=((h<<5)+h+u.charCodeAt(i))|0; return (h>>>0).toString(36)+'_'+u.length+'_'+u.charCodeAt(u.length-3); }
 function imgBlob(u){
   var k=imgKey(u), b=IMGC[k]; if(b) return b;
   try{ var c=u.indexOf(','), bin=atob(u.slice(c+1)), n=bin.length, a=new Uint8Array(n); for(var i=0;i<n;i++) a[i]=bin.charCodeAt(i);
     b=URL.createObjectURL(new Blob([a],{type:u.slice(5,u.indexOf(';'))})); IMGC[k]=b; IMGN++; return b; }catch(e){ return u; }
 }
-function docImgs(h){ return h.indexOf('data:image/')<0?h:h.replace(/data:image\/(?:png|jpe?g|webp|gif);base64,[A-Za-z0-9+\/=]{400,}/g,imgBlob); }
+// foto lunghe (data URL) → indirizzi blob. Cerco con indexOf (veloce) invece di un'espressione regolare che
+// leggerebbe carattere per carattere megabyte di testo: sul telefono passa da più di un secondo a pochi millesimi.
+var DI_T=/^data:image\/(?:png|jpe?g|webp|gif);base64,$/;
+function docImgs(h){
+  var i=h.indexOf('data:image/'); if(i<0) return h;
+  var out=[], last=0, n=h.length;
+  while(i>-1){
+    var b=h.indexOf(';base64,',i), next;
+    if(b<0) break;
+    if(b-i<=20&&DI_T.test(h.slice(i,b+8))){
+      var st=b+8, e=n, k, cs=['"',"'",')','&',' ','<','\\'];
+      for(k=0;k<cs.length;k++){ var q=h.indexOf(cs[k],st); if(q>-1&&q<e) e=q; }
+      if(e-st>=400){ out.push(h.slice(last,i),imgBlob(h.slice(i,e))); last=e; }
+      next=e;
+    } else next=i+11;
+    i=h.indexOf('data:image/',next);
+  }
+  if(!last) return h; out.push(h.slice(last)); return out.join('');
+}
 function wmPrep(){
   var d=$('doc'), w=wmGen();
   if(!w||!w.url){ if(DOCC.wm){ d.style.removeProperty('--wm'); DOCC.wm=''; } return ''; }
@@ -47,6 +65,7 @@ function docEl(chunk,wk){
 }
 function renderDoc(){
   if(document.documentElement.classList.contains('locked')){ DOCC.pend=true; return; }
+  var gen=++DOCC.gen;
   applyBrand();
   var order=S.layout, d=$('doc');
   var fn={cover:secCover,azienda:secAzienda,prodotti:secProdotti,prev:secPreventivo,cond:secCond,planimetria:secPlan,fv:secFv,crono:secCrono,fiducia:secFiducia,conferma:secConferma,lavoro:secLavoro,collaudo:secCollaudo};
@@ -60,6 +79,14 @@ function renderDoc(){
       if(kids[i]) d.replaceChild(el,kids[i]); else d.appendChild(el);
     }
     while(!full&&d.children.length>parts.length) d.removeChild(d.lastElementChild);
+  }
+  // primo disegno (apertura, sblocco): una pagina per fotogramma, così l'app risponde subito ai tocchi
+  if(full&&!d.children.length&&parts.length>2){
+    DOCC.raw=[]; DOCC.wk=wk; var n=0;
+    var step=function(){ if(gen!==DOCC.gen) return; var t0=performance.now();
+      while(n<parts.length){ var e2=docEl(parts[n],wk); if(!e2){ DOCC.gen++; d.innerHTML=docImgs(parts.join('')); DOCC.raw=[]; fit(); return; } d.appendChild(e2); DOCC.raw.push(parts[n]); n++; if(performance.now()-t0>10) break; }
+      fit(); if(n<parts.length){ if(document.hidden) setTimeout(step,30); else requestAnimationFrame(step); } };
+    step(); return;
   }
   if(full){ d.innerHTML=docImgs(parts.map(function(c){ return c.indexOf('<section class="page">')===0?'<section class="page">'+wk+c.slice(22):c; }).join('')); }
   DOCC.raw=d.children.length===parts.length?parts:[]; DOCC.wk=wk;

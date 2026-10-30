@@ -38,7 +38,10 @@ function refreshVariants(){
   var u=S.style.logo;
   if(!u){ V={t:'',w:'',src:''}; return; }
   if(V.src===u) return;
-  buildVariants(u,function(t,w){ V={t:t,w:w,src:u}; renderLogoPrev(); schedule(); });
+  // le versioni del logo (scontornata e bianca) si calcolano una volta e si ricordano: l'avvio resta veloce
+  var k=imgKey(u), m=null; try{ m=JSON.parse(localStorage.getItem('ieci-logo-var')||'null'); }catch(e){}
+  if(m&&m.k===k&&m.t){ V={t:m.t,w:m.w,src:u}; return; }
+  buildVariants(u,function(t,w){ V={t:t,w:w,src:u}; renderLogoPrev(); schedule(); if(t&&(t.length+w.length)<1500000){ try{ localStorage.setItem('ieci-logo-var',JSON.stringify({k:k,t:t,w:w})); }catch(e){ try{ localStorage.removeItem('ieci-logo-var'); }catch(x){} } } });
 }
 function logoSrcPage(){ return V.src===S.style.logo&&V.t?V.t:S.style.logo; }
 function logoSrcCover(){

@@ -10,6 +10,7 @@ css/07-documento-nuove-sezioni.css
 css/08-assistente.css
 css/09-immagini-e-controllo.css
 css/10-grafica-quadro.css
+css/11-blocco-pin.css
 html/01-inizio.html
 html/02-archivio.html
 html/03-salva.html

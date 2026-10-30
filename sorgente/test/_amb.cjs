@@ -3,7 +3,17 @@ const path = require('path'), fs = require('fs');
 const ROOT = path.resolve(__dirname, '..');
 let pw; try { pw = require('playwright'); } catch (e) { pw = require('/opt/npm-tools/node_modules/playwright'); }
 const exe = process.env.IECI_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
-const chromium = { launch: (o) => { o = Object.assign({}, o || {}); delete o.executablePath; if (exe) o.executablePath = exe; return pw.chromium.launch(o); } };
+// L'app disegna solo le pagine del fascicolo che si vedono (content-visibility): il loro testo non risulta in innerText.
+// Nei test che leggono il testo del fascicolo le pagine si disegnano tutte, come per il PDF (IECI_CV=1 per misurare).
+const TUTTE = "document.addEventListener('DOMContentLoaded',function(){var s=document.createElement('style');s.textContent='#doc>.page{content-visibility:visible!important}';document.head.appendChild(s);});";
+function pagineTutte(b) {
+  if (process.env.IECI_CV) return b;
+  const nc = b.newContext.bind(b), np = b.newPage.bind(b);
+  b.newContext = async (...a) => { const c = await nc(...a); await c.addInitScript(TUTTE); return c; };
+  b.newPage = async (...a) => { const p = await np(...a); await p.addInitScript(TUTTE); return p; };
+  return b;
+}
+const chromium = { launch: (o) => { o = Object.assign({}, o || {}); delete o.executablePath; if (exe) o.executablePath = exe; return pw.chromium.launch(o).then(pagineTutte); } };
 const url = p => 'file://' + path.join(ROOT, p);
 module.exports = {
   chromium, ROOT,

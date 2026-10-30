@@ -9,6 +9,7 @@ css/06-condizioni.css
 css/07-documento-nuove-sezioni.css
 css/08-assistente.css
 css/09-immagini-e-controllo.css
+css/10-grafica-quadro.css
 html/01-inizio.html
 html/02-archivio.html
 html/03-salva.html

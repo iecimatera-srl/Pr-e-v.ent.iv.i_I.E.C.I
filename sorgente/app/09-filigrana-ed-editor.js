@@ -129,12 +129,15 @@ function renderNav(){
 }
 
 /* ---------- barra preventivo, icone menu, scorciatoie ---------- */
+var QBT=null, QBT_T=0;
 function renderQbar(){
   var el=$('qbar'); if(!el||!S||!S.client) return;
   var nm=String(S.client.name||'').trim();
   $('qb-name').textContent=nm?quoteName():'Preventivo senza cliente';
   $('qb-sub').innerHTML='<span class="dot '+(S.qid?'ok':'wip')+'"></span>'+esc(MODELS[S.model].short)+' · n. '+esc(S.meta.num)+' · '+(S.qid?'salvato':'non salvato')+' · <span class="chip st-'+(S.meta.status||'bozza')+'" style="padding:0 7px;min-height:0;cursor:default">'+(STL[S.meta.status||'bozza'])+'</span>';
-  $('qb-tot').textContent=headTotal();
+  var tt=headTotal(); $('qb-tot').textContent=tt;
+  // il totale è cambiato: la linea «in tensione» del quadro si accende
+  if(QBT!==null&&QBT!==tt){ el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); clearTimeout(QBT_T); QBT_T=setTimeout(function(){ el.classList.remove('pulse'); },1000); } QBT=tt;
   apSub();
   renderVc();
   $('qb-n').textContent=DB.quotes.length?String(DB.quotes.length):''; $('qb-n').hidden=!DB.quotes.length;

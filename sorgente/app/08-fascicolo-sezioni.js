@@ -419,7 +419,7 @@ function brandUI(){
   var dk=false; try{ var th=document.documentElement.getAttribute('data-theme'); dk=th==='dark'||(th!=='light'&&window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches); }catch(e){}
   var src=APP.lm==='none'?'':(APP.lm==='own'&&APP.view?APP.view:(st.logo?logoSrcPage():''));
   r.setProperty('--hl',(APP.ls||86)+'px');
-  if(src!==lastAppLogo){ lastAppLogo=src; var el=$('app-logo'); if(el) el.innerHTML=src?'<img src="'+src+'" alt="'+esc(S.company.name)+'">':''; }
+  if(src!==lastAppLogo){ lastAppLogo=src; var el=$('app-logo'); if(el) el.innerHTML=src?'<img src="'+imgB(src)+'" alt="'+esc(S.company.name)+'">':''; }
   lkLook(src,bc);
   var nm=String(S.company.name||'').replace(/\s*(s\.?r\.?l\.?s?|s\.?p\.?a\.?)\s*$/i,'').trim()||'';
   if(APP.name) nm=APP.name; var an=$('app-name'); if(an&&an.textContent!==(nm||'IECI')) an.textContent=nm||'IECI';

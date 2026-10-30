@@ -25,7 +25,7 @@ function wmGen(){
 /* ---------- motore dell'anteprima ----------
    Il fascicolo viene ricostruito come testo, ma nella pagina si sostituiscono SOLO le pagine cambiate.
    Le foto (data URL di centinaia di KB) diventano indirizzi blob: brevi, decodificati una volta sola dal browser. */
-var DOCC={raw:[],wk:'',wm:'',pend:false,gen:0}, IMGC={}, IMGN=0;
+var DOCC={raw:[],wk:'',wm:'',pend:false,gen:0,tutto:false}, IMGC={}, IMGN=0;
 function imgKey(u){ var h=5381, st=Math.max(1,Math.floor(u.length/2000)); for(var i=0;i<u.length;i+=st) h=((h<<5)+h+u.charCodeAt(i))|0; return (h>>>0).toString(36)+'_'+u.length+'_'+u.charCodeAt(u.length-3); }
 function imgBlob(u){
   var k=imgKey(u), b=IMGC[k]; if(b) return b;
@@ -35,6 +35,8 @@ function imgBlob(u){
 // foto lunghe (data URL) → indirizzi blob. Cerco con indexOf (veloce) invece di un'espressione regolare che
 // leggerebbe carattere per carattere megabyte di testo: sul telefono passa da più di un secondo a pochi millesimi.
 var DI_T=/^data:image\/(?:png|jpe?g|webp|gif);base64,$/;
+// immagine come indirizzo blob (corto) se è un data URL lungo: l'HTML resta leggero da leggere per il browser
+function imgB(u){ return typeof u==='string'&&u.length>400&&u.indexOf('data:image/')===0?imgBlob(u):u; }
 function docImgs(h){
   var i=h.indexOf('data:image/'); if(i<0) return h;
   var out=[], last=0, n=h.length;
@@ -69,6 +71,18 @@ function renderDoc(){
   applyBrand();
   var order=S.layout, d=$('doc');
   var fn={cover:secCover,azienda:secAzienda,prodotti:secProdotti,prev:secPreventivo,cond:secCond,planimetria:secPlan,fv:secFv,crono:secCrono,fiducia:secFiducia,conferma:secConferma,lavoro:secLavoro,collaudo:secCollaudo};
+  // primo disegno (apertura, sblocco): una sezione alla volta, pochi millesimi per fotogramma: l'app risponde subito
+  if(!d.children.length&&order.length>1&&!DOCC.tutto){
+    var wk0=wmPrep(), k0=0, tutte=[]; DOCC.raw=[]; DOCC.wk=wk0;
+    var passo=function(){ if(gen!==DOCC.gen) return; var t0=performance.now();
+      while(k0<order.length){ var ky=order[k0++], h0=ky.indexOf('c:')===0?secCustom(ky.slice(2)):fn[ky](); if(h0){ var ps=docSplit(h0);
+          for(var j=0;j<ps.length;j++){ var e0=docEl(ps[j],wk0); if(!e0){ DOCC.gen++; d.innerHTML=''; DOCC.raw=[]; DOCC.tutto=true; try{ renderDoc(); }finally{ DOCC.tutto=false; } return; } d.appendChild(e0); tutte.push(ps[j]); } }
+        if(performance.now()-t0>8) break; }
+      DOCC.raw=tutte.slice(); fit();
+      if(k0<order.length){ if(document.hidden) setTimeout(passo,30); else requestAnimationFrame(passo); }
+      else if(!tutte.length){ d.innerHTML='<div style="background:#fff;padding:40px;text-align:center;color:#5d646c">Nessuna sezione selezionata. Riattivale dalla scheda Contenuto.</div>'; DOCC.raw=[]; } };
+    passo(); return;
+  }
   var html=order.map(function(k){return k.indexOf('c:')===0?secCustom(k.slice(2)):fn[k]();}).join(''), wk=wmPrep();
   if(!html){ d.innerHTML='<div style="background:#fff;padding:40px;text-align:center;color:#5d646c">Nessuna sezione selezionata. Riattivale dalla scheda Contenuto.</div>'; DOCC.raw=[]; fit(); return; }
   var parts=docSplit(html), old=DOCC.raw, full=old.length!==d.children.length||DOCC.wk!==wk, i, el, kids=d.children;
@@ -79,14 +93,6 @@ function renderDoc(){
       if(kids[i]) d.replaceChild(el,kids[i]); else d.appendChild(el);
     }
     while(!full&&d.children.length>parts.length) d.removeChild(d.lastElementChild);
-  }
-  // primo disegno (apertura, sblocco): una pagina per fotogramma, così l'app risponde subito ai tocchi
-  if(full&&!d.children.length&&parts.length>2){
-    DOCC.raw=[]; DOCC.wk=wk; var n=0;
-    var step=function(){ if(gen!==DOCC.gen) return; var t0=performance.now();
-      while(n<parts.length){ var e2=docEl(parts[n],wk); if(!e2){ DOCC.gen++; d.innerHTML=docImgs(parts.join('')); DOCC.raw=[]; fit(); return; } d.appendChild(e2); DOCC.raw.push(parts[n]); n++; if(performance.now()-t0>10) break; }
-      fit(); if(n<parts.length){ if(document.hidden) setTimeout(step,30); else requestAnimationFrame(step); } };
-    step(); return;
   }
   if(full){ d.innerHTML=docImgs(parts.map(function(c){ return c.indexOf('<section class="page">')===0?'<section class="page">'+wk+c.slice(22):c; }).join('')); }
   DOCC.raw=d.children.length===parts.length?parts:[]; DOCC.wk=wk;
@@ -101,6 +107,8 @@ function schedule(){
 }
 var FITZ=0, FITW=0;
 function fit(){
+  // con il PIN sullo schermo non misuro niente (costringerebbe il browser a impaginare l'app nascosta): si fa allo sblocco
+  if(document.documentElement.classList.contains('locked')) return;
   var wrap=$('paperWrap'),d=$('doc'); if(!wrap||!d) return;
   if(!FITW) FITW=wrap.clientWidth;
   var z=Math.min(1,(FITW-24)/794); if(!(z>0)) z=1;

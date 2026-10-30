@@ -1,5 +1,6 @@
 var LOGO0_OLD_LEN = 104519;
-var LOGO0 = '@@asset:logo-predefinito.png.b64@@';
+// il logo predefinito (700 KB) sta in un blocco di solo testo, non dentro il codice: l'app si apre più leggera
+var LOGO0 = (function(){ var e=document.getElementById('logo0-dati'); return e?String(e.textContent||'').trim():''; })();
 var KEY = 'preventivi-elettrici-v2', KEY1 = 'preventivi-elettrici-v1';
 var FONTS = {
   tec:{fd:"'Barlow Condensed','Arial Narrow',sans-serif",fb:"'Barlow',Arial,sans-serif",tt:'uppercase',fs:'italic'},

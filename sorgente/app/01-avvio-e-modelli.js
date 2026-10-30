@@ -1,6 +1,7 @@
 var CAN_PRINT = false;
-var APP_VER = '2026.10.30.4';
-(function(){
+var APP_VER = '2026.10.30.5';
+// tutta l'app è una funzione: con il PIN sullo schermo parte dopo lo sblocco (vedi la fine di 29), così il tastierino resta leggero
+var __ieciApp=function(){
 'use strict';
 
 var MODELS = {

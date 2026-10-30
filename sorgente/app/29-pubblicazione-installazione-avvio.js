@@ -249,15 +249,18 @@ showPanel('prev');
 // con il PIN attivo l'app si prepara dietro il tastierino (che ha il suo motore e risponde comunque):
 // allo sblocco è già pronta, manca solo il fascicolo, che si disegna subito dopo
 var avviato=false, avvioInAttesa=false;
-function avvia(){ if(avviato) return; var PPd=window.PINPAD; if(PPd&&PPd.locked&&PPd.typing()){ clearTimeout(tAvvio); tAvvio=setTimeout(avvia,120); return; } avviato=true; avvioInAttesa=false; renderAll(); apInit(); apApply(); apRefresh(); }
+// mentre scrivi il PIN l'app non lavora: riparte quando il PIN è in verifica o se non tocchi niente
+function dopoPin(fn){ var P=window.PINPAD; if(P&&P.locked&&!P.calmo()){ setTimeout(function(){ dopoPin(fn); },100); return; } fn(); }
+function avvia(){ if(avviato) return; var PPd=window.PINPAD; if(PPd&&PPd.locked&&!PPd.calmo()){ clearTimeout(tAvvio); tAvvio=setTimeout(avvia,100); return; } avviato=true; avvioInAttesa=false; renderAll(); apInit(); apApply(); apRefresh(); }
 var tAvvio=setTimeout(avvia,600);
 idbOpen(function(ok){
   if(!ok){ clearTimeout(tAvvio); avvia(); dbLoad(afterLoad); return; }
-  idbGet(function(st){
+  idbGet(function(st){ clearTimeout(tAvvio); dopoPin(function(){
     clearTimeout(tAvvio);
     if(st&&st.meta){ S=normalize(st); if(avviato) renderAll(); else if(!avvioInAttesa) avvia(); }
     else { avvia(); doSave(); }
-    dbLoad(afterLoad);
-  });
+    dbLoad(function(){ dopoPin(afterLoad); });
+  }); });
 });
-})();
+};
+(function parti(){ var P=window.PINPAD; if(P&&P.locked&&!P.calmo()){ setTimeout(parti,100); return; } __ieciApp(); })();

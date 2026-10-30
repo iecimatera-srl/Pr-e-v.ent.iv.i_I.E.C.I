@@ -32,7 +32,9 @@ function pinMark(force){ var n=Date.now(); if(force||n-LK.okT>8000){ LK.okT=n; P
 window.addEventListener('ieci-sbloccato',function(e){
   var how=e.detail&&e.detail.how; LK.on=false; LK.last=Date.now(); lkInert(false); pinMark(true); pinLoad(); pinUI();
   if(how==='pin') pinTune(PP.code());
-  if(how==='rec'){ toast('PIN rimosso: impostane uno nuovo qui'); showPanel('app'); window.scrollTo(0,0); }
+  if(how==='rec'){ PP.ultimo(); toast('PIN rimosso: impostane uno nuovo qui'); showPanel('app'); window.scrollTo(0,0); }
+  // l'app torna a essere impaginata: riadatto anteprima e caselle
+  try{ FITW=0; fit(); t1All(); }catch(x){}
   if(DOCC.pend){ DOCC.pend=false; setTimeout(function(){ requestAnimationFrame(function(){ schedule(); }); },60); }
   if(typeof avvioInAttesa!=='undefined'&&avvioInAttesa) setTimeout(avvia,0);
 });
@@ -118,7 +120,7 @@ function pinInit(){
   });
   if(!LK.on){ document.documentElement.classList.remove('locked'); if(PIN) pinMark(true); }
   if(!PIN){ try{ sessionStorage.removeItem('ieci-pin-ok'); }catch(e){} }
-  if(!LK.on) pinTune(PP.code());
+  if(!LK.on){ pinTune(PP.code()); if(PP.ultimo()==='rec') setTimeout(function(){ toast('PIN rimosso: impostane uno nuovo qui'); showPanel('app'); window.scrollTo(0,0); },300); }
   pinUI(); bioControlla();
   window.IECI_T.pin=function(){ return {PIN:pinLoad(),LK:LK,PP:PP}; };
 }

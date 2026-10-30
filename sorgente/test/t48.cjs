@@ -3,7 +3,7 @@ let fail=0;const ok=(c,m)=>{console.log((c?'OK   ':'FAIL ')+m);if(!c)fail++;};
 (async()=>{const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
 const ctx=await b.newContext({viewport:{width:390,height:800}});const p=await ctx.newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
 const url=require('./_amb.cjs').SRC;
-await p.goto(url);await p.waitForTimeout(1200);
+await p.goto(url);await p.waitForTimeout(1200);await p.waitForFunction(()=>window.IECI_T&&window.IECI_T.pin,null,{timeout:30000});
 const typ=async d=>{for(const c of d){await p.keyboard.press(c);}await p.waitForTimeout(700)};
 const lockVis=()=>p.evaluate(()=>!document.getElementById('lock').hidden);
 ok(!(await lockVis()),'senza PIN: nessun blocco');

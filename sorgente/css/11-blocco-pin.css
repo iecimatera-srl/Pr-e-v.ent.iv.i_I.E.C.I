@@ -2,7 +2,8 @@
    Sei spie come quelle di un quadro elettrico: si accendono in giallo a ogni cifra, diventano verdi allo sblocco.
    Tasti grandi che rispondono al primo contatto del dito. Solo animazioni di opacità e spostamento (fluide anche
    mentre l'app si prepara dietro). */
-.locked .wrap{visibility:hidden}
+/* con il PIN sullo schermo il browser non impagina l'app nascosta dietro: il tastierino resta leggerissimo */
+.locked .wrap{display:none}
 .lock{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;
   padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom));
   background-color:#07101C;

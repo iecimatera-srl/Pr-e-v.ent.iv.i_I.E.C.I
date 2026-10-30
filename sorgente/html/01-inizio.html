@@ -82,7 +82,7 @@ function bad(m){P.busy=false;P.buf='';var d=$('lk-dots');d.className='lk-dots';v
 function idle(){P.busy=false;$('lk-dots').className='lk-dots';}
 function show(o){
   P.ask=o;P.buf='';P.busy=false;P.back=o.back||null;var L=$('lock');
-  L.classList.remove('out');L.hidden=false;if(o.lockApp)D.documentElement.classList.add('locked');look();view('pad');
+  L.classList.remove('out');L.hidden=false;P.shownAt=Date.now();if(o.lockApp){if(!D.documentElement.classList.contains('locked'))P.sy=W.scrollY||0;D.documentElement.classList.add('locked');}look();view('pad');
   $('lk-title').textContent=o.title;msg(o.msg||'');$('lk-cancel').hidden=!o.cancel;$('lk-forgot').hidden=!o.forgot;
   var bk=$('lk-pad').querySelector('[data-k="bio"]');var bon=!!(o.bio&&bioOk());bk.className=bon?'lk-k2 lk-bio':'lk-ph lk-k2';bk.tabIndex=bon?0:-1;
   $('lk-dots').className='lk-dots';$('lk-pad').classList.remove('dis');P.wait=false;dots();
@@ -109,10 +109,12 @@ function fail(rec){
 function check(c,cb){var p=load();if(!p){cb(true);return;}if(p.u>Date.now()){bad('');tick();return;}
   hash(c,p.s,p.m,p.i,function(h){var q=load();if(q&&eq(h,q.h)){q.f=0;q.u=0;q.r=0;save(q);cb(true);}else{fail(false);cb(false);}});}
 var on=false;
-function unlocked(code,how){
-  on=false;mark();P.code=code||null;
-  hide(true,function(){D.documentElement.classList.remove('locked');try{W.dispatchEvent(new CustomEvent('ieci-sbloccato',{detail:{how:how||'pin'}}));}catch(e){}});
+// sblocco: parte la dissolvenza (sul processore grafico), poi l'app torna visibile dietro, alla stessa altezza di prima
+function reveal(how){
+  P.how=how;hide(true);
+  requestAnimationFrame(function(){setTimeout(function(){D.documentElement.classList.remove('locked');if(P.sy)W.scrollTo(0,P.sy);P.sy=0;try{W.dispatchEvent(new CustomEvent('ieci-sbloccato',{detail:{how:how}}));}catch(e){}},0);});
 }
+function unlocked(code,how){on=false;mark();P.code=code||null;reveal(how||'pin');}
 function unlockAsk(){
   on=true;P.back=null;
   show({title:'Inserisci il PIN',forgot:true,bio:true,verify:true,lockApp:true,done:function(c){check(c,function(ok){if(ok)unlocked(c,'pin');});}});
@@ -124,7 +126,7 @@ function recGo(){
   var p=load();if(!p)return;if(p.u>Date.now()){msg('Troppi tentativi. Riprova tra '+Math.ceil((p.u-Date.now())/1000)+' s',true);return;}
   var c=recNorm($('lk-recin').value);if(c.length!==12){msg('Il codice ha 12 caratteri (XXXX-XXXX-XXXX)',true);return;}
   msg('Controllo il codice…');
-  hash(c,p.rs,p.m,p.ri||p.i,function(h){if(eq(h,p.rh)){save(null);try{sessionStorage.removeItem('ieci-pin-ok');}catch(e){}on=false;hide(true,function(){D.documentElement.classList.remove('locked');try{W.dispatchEvent(new CustomEvent('ieci-sbloccato',{detail:{how:'rec'}}));}catch(e){}});}else fail(true);});
+  hash(c,p.rs,p.m,p.ri||p.i,function(h){if(eq(h,p.rh)){save(null);try{sessionStorage.removeItem('ieci-pin-ok');}catch(e){}on=false;reveal('rec');}else fail(true);});
 }
 /* ---------- impronta (WebAuthn, solo sul dispositivo: nessun server) ---------- */
 function bioOk(){var p=load();if(!p||!p.bio||!W.PublicKeyCredential||!navigator.credentials||!W.crypto||!crypto.subtle)return false;return location.protocol==='https:'||location.hostname==='localhost';}
@@ -154,7 +156,10 @@ function bio(auto){
   },function(){P.bioRun=false;if(P.ask===a)msg(auto?'':'Impronta non letta: riprova o usa il PIN',!auto);});
 }
 W.PINPAD={load:load,save:save,hash:hash,eq:eq,show:show,hide:hide,bad:bad,idle:idle,msg:msg,view:view,check:check,fail:fail,lock:lock,unlockAsk:unlockAsk,mark:mark,recent:recent,bioOk:bioOk,b64u:b64u,unb64:unb64,
-  get locked(){return on;},typing:function(){return !!(P.ask&&P.buf.length>0&&P.buf.length<6&&Date.now()-(P.lastKey||0)<900);},code:function(){var c=P.code;P.code=null;return c;},state:P};
+  get locked(){return on;},typing:function(){return !!(P.ask&&P.buf.length>0&&P.buf.length<6&&Date.now()-(P.lastKey||0)<900);},
+  // l'app può lavorare dietro il PIN? sì mentre il PIN è in verifica, o se nessuno tocca il tastierino da un po'
+  calmo:function(){if(!on)return true;var n=Date.now();return n-(P.shownAt||0)>3000&&n-(P.lastKey||0)>2000&&!P.busy;},
+  ultimo:function(){var h=P.how;P.how=null;return h;},code:function(){var c=P.code;P.code=null;return c;},state:P};
 try{build();var p=load();if(p&&!recent())unlockAsk();}catch(e){}
 })();</script>
 

@@ -1,4 +1,4 @@
-const C='preventivi-ieci-2026.10.30.3';
+const C='preventivi-ieci-2026.10.30.4';
 const SHELL=['./','./index.html','./lib-pdf.js','./lib-pdfjs.txt','./lib-pdfjs-worker.txt','./manifest.webmanifest','./icon-192.png','./icon-512.png','./maskable-192.png','./maskable-512.png','./icon-180.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()));});

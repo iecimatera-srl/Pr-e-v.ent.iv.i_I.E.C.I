@@ -121,7 +121,9 @@ $('in-diag').addEventListener('click',function(){
     out.textContent=L.join('\n'); renderInstall();
   });
 });
-function afterLoad(){ setTimeout(libMigra,1200); renderArchivio(); renderRecover(); try{ navigator.storage&&navigator.storage.persist&&navigator.storage.persist(); }catch(e){} verCheck(); renderSnaps(); mirInit(); newBanner(); renderPersist(); renderInstall(); }
+// protezione dei dati dal browser: chiesta a app sbloccata e tranquilla (alcuni browser mostrano un «Consenti»)
+function persistiDopo(){ setTimeout(function(){ var P=window.PINPAD; if(document.documentElement.classList.contains('locked')||P&&P.locked){ window.addEventListener('ieci-sbloccato',function(){ setTimeout(persistiDopo,4000); },{once:true}); return; } try{ if(navigator.storage&&navigator.storage.persisted) navigator.storage.persisted().then(function(p){ if(!p&&navigator.storage.persist) navigator.storage.persist().then(function(){ try{ renderPersist(); }catch(e){} }); }); }catch(e){} },4000); }
+function afterLoad(){ setTimeout(libMigra,1200); renderArchivio(); renderRecover(); persistiDopo(); verCheck(); renderSnaps(); mirInit(); newBanner(); renderPersist(); renderInstall(); }
 function exportAll(){
   if(S.qid&&dbReady) saveQuote(true);
   var txt=JSON.stringify(buildPayload()), name=backupName();

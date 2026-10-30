@@ -79,16 +79,24 @@ function mirPerm(ask,cb){
     }).catch(function(){ cb(false); });
   }catch(e){ cb(false); }
 }
+// il permesso della cartella NON si chiede più al primo tocco (finiva sul tastierino del PIN):
+// a app sbloccata e tranquilla compare una barra discreta con «Riattiva»; e si chiede quando premi «Salva»
+var MIRB={x:false,t:0,save:false,pronto:false};
+function mirLibera(){ var P=window.PINPAD; return !document.documentElement.classList.contains('locked')&&!(P&&(P.locked||P.state&&P.state.ask)); }
 function mirArm(){
-  if(MIR.armed||!MIR.h||!MIR.need) return; MIR.armed=true;
-  var evs=['click','keydown','touchend'];
-  function go(){
-    evs.forEach(function(e){ document.removeEventListener(e,go,true); }); MIR.armed=false;
-    if(MIR.asking||!MIR.need||!MIR.h) return; MIR.asking=true;
-    mirPerm(true,function(ok){ MIR.asking=false; renderMir(); if(ok){ mirWrite(); toast('Copia automatica riattivata'); } });
-  }
-  evs.forEach(function(e){ document.addEventListener(e,go,true); });
+  if(!MIR.h||!MIR.need||MIRB.x||MIRB.pronto) return mirBar();
+  clearTimeout(MIRB.t); MIRB.t=setTimeout(function(){ if(!mirLibera()){ mirArm(); return; } MIRB.pronto=true; mirBar(); },5000);
 }
+function mirBar(){
+  var b=$('mi-banner'); if(!b) return; var on=!!(MIR.h&&MIR.need&&MIRB.pronto&&!MIRB.x&&mirLibera());
+  if(on) $('mi-bmsg').textContent='Copia automatica nella cartella «'+MIR.h.name+'» in pausa: il browser chiede di riconfermare il permesso. Nella richiesta scegli «Consenti a ogni visita» e non te lo chiederà più.';
+  b.hidden=!on;
+}
+function mirChiedi(){
+  if(MIR.asking||!MIR.h) return; MIR.asking=true;
+  mirPerm(true,function(ok){ MIR.asking=false; renderMir(); if(ok){ mirWrite(); toast('Copia automatica riattivata'); } });
+}
+window.addEventListener('ieci-sbloccato',function(){ if(MIR.h&&MIR.need&&!MIRB.pronto) mirArm(); });
 function mirSoon(){ if(typeof MIR==='undefined'||!MIR||!MIR.h) return; clearTimeout(MIR.t); MIR.t=setTimeout(mirWrite,3500); }
 function mirWrite(){
   if(!MIR.h||MIR.busy||!dbReady) return;
@@ -107,11 +115,11 @@ function renderMir(){
   var st=$('mi-state'); if(!st) return;
   $('mi-pick').disabled=!FS_OK; $('mi-rest').disabled=!FS_OK;
   $('mi-on').hidden=!(MIR.h&&MIR.need); $('mi-off').hidden=!MIR.h; $('mi-pick').textContent=MIR.h?'Cambia cartella':'Scegli la cartella dati';
-  if(MIR.h&&MIR.need) mirArm();
+  if(MIR.h&&MIR.need) mirArm(); else mirBar();
   var msg;
   if(!FS_OK) msg='Su questo dispositivo il browser non permette di scrivere in una cartella (succede su telefoni e tablet). Qui i dati restano al sicuro con l\'app installata dall\'indirizzo online, con la sincronizzazione Google Drive e con la copia di sicurezza manuale.';
   else if(!MIR.h) msg='Non attiva. Consigliata su PC: premi «Scegli la cartella dati».';
-  else if(MIR.need) msg='Cartella «'+MIR.h.name+'»: il browser chiede di riconfermare il permesso: al prossimo tocco su qualsiasi punto dell\'app compare la richiesta, scegli «Consenti a ogni visita» e non te lo chiederà più. Puoi anche premere «Riattiva».';
+  else if(MIR.need) msg='Cartella «'+MIR.h.name+'»: il browser chiede di riconfermare il permesso. Premi «Riattiva» (o «Salva» in alto) e nella richiesta scegli «Consenti a ogni visita»: non te lo chiederà più.';
   else if(MIR.err) msg='Cartella «'+MIR.h.name+'»: errore di scrittura ('+MIR.err+').';
   else msg='Attiva sulla cartella «'+MIR.h.name+'»'+(MIR.last?' · ultimo salvataggio '+stamp(MIR.last):' · in attesa della prima modifica')+'.';
   st.textContent=msg;
@@ -120,6 +128,10 @@ $('mi-pick').addEventListener('click',function(){
   window.showDirectoryPicker({mode:'readwrite',id:'ieci-dati'}).then(function(h){ MIR.h=h; MIR.need=false; kvPut('mirror-handle',h); renderMir(); mirWrite(); toast('Copia automatica attivata'); }).catch(function(){});
 });
 $('mi-on').addEventListener('click',function(){ if(MIR.asking) return; mirPerm(true,function(ok){ renderMir(); if(ok) mirWrite(); }); });
+$('mi-bok').addEventListener('click',function(){ MIRB.x=true; mirBar(); mirChiedi(); });
+$('mi-bx').addEventListener('click',function(){ MIRB.x=true; mirBar(); toast('Va bene: la copia nella cartella riparte quando premi «Salva»'); });
+// «Salva»: il momento giusto per chiedere il permesso (una volta per apertura)
+$('qb-save').addEventListener('click',function(){ if(MIR.h&&MIR.need&&!MIRB.save){ MIRB.save=true; MIRB.x=true; mirBar(); mirChiedi(); } });
 $('mi-off').addEventListener('click',function(){ MIR.h=null; kvDel('mirror-handle'); renderMir(); toast('Copia automatica scollegata (i file restano nella cartella)'); });
 window.IECI_T.merge=function(o){ gdMerge(o); }; window.IECI_T.S=function(){ return S; }; window.IECI_T.touch=function(){ touch(); }; window.IECI_T.isFactory=isFactory; window.IECI_T.payload=buildPayload; window.IECI_T.mir=function(){ return MIR; }; window.IECI_T.renderMir=renderMir; window.IECI_T.db=function(){ return DB; };
 function mirRestore(){

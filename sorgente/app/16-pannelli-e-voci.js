@@ -158,7 +158,7 @@ var docVer=0;
 var lastEdit=0;
 function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); libSoon(); pcSoon(); }
 
-var TTL_G='Rifacimento impianto appartamento', TTL_T={wb:'Installazione wallbox per ricarica auto elettrica',rip:'Riparazione impianto elettrico',vid:'Impianto di videosorveglianza',all:'Impianto di allarme antintrusione',vcit:'Impianto videocitofonico',aut:'Automazione cancello e accessi',fv:'Impianto fotovoltaico',tv:'Impianto TV e antenna',ind:'Impianto elettrico industriale',sw:'Programmazione e messa in servizio'};
+var TTL_G='Rifacimento impianto appartamento', TTL_T={luce:'Impianto di illuminazione',wb:'Installazione wallbox per ricarica auto elettrica',rip:'Riparazione impianto elettrico',vid:'Impianto di videosorveglianza',all:'Impianto di allarme antintrusione',vcit:'Impianto videocitofonico',aut:'Automazione cancello e accessi',fv:'Impianto fotovoltaico',tv:'Impianto TV e antenna',ind:'Impianto elettrico industriale',sw:'Programmazione e messa in servizio'};
 function typeTitle(prev){ if(S.meta.title===TTL_G||S.meta.title===TTL_T[prev]||(prev&&S.meta.title===(MODELS[prev]||{}).name)){ S.meta.title=TTL_T[S.model]||TTL_G; if($('m-title')) $('m-title').value=S.meta.title; } }
 $('tabs').addEventListener('click',function(e){
   var b=e.target.closest('[data-m]'); if(!b) return;

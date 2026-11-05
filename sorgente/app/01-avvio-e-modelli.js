@@ -1,5 +1,5 @@
 var CAN_PRINT = false;
-var APP_VER = '2026.10.30.5';
+var APP_VER = '2026.11.05.1';
 // tutta l'app è una funzione: con il PIN sullo schermo parte dopo lo sblocco (vedi la fine di 29), così il tastierino resta leggero
 var __ieciApp=function(){
 'use strict';
@@ -139,3 +139,66 @@ MODELS.ind.items=[["Quadro elettrico BT con carpenteria metallica", "a corpo", 3
 MODELS.ind.notes="Prezzi riferiti a progetto o specifica da concordare.\nLavori eseguiti da personale qualificato nel rispetto del D.Lgs. 81/08; costi della sicurezza (PSC / DUVRI) e fermi impianto da definire.\nVerifiche, collaudo e Dichiarazione di Conformità inclusi.\nNon sono inclusi eventuali lavori edili, scavi, ponteggi o autorizzazioni, salvo indicazione diversa.\nGaranzia sulle apparecchiature secondo il costruttore.";
 MODELS.sw.items=[["Analisi e specifiche funzionali", "giornata", 480, "Analisi e progetto", "*"], ["Sopralluogo e rilievo dell'impianto", "giornata", 420, "Analisi e progetto", "*"], ["Progetto della rete e dell'architettura", "h", 60, "Analisi e progetto", "*"], ["Programmazione PLC", "h", 60, "Programmazione", "*"], ["Sviluppo supervisione SCADA", "h", 65, "Programmazione", "*"], ["Configurazione pannello HMI", "h", 55, "Programmazione", "*"], ["Programmazione domotica KNX", "h", 60, "Programmazione", "*"], ["Sviluppo firmware", "h", 70, "Programmazione", "*"], ["Integrazione con gestionale o database", "h", 65, "Programmazione", "*"], ["Configurazione di rete e cybersicurezza", "h", 60, "Programmazione", "*"], ["Test e collaudo in campo", "h", 55, "Collaudo e documentazione", "*"], ["Documentazione tecnica", "h", 50, "Collaudo e documentazione", "*"], ["Backup e ripristino del programma", "a corpo", 90, "Collaudo e documentazione", "*"], ["Licenza software", "cad", 300, "Licenze e hardware", "*"], ["Dispositivo di accesso remoto sicuro", "cad", 220, "Licenze e hardware", "*"], ["Formazione operatori", "giornata", 420, "Formazione e assistenza", "*"], ["Assistenza remota", "h", 45, "Formazione e assistenza", "*"], ["Manutenzione annuale", "a corpo", 600, "Formazione e assistenza", "*"], ["Reperibilità con intervento entro 24 ore", "a corpo", 900, "Formazione e assistenza", "*"]];
 MODELS.sw.notes="Le ore indicate sono una stima: modifiche alle specifiche concordate saranno quotate a parte.\nCodice sorgente e licenze secondo accordi scritti.\nAssistenza dopo il collaudo da regolare con contratto separato.\nAccesso all'impianto, documentazione esistente e referente tecnico da mettere a disposizione dal committente.";
+// ===== Illuminazione: fari, faretti, plafoniere e strip LED =====
+MODELS.luce={name:'Impianti di illuminazione',short:'Illuminazione',items:[
+ ['Faretto LED da incasso fisso 7 W, fornito e posato','cad',32,'Faretti','*'],
+ ['Faretto LED da incasso orientabile 10 W','cad',42,'Faretti','*'],
+ ['Faretto LED da incasso IP65 per bagno / doccia','cad',48,'Faretti','*'],
+ ['Faretto LED trimless a filo cartongesso','cad',85,'Faretti','*'],
+ ['Faretto LED da superficie / spot cilindrico','cad',55,'Faretti','*'],
+ ['Binario elettrificato con alimentazione','m',38,'Faretti','*'],
+ ['Faretto LED per binario 20 W','cad',68,'Faretti','*'],
+ ['Foro su cartongesso o controsoffitto','cad',8,'Faretti','*'],
+ ['Plafoniera LED 24 W da interno','cad',65,'Plafoniere e lampade','*'],
+ ['Plafoniera LED stagna IP65 per garage / cantina','cad',48,'Plafoniere e lampade','*'],
+ ['Pannello LED 60x60 da controsoffitto 36 W','cad',75,'Plafoniere e lampade','*'],
+ ['Lampada a sospensione LED, fornita e montata','cad',160,'Plafoniere e lampade','*'],
+ ['Montaggio lampadario o sospensione del cliente','cad',45,'Plafoniere e lampade','*'],
+ ['Montaggio applique del cliente','cad',35,'Plafoniere e lampade','*'],
+ ['Ventilatore da soffitto con luce, montaggio','cad',90,'Plafoniere e lampade','*'],
+ ['Proiettore LED 30 W IP65','cad',70,'Fari ed esterni','*'],
+ ['Proiettore LED 50 W IP65 con sensore di movimento','cad',95,'Fari ed esterni','*'],
+ ['Proiettore LED 100 W IP65','cad',130,'Fari ed esterni','*'],
+ ['Applique da esterno IP54','cad',60,'Fari ed esterni','*'],
+ ['Segnapasso LED da incasso a parete','cad',55,'Fari ed esterni','*'],
+ ['Paletto LED da giardino','cad',95,'Fari ed esterni','*'],
+ ['Faretto da picchetto per giardino e alberi','cad',65,'Fari ed esterni','*'],
+ ['Faretto calpestabile da incasso a terra IP67','cad',85,'Fari ed esterni','*'],
+ ['Linea esterna interrata in cavidotto','m',18,'Fari ed esterni','*'],
+ ['Pozzetto di derivazione da esterno','cad',45,'Fari ed esterni','*'],
+ ['Strip LED 24 V bianca 14,4 W/m, posa inclusa','m',22,'Strip LED','*'],
+ ['Strip LED COB 24 V 10 W/m senza puntini','m',28,'Strip LED','*'],
+ ['Strip LED RGB / RGBW 24 V','m',32,'Strip LED','*'],
+ ['Strip LED Tunable White 24 V (bianco regolabile)','m',30,'Strip LED','*'],
+ ['Profilo in alluminio con diffusore opale','m',18,'Strip LED','*'],
+ ['Profilo in alluminio da incasso in cartongesso','m',26,'Strip LED','*'],
+ ['Alimentatore LED 24 V 60 W','cad',42,'Strip LED','*'],
+ ['Alimentatore LED 24 V 100 W','cad',55,'Strip LED','*'],
+ ['Alimentatore LED 24 V 150 W','cad',70,'Strip LED','*'],
+ ['Alimentatore LED 24 V 240 W','cad',95,'Strip LED','*'],
+ ['Alimentatore LED 24 V 320 W','cad',125,'Strip LED','*'],
+ ['Controller / dimmer per strip LED con telecomando','cad',45,'Strip LED','*'],
+ ['Controller RGB / RGBW Wi-Fi con app','cad',60,'Strip LED','*'],
+ ['Gola luminosa in cartongesso, predisposizione','m',35,'Strip LED','*'],
+ ['Dimmer da incasso per LED','cad',55,'Comandi e regolazione','*'],
+ ['Sensore di movimento / presenza','cad',65,'Comandi e regolazione','*'],
+ ['Interruttore crepuscolare','cad',45,'Comandi e regolazione','*'],
+ ['Orologio astronomico per le luci esterne','cad',90,'Comandi e regolazione','*'],
+ ['Modulo smart Wi-Fi per luci','cad',55,'Comandi e regolazione','*'],
+ ['Driver o centralina DALI','cad',120,'Comandi e regolazione','*'],
+ ['Pulsante o comando aggiuntivo','cad',25,'Comandi e regolazione','*'],
+ ['Punto luce semplice, linea e comando','pt',45,'Linee e predisposizioni','*'],
+ ['Punto luce deviato / invertito','pt',58,'Linee e predisposizioni','*'],
+ ['Linea di alimentazione per illuminazione','m',9,'Linee e predisposizioni','*'],
+ ['Cassetta di derivazione e collegamenti','cad',22,'Linee e predisposizioni','*'],
+ ['Lampada di emergenza autonoma 1 h','cad',65,'Linee e predisposizioni','*'],
+ ['Smontaggio dei vecchi corpi illuminanti','cad',12,'Opere e servizi','*'],
+ ['Smaltimento RAEE di lampade e apparecchi','a corpo',25,'Opere e servizi','*'],
+ ['Trabattello o piattaforma per lavori in quota','a corpo',120,'Opere e servizi','*'],
+ ['Progetto illuminotecnico con calcolo dei lux','a corpo',180,'Opere e servizi','*'],
+ ['Programmazione di scene e app','a corpo',60,'Opere e servizi','*'],
+ ['Manodopera oraria','h',38,'Opere e servizi','*'],
+ ['Verifiche e collaudo','a corpo',60,'Opere e servizi','*'],
+ ['Dichiarazione di conformità (DM 37/08)','a corpo',90,'Opere e servizi','*']],
+ notes:"Corpi illuminanti, temperatura di colore (es. 3000 K luce calda, 4000 K luce naturale) e finiture da confermare prima dell'ordine.\nGli apparecchi forniti dal cliente vengono montati e collegati; la garanzia su di essi resta del venditore.\nAlimentatori e controller delle strip LED vengono posti in punti ispezionabili, con aerazione adeguata.\nNei bagni gli apparecchi rispettano le zone di sicurezza della norma CEI 64-8 (sezione 701), con grado di protezione adatto.\nLampade e apparecchi sostituiti vengono smaltiti come RAEE, se indicato nelle righe.\nGaranzia sui prodotti LED secondo il costruttore."};
+ORDER.splice(ORDER.indexOf('rip')+1,0,'luce');

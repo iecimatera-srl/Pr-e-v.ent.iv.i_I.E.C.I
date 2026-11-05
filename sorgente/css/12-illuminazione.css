@@ -1,0 +1,32 @@
+/* ===== Illuminazione: calcolatori luce (app) e riepilogo luce (fascicolo) ===== */
+.lu-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:4px;border-radius:14px;background:var(--field);border:1px solid var(--line);margin-bottom:12px}
+.lu-tab{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border:0;border-radius:10px;background:transparent;color:var(--muted);font:700 .92rem var(--f-ui);cursor:pointer;transition:background .15s,color .15s}
+.lu-tab svg{width:20px;height:20px;flex:none}
+.lu-tab[aria-selected="true"]{background:var(--notte,#0E1B2C);color:#fff;box-shadow:0 6px 16px -10px rgba(14,27,44,.7),inset 0 -2px 0 var(--tensione,#F2B705)}
+.lu-pane[hidden]{display:none}
+.lu-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 12px}
+.lu-g .lu-w2{grid-column:1/-1}
+@media (min-width:700px){.lu-g{grid-template-columns:repeat(4,minmax(0,1fr))}.lu-g .lu-w2{grid-column:span 2}}
+.lu-out{margin:14px 0 6px}
+.lu-svg{display:block;width:100%;height:auto;border-radius:14px;box-shadow:0 12px 26px -16px rgba(10,19,32,.8)}
+.lu-out .lu-svg{animation:luOn .45s ease-out}
+@keyframes luOn{from{filter:brightness(.4) saturate(.4)}to{filter:none}}
+.lu-k{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}
+@media (min-width:700px){.lu-k{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.lu-k>div{padding:10px 12px;border-radius:12px;background:var(--field);border:1px solid var(--line);min-width:0}
+.lu-k b{display:block;font:800 1.08rem/1.2 var(--f-uid);letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.lu-k small{display:block;font-size:.76rem;color:var(--muted);margin-top:2px}
+.lu-tip{margin:10px 0 0;padding:10px 12px;border-radius:12px;font-size:.86rem;line-height:1.4;background:color-mix(in srgb,var(--tensione,#F2B705) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--tensione,#F2B705) 35%,var(--line))}
+.lu-foot{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:flex-end;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.lu-foot .lu-ore{max-width:220px}
+@media (prefers-reduced-motion:reduce){.lu-out .lu-svg{animation:none}}
+
+/* fascicolo: riepilogo luce nel preventivo economico */
+.lubox{margin:16px 0 0;padding:14px 16px;border-radius:10px;break-inside:avoid;font-size:13px;border:1px solid #E8D9A8;border-left:5px solid #E7B416;background:linear-gradient(180deg,#FFFBEF,#FFF7E0)}
+.lubox .lu-h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.75;font-weight:700}
+.lubox .lu-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 6px}
+.lubox .lu-chips span{padding:4px 10px;border-radius:999px;background:#fff;border:1px solid #EBDDB0;white-space:nowrap}
+.lubox .lu-chips b{font-size:14px}
+.lubox .lu-r{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:4px}
+.lubox .lu-r b{font-size:15px;white-space:nowrap}
+.lubox .lu-s{margin-top:8px;font-size:10.5px;opacity:.7}

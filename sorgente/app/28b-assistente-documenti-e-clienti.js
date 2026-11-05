@@ -517,6 +517,7 @@ var DOC_TIPI={
   wb:/wallbox|colonnin[ae]|ricarica (?:auto|veicol|ev)|\btype ?2\b|\btipo 2\b|ev charger|tipo b\b/,
   tv:/antenn|parabol|\blnb\b|multiswitch|centralin[oi] (?:tv|da palo|amplificat)|amplificator(?:e)? (?:tv|da palo|di linea)|derivator|partitor|presa tv|coassial|demiscelator|miscelator|digitale terrestre/,
   ind:/carpenteria|armadio (?:metallico|elettrico)|scatolat|contattor|inverter (?:per )?motor|inverter vettorial|\bplc\b|passerell|canal[ae] metallic|\bcee\b|blindo|rel[eè] termic|salvamotor|trasformator|rifasament|campana led|proiettore industrial|fg16|fg7|\b3p\+n\+t\b/,
+  luce:/faretto|faretti|downlight|plafonier|proiettor|\bstrip\b|strip led|strisc\w* led|profilo (?:in )?allumin|alimentatore (?:led|per strip|per strisce|24 ?v|12 ?v)|driver led|\bdali\b|lampad[ae] (?:a sospensione|da parete|led)|applique|segnapass|paletto|lampione|\bcob\b|\brgbw?\b|binario elettrificat|lumen|\b\d{4} ?k\b/,
   sw:/licenza|software|\bhmi\b|\bscada\b|\bknx\b|firmware|programmazione/,
   dom:/\bfrutt[oi]\b|\bplacca\b|\bplacche\b|supporto \d m|presa (?:bipasso|schuko|unel|universale|2p\+t|10\/16)|interruttore(?! scatolato| di manovra)|deviator|invertitor|pulsante|scatola (?:da incasso|503|504|506|rettangolare|tonda|di derivazione)|cassetta di derivazione|corrugat|\btubo\b|fs17|n07v|magnetotermic|differenzial|centralin[oi] (?:da incasso|\d+ moduli)|faretto|plafonier|lampad|termostat|cronotermostat|living now|livinglight|plana|arke|eikon|matix|axolute|chorus|\bsystem\b|unica|zenit/
 };

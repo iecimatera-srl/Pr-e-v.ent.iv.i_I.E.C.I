@@ -164,6 +164,23 @@ COVART.wb=function(){
     '<g stroke-width="2.4"><path d="M0 214H116L148 182H334"/><path d="M0 150H70L98 122"/></g>'+
     '<g stroke-width="1.8" opacity=".8"><circle cx="98" cy="122" r="5"/></g>';
 };
+COLL.luce='Accensione e spegnimento di ogni corpo illuminante da tutti i comandi\nProva di dimmer, sensori, crepuscolari e scene programmate\nVerifica di alimentatori e controller delle strip LED: tensione, temperatura e uniformità della luce\nOrientamento dei faretti e dei fari secondo gli accordi\nMisura di isolamento e continuità delle linee\nVerifica del grado di protezione IP negli esterni e nei bagni\nConsegna di telecomandi, app e istruzioni d\'uso';
+CRONO_DEF.luce='Sopralluogo e scelta dei corpi illuminanti | 1\nOrdine e fornitura dei materiali | 5\nLinee, fori e predisposizioni | 1\nMontaggio di faretti, plafoniere e fari | 1\nPosa delle strip LED, profili e alimentatori | 1\nRegolazioni, scene e collaudo | 1';
+MARKT.luce=[['Faretto','#F5B800'],['Plafoniera / lampada','#2F65AE'],['Faro / proiettore','#C0392B'],['Strip LED','#E67E22'],['Alimentatore / controller','#2E9E5B'],['Comando / sensore','#8E44AD'],['Altro','#555555']];
+// copertina: lampada a sospensione con il suo cono di luce, faretti a incasso con i fasci, una strip LED accesa
+COVART.luce=function(){
+  var r='<g stroke-width="3"><path d="M170 18H520"/><path d="M404 18V92"/><path d="M350 150Q352 100 404 96Q456 100 458 150Z"/><path d="M342 150H466"/></g>'+
+    '<g stroke-width="2.2"><path d="M392 150a12 12 0 0 0 24 0"/></g>'+
+    '<g stroke-width="1.8" opacity=".75"><path d="M350 158L298 300M458 158L510 300"/></g>'+
+    '<g stroke-width="1.6" opacity=".6" stroke-dasharray="2 10"><path d="M376 164L350 252M404 168V262M432 164L458 252"/></g>';
+  [196,262].forEach(function(x){ r+='<g stroke-width="3"><path d="M'+(x-20)+' 18V27H'+(x+20)+'V18"/></g><g stroke-width="1.6" opacity=".7"><path d="M'+(x-13)+' 31L'+(x-34)+' 116M'+(x+13)+' 31L'+(x+34)+' 116"/></g><g stroke-width="1.4" opacity=".55" stroke-dasharray="2 9"><path d="M'+x+' 36V104"/></g>'; });
+  r+='<g stroke-width="3"><rect x="150" y="292" width="206" height="18" rx="9"/></g><g stroke-width="1.8" opacity=".85">';
+  for(var i=0;i<9;i++) r+='<circle cx="'+(168+i*21)+'" cy="301" r="3"/>';
+  r+='</g><g stroke-width="1.5" opacity=".5"><path d="M162 282Q253 256 344 282"/><path d="M178 270Q253 248 328 270"/></g>'+
+    '<g stroke-width="2.4"><path d="M0 214H96L128 182H170"/><path d="M0 150H64L92 122"/><path d="M0 301H150"/></g>'+
+    '<g stroke-width="1.8" opacity=".8"><circle cx="92" cy="122" r="5"/><circle cx="170" cy="182" r="5"/></g>';
+  return r;
+};
 COLL.dom="Continuità dei conduttori di protezione\nResistenza di isolamento dei circuiti\nMisura della resistenza di terra\nProva di intervento dei differenziali\nVerifica polarità e funzionamento di prese e punti luce\nVerifica della caduta di tensione sulle linee più lunghe\nVerifica targhette e identificazione dei circuiti\nConsegna Dichiarazione di Conformità e istruzioni";
 CRONO_DEF.dom="Sopralluogo e predisposizioni | 1\nTracce e posa tubazioni | 3\nPosa cavi e scatole | 3\nQuadro e collegamenti | 2\nFrutti, placche e apparecchi | 2\nVerifiche e collaudo | 1\nConsegna e Dichiarazione di Conformità | 1";
 COLL.vid="Funzionamento e inquadratura di ogni telecamera\nRegistrazione e riproduzione sul registratore\nAccesso remoto da app configurato e provato\nVisione notturna / infrarossi\nPrestazioni dell'alimentazione PoE e della rete\nData e ora del registratore e tempo di conservazione\nPassword personalizzate impostate e consegnate\nCartello informativo posizionato\nFormazione al cliente sull'uso";

@@ -44,6 +44,7 @@ function defaultProducts(){
 function fresh(){
   return {
     model:'dom',
+    luce:luDef(),
     rooms:[],curRoom:'',cgroups:{},cond:{n:6,kind:'video',show:true,tc:'',tv:'',cur:0,sys:[],sol:{cit:{n:'',logo:''},video:{n:'',logo:''}},vm:{show:true,video:{b:'',o:[]},cit:{b:'',o:[]}}},
     company:defaultCompany(),
     client:{name:'Mario Rossi',addr:'Via Verdi 12, appartamento 3',tel:'',email:'',cf:''},

@@ -11,6 +11,7 @@ css/08-assistente.css
 css/09-immagini-e-controllo.css
 css/10-grafica-quadro.css
 css/11-blocco-pin.css
+css/12-illuminazione.css
 html/01-inizio.html
 html/02-archivio.html
 html/03-salva.html
@@ -52,6 +53,7 @@ app/09-filigrana-ed-editor.js
 app/10-pdf-e-condivisione.js
 app/11-foto-e-personalizza-app.js
 app/12-videocitofono-e-confronto-marche.js
+app/12b-illuminazione.js
 app/13-modelli-posto-interno.js
 app/14-condizioni-e-messaggi.js
 app/15-blocco-pin.js

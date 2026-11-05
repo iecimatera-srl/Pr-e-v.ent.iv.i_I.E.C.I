@@ -17,7 +17,7 @@ var AS_SWAP=[[/\b(videocitofono|citofono|videocitofoni|citofoni|condominio|palaz
   [/\b(tv|antenna)\s+(\d+)\b(?!\s*(?:prese|punti))/g,'$1 $2 prese tv'],
   [/\b(prese|punti presa|punti luce|luci|faretti|punti rete|sensori|contatti|telecomandi|radiocomandi)\s+(\d+)\b(?!\s*(?:mp|kw|tb|\.\d))/g,'$2 $1']];
 var AS_SIN=[[/\bluci\b/g,'punti luce'],[/\bspot\b/g,'faretti'],[/\btvcc\b|\bcam\b/g,'telecamere'],[/\bpir\b/g,'sensori volumetrici'],[/\btelecomand[io]\b/g,'radiocomandi'],[/\bsalvavita\b/g,'magnetotermico differenziale'],[/\bpunti rete\b|\bprese rete\b|\bprese dati\b/g,'punto presa dati rj45'],[/\bprese tv\b/g,'presa tv sat'],[/\bcitofoni\b/g,'posto interno citofono'],[/\bmonitor\b/g,'monitor interno'],[/\bprese\b(?! (?:tv|bipasso|schuko|usb|dati|rete|cee|esterne|ip))/g,'punti presa']];
-var AS_TIPI=[['vcit',/videocitofon|citofon|posto esterno|pulsantier|condomin/g],['vid',/telecamer|videosorveglian|\bnvr\b|\bdvr\b/g],['all',/allarm|antifurt|antintrusion|volumetric|contatt[io] magnetic/g],['aut',/cancell|automazion|sbarr|basculant|sezional|dissuasor/g],['fv',/fotovoltaic|pannell[io] solar|\bkwp\b|accumul|inverter/g],['wb',/wallbox|colonnin[ae] di ricarica|ricarica (auto|veicol|dell)|auto elettric/g],['tv',/antenn|parabol|digitale terrestre|centralino tv|\bsat\b|^ tv\b|impianto tv/g],['ind',/capannon|industrial|officin|stabiliment|blindosbarr|\bcee\b/g],['sw',/\bplc\b|scada|\bhmi\b|\bknx\b|programmazion|firmware/g],['rip',/riparaz|guast|non funzion|salta|cortocircuit|scatta|emergenz|intervento/g],['app',/appartament|\bcamer[ae]\b|\bbagn[io]\b|\bcucin|soggiorn|ingress|corridoi|camerett|monolocal|bilocal|trilocal|quadrilocal|pentalocal|\bvilla\b|attico|mansard/g],['dom',/impianto elettrico|\bcasa\b|villett|abitazion|punti? luce|\bprese\b/g]];
+var AS_TIPI=[['vcit',/videocitofon|citofon|posto esterno|pulsantier|condomin/g],['vid',/telecamer|videosorveglian|\bnvr\b|\bdvr\b/g],['all',/allarm|antifurt|antintrusion|volumetric|contatt[io] magnetic/g],['aut',/cancell|automazion|sbarr|basculant|sezional|dissuasor/g],['fv',/fotovoltaic|pannell[io] solar|\bkwp\b|accumul|inverter/g],['wb',/wallbox|colonnin[ae] di ricarica|ricarica (auto|veicol|dell)|auto elettric/g],['tv',/antenn|parabol|digitale terrestre|centralino tv|\bsat\b|^ tv\b|impianto tv/g],['ind',/capannon|industrial|officin|stabiliment|blindosbarr|\bcee\b/g],['sw',/\bplc\b|scada|\bhmi\b|\bknx\b|programmazion|firmware/g],['rip',/riparaz|guast|non funzion|salta|cortocircuit|scatta|emergenz|intervento/g],['app',/appartament|\bcamer[ae]\b|\bbagn[io]\b|\bcucin|soggiorn|ingress|corridoi|camerett|monolocal|bilocal|trilocal|quadrilocal|pentalocal|\bvilla\b|attico|mansard/g],['dom',/impianto elettrico|\bcasa\b|villett|abitazion|punti? luce|\bprese\b/g],['luce',/illumin\w*|plafonier\w*|faretti|faretto|\bstrip\b|strisc\w* led|nastr\w* led|\bfari\b|\bfaro\b|proiettor\w*|lampadar\w*|applique|segnapass\w*|gola luminos\w*|binario|downlight|pannell[io] led|lampion\w*|palett[io] (?:led|da giardino)|\bcob\b|\brgbw?\b/g]];
 var AS_STANZE=[[/camerett[ae]/,'cm'],[/camer[ae](?: da letto| matrimonial[ei])?\b/,'ca'],[/bagn[io]|servizi igienici/,'ba'],[/cucin[ae]|angolo cottura/,'cu'],[/soggiorn[oi]|salon[ei]|salott[oi]|living(?! ?(?:now|light))/,'so'],[/ingress[oi]/,'in'],[/corridoi?o?|disimpegn[oi]/,'co'],[/studi[oi]/,'st'],[/lavanderi[ae]/,'la'],[/balcon[ei]|terrazz[oi]|giardin[oi]/,'bl'],[/\bbox\b|garage|cantin[ae]|autorimess[ae]/,'bx'],[/ripostigli[oi]/,'ri']];
 var AS_TAGLI={mono:[['so',1],['cu',1],['ba',1]],bi:[['in',1],['cu',1],['so',1],['ca',1],['ba',1]],tri:[['in',1],['cu',1],['so',1],['ca',2],['ba',1],['co',1]],quadri:[['in',1],['cu',1],['so',1],['ca',2],['cm',1],['ba',2],['co',1]],penta:[['in',1],['cu',1],['so',1],['ca',3],['cm',1],['ba',2],['co',1]]};
 // tutte le marche della libreria (oltre 200), più i nomi brevi con cui le chiami
@@ -124,7 +124,8 @@ function asTipo(n,hint){
 }
 // la voce «normale» quando dici solo la parola generica («5 telecamere», «4 sensori»)
 var AS_BASE={vid:[[/^telecamer\w*$/,'Telecamera IP 4 MP bullet PoE']],all:[[/^sensor\w*( volumetric\w*)?$/,'Sensore volumetrico PIR'],[/^contatt\w*( magnetic\w*)?$/,'Contatto magnetico porta / finestra']],aut:[[/^(radiocomandi|telecomandi)$/,'Radiocomando 4 canali']],tv:[[/^(punti presa|prese|presa tv sat)$/,'Presa TV / SAT']],
-  app:[[/^punti presa$/,'Punto presa 10/16 A'],[/^punti luce$/,'Punto luce semplice']],dom:[[/^punti presa$/,'Punto presa 10/16 A'],[/^punti luce$/,'Punto luce semplice']]};
+  app:[[/^punti presa$/,'Punto presa 10/16 A'],[/^punti luce$/,'Punto luce semplice']],
+  luce:[[/^(faretti?|faretti led|faretti a incasso|faretti da incasso)$/,'Faretto LED da incasso fisso 7 W, fornito e posato'],[/^faretti? (orientabil\w*)$/,'Faretto LED da incasso orientabile 10 W'],[/^plafonier\w*( led)?$/,'Plafoniera LED 24 W da interno'],[/^(fari|faro|fari led|proiettor\w*( led)?)$/,'Proiettore LED 30 W IP65'],[/^punti luce$/,'Punto luce semplice, linea e comando'],[/^lampadar\w*$/,'Montaggio lampadario o sospensione del cliente'],[/^(applique|lampade a parete)$/,'Montaggio applique del cliente'],[/^segnapass\w*$/,'Segnapasso LED da incasso a parete'],[/^palett\w*( led)?$/,'Paletto LED da giardino'],[/^pannell\w* led$/,'Pannello LED 60x60 da controsoffitto 36 W']],dom:[[/^punti presa$/,'Punto presa 10/16 A'],[/^punti luce$/,'Punto luce semplice']]};
 function asBase(model,r){ var it=null; (AS_BASE[model]||[]).forEach(function(x){ if(!it&&x[0].test(String(r||'').trim())) it=asItem(model,x[1]); }); return it; }
 // dati del cliente nel testo: li legge clLeggi (assistente-documenti), che esclude la tua ditta e controlla C.F. e P.IVA
 function asCliente(t){ var c=clLeggi(t,'libero'), o={}; ['name','addr','tel','email','cf'].forEach(function(k){ if(c[k]) o[k]=c[k]; }); if(c.n) o.info=c; return o; }
@@ -347,6 +348,43 @@ function asAnalizza(testo){
     if(has(/fotovoltaic|surplus/)) add('Integrazione con il fotovoltaico (ricarica da surplus)',1,'richiesta');
     if(has(/scav|interrat/)) add('Scavo e posa interrata',metri,'stima');
     res.titolo='Installazione wallbox '+(p22?'22':(p11?'11':'7,4'))+' kW per ricarica auto elettrica';
+  }
+  else if(model==='luce'){
+    var cntL=function(re){ var t=0; res.righe.forEach(function(r){ if(re.test(r.d)) t+=r.q; }); return t; };
+    // il faretto trimless (più caro) solo se lo chiedi: «faretti nel cartongesso» resta il faretto da incasso normale
+    if(!has(/trimless|a filo|rasat|a scomparsa/)) res.righe.forEach(function(r){ if(/trimless/.test(r.d)){ var b=asItem('luce','Faretto LED da incasso fisso 7 W, fornito e posato'); if(b){ r.d=b[0]; r.u=b[1]; r.p=num(b[2]); } } });
+    var smm=nPos.match(/(\d+(?:\.\d+)?) (?:m|metri|mt|ml)\b(?: lineari)?(?: di| del| della| circa)? (?:strip|strisc|nastr|led|gola|profil|cob)/)||nPos.match(/(?:\bstrip\b|strisc\w*|nastr\w*|gola luminos\w*)[^,;.]{0,30}? (\d+(?:\.\d+)?) (?:m|metri|mt|ml)\b/);
+    var sm=smm?parseFloat(smm[1]):0;
+    var stripIt=has(/\bcob\b|senza puntini/)?'Strip LED COB 24 V 10 W/m senza puntini':has(/\brgbw?\b|color/)?'Strip LED RGB / RGBW 24 V':has(/tunable|bianco regolabil|\bcct\b/)?'Strip LED Tunable White 24 V (bianco regolabile)':'Strip LED 24 V bianca 14,4 W/m, posa inclusa';
+    var gStrip=cntL(/^Strip LED/);
+    if(!gStrip&&(sm||has(/\bstrip\b|strisc\w* led|nastr\w* led|gola luminos/))){ if(!sm){ sm=5; res.note.push('Metri di strip LED non indicati: ne metto 5, cambiali pure.'); } add(stripIt,sm,smm?'richiesta':'stima'); gStrip=cntL(/^Strip LED/); }
+    if(gStrip){
+      var sItem=(res.righe.filter(function(r){ return /^Strip LED/.test(r.d); })[0]||{}).d||stripIt, wm=luWm(sItem), tr=Math.max(1,(nPos.match(/(\d+) (?:tratti|zone|gole|pezzi di strip)/)||[])[1]|0);
+      add(has(/incass|cartongess|controsoffitt|gola/)?'Profilo in alluminio da incasso in cartongesso':'Profilo in alluminio con diffusore opale',gStrip,'tipico');
+      luAlim(gStrip/tr*wm,24).forEach(function(a){ add('Alimentatore LED 24 V '+a.w+' W',a.n*tr,'calcolo'); });
+      if(/RGB/.test(sItem)||has(/wi-?fi|\bapp\b|smart|alexa|google/)) add('Controller RGB / RGBW Wi-Fi con app',tr,'tipico');
+      else if(/Tunable/.test(sItem)||has(/dimmer|regol|telecomand|intensit/)) add('Controller / dimmer per strip LED con telecomando',tr,'tipico');
+      if(has(/gola luminos|velett/)) add('Gola luminosa in cartongesso, predisposizione',gStrip,'richiesta');
+      res.note.push('Strip LED: '+asF(gStrip)+' m × '+asF(wm)+' W/m = '+asF(gStrip*wm,0)+' W'+(tr>1?' su '+tr+' tratti':'')+' → alimentatore scelto con il 25% di margine.');
+    }
+    var nFar=cntL(/^Faretto LED/);
+    if(!nFar&&has(/faretti|faretto/)){ var forte=has(/cucin|studi|uffic|negoz|vetrin|show ?room|laborator/), nf=mq?luSpot(forte?300:200,mq,forte?900:600,2.7).n:6; add(has(/bagn|docc/)?'Faretto LED da incasso IP65 per bagno / doccia':(forte?'Faretto LED da incasso orientabile 10 W':'Faretto LED da incasso fisso 7 W, fornito e posato'),nf,'stima'); res.note.push(mq?'Faretti calcolati per '+asF(mq)+' mq (luce di '+(forte?300:200)+' lux): controlla il numero, o usa il calcolatore «Faretti per stanza».':'Numero di faretti non indicato: ne metto 6, cambialo pure.'); nFar=nf; }
+    if(nFar&&has(/cartongess|controsoffitt/)) add('Foro su cartongesso o controsoffitto',nFar,'tipico');
+    if(has(/sensor\w*|movimento|presenza/)) add('Sensore di movimento / presenza',1,'richiesta');
+    if(has(/crepuscolar|al buio|tramonto/)) add('Interruttore crepuscolare',1,'richiesta');
+    if(has(/astronomic|orari/)) add('Orologio astronomico per le luci esterne',1,'richiesta');
+    if(has(/dimmer|dimmerabil|regolabil/)&&!gStrip) add('Dimmer da incasso per LED',1,'richiesta');
+    if(has(/\bdali\b/)) add('Driver o centralina DALI',1,'richiesta');
+    if(has(/interrat|scav|cavidott/)) add('Linea esterna interrata in cavidotto',metri||15,metri?'richiesta':'stima');
+    if(has(/smont|sostitu|vecch/)){ var nv=cntL(/^(Faretto|Plafoniera|Pannello|Proiettore|Lampada|Applique|Paletto|Segnapasso)/)||1; add('Smontaggio dei vecchi corpi illuminanti',nv,'stima'); add('Smaltimento RAEE di lampade e apparecchi',1,'tipico'); }
+    if(has(/quota|soffitt\w* alt|altezz|trabattell|piattaform|cestell|capannon/)) add('Trabattello o piattaforma per lavori in quota',1,'richiesta');
+    if(has(/progett|calcol\w* (?:dei )?lux|illuminotecnic/)) add('Progetto illuminotecnico con calcolo dei lux',1,'richiesta');
+    if(has(/scen[ae]|domotic|alexa|google home/)) add('Programmazione di scene e app',1,'richiesta');
+    add('Verifiche e collaudo',1,'tipico'); add('Dichiarazione di conformità (DM 37/08)',1,'tipico');
+    var pz=[], nn=function(re){ return cntL(re); };
+    if(nn(/^Faretto/)) pz.push(asF(nn(/^Faretto/),0)+' faretti'); if(nn(/^(Plafoniera|Pannello)/)) pz.push(asF(nn(/^(Plafoniera|Pannello)/),0)+' plafoniere'); if(nn(/^Proiettore/)) pz.push(asF(nn(/^Proiettore/),0)+' fari');
+    if(gStrip) pz.push(asF(gStrip)+' m di strip LED');
+    res.titolo='Impianto di illuminazione'+(pz.length?': '+pz.slice(0,-1).join(', ')+(pz.length>1?' e ':'')+pz[pz.length-1]:'');
   }
   else if(model==='aut'){
     var mot=has(/sezional/)?'Automazione porta garage sezionale':has(/basculant/)?'Automazione per porta basculante':has(/sbarr/)?'Sbarra automatica per parcheggio':has(/scorrevol|robus|krono|bxv?[ -]?\d|deimos/)?(has(/pesant|industrial/)?'Motore per cancello scorrevole pesante':'Motore per cancello scorrevole'):(has(/interrat/)?'Motore interrato per cancello a battente (coppia)':'Motori per cancello a battente (coppia)');

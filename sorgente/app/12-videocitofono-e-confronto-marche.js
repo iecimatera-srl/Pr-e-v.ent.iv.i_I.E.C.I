@@ -220,7 +220,7 @@ function vcApplyMode(nk){
 }
 function vcQuota(t,j){ return r2(vmBase(j,t).tot/vcN()); }
 function renderVc(){
-  renderBrPanel();
+  renderBrPanel(); renderLu();
   var box=$('acc-vc'); if(!box) return; var on=vcOn(); box.hidden=!on; if(!on) return;
   renderVcPrice(); renderSys(); renderSol(); renderVm();
   var k=vcMode(), n=vcN();

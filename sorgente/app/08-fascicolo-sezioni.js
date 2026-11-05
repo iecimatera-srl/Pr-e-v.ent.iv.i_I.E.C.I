@@ -221,7 +221,7 @@ function secPreventivo(){
       O.map(function(l){ return '<tr><td>'+esc(l.d)+'</td><td class="n">'+qfmt(num(l.q))+' '+esc(l.u)+'</td><td class="n">'+eur(lineTotal(l))+'</td><td class="n">'+eur(r2(lineTotal(l)*(1+num(S.meta.iva)/100)))+'</td><td class="n"><span class="chkbox">'+(l.acc?'✓':'')+'</span></td></tr>'; }).join('')+
       '</tbody></table>'+(tiers?'':'<p class="note-s">Con tutte le opzioni il totale diventa '+eur(withAll.tot)+' IVA inclusa.</p>');
   }
-  return '<section class="page">'+pageHead('Preventivo economico')+'<div class="pg-b"><h2 class="sec">Preventivo economico</h2>'+strip+body+vcBox()+vmBox()+opt+'</div>'+pageFoot()+'</section>';
+  return '<section class="page">'+pageHead('Preventivo economico')+'<div class="pg-b"><h2 class="sec">Preventivo economico</h2>'+strip+body+vcBox()+vmBox()+luBox()+opt+'</div>'+pageFoot()+'</section>';
 }
 function sigBox(label,img,name,extra,stamp){
   var W=Math.max(30,Math.min(300,num(S.company.stampW)||90)), ar=num(S.company.stampAr)||1.4, h=Math.max(72,Math.round(W/ar/2)+10);

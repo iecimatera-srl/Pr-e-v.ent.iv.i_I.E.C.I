@@ -118,25 +118,27 @@ function gdPushSoon(){
   clearTimeout(gdT); gdT=setTimeout(function(){ gdSync(false); },20000);
 }
 /* ---------- GitHub (archivio privato, file JSON) ---------- */
-var GH={repo:'',token:'',on:false,auto:true,last:0,err:'',dirty:false}, ghBusy=false, ghT=0, GHFILE='archivio-preventivi-ieci.json';
-function ghLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-gh')||'{}'); GH.repo=o.repo||''; GH.token=o.token||''; GH.on=!!o.on; GH.auto=o.auto!==false; GH.last=o.last||0; }catch(e){} }
+var GH={repo:'',token:'',on:false,auto:true,last:0,err:'',dirty:false,every:10}, ghBusy=false, ghT=0, GHFILE='archivio-preventivi-ieci.json';
+function ghLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-gh')||'{}'); GH.repo=o.repo||''; GH.token=o.token||''; GH.on=!!o.on; GH.auto=o.auto!==false; GH.last=o.last||0; GH.every=o.every!=null?Math.max(0,+o.every||0):10; GH.dirty=!!o.dirty; }catch(e){} }
 function ghStore(){ try{ localStorage.setItem('ieci-gh',JSON.stringify(GH)); }catch(e){} }
 function ghStatus(t){ var el=$('gh-state'); if(el) el.textContent=t; ghChip(); }
 // comando sempre in alto nella prima schermata: stato della sincronizzazione e un tocco per salvare e sincronizzare
+function ghOpenDirty(){ return !!(S&&S.qid&&QDV[S.qid]!=null&&QDV[S.qid]!==docVer); }
 function ghChip(){
-  var b=$('gh-chip'), t=$('gh-chip-t'); if(!b||!t) return;
+  if(!GH) return; var b=$('gh-chip'), t=$('gh-chip-t'); if(!b||!t) return;
+  var auto=GH.every>0?' Salvataggio automatico ogni '+GH.every+' minuti.':'';
   var st, tx, tip, ora=GH.last?new Date(GH.last).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'';
   if(!GH.on){ st='off'; tx='Collega GitHub'; tip='GitHub non collegato: tocca per collegarlo e tenere uguali telefono e computer'; }
   else if(ghBusy){ st='run'; tx='Sincronizzo…'; tip='Salvataggio su GitHub in corso'; }
   else if(GH.err){ st='err'; tx='Riprova'; tip='Sincronizzazione non riuscita: '+GH.err+' Tocca per riprovare.'; }
-  else if(GH.dirty){ st='dirty'; tx='Da salvare'; tip='Ci sono modifiche non ancora su GitHub: tocca per salvare e sincronizzare'; }
-  else { st='ok'; tx=ora?'Sincronizzato '+ora:'Sincronizzato'; tip='Tutto salvato su GitHub'+(GH.last?' ('+new Date(GH.last).toLocaleString('it-IT')+')':'')+'. Tocca per salvare e sincronizzare ora'; }
+  else if(GH.dirty||ghOpenDirty()){ st='dirty'; tx='Da salvare'; tip='Ci sono modifiche non ancora su GitHub: tocca per salvare e sincronizzare.'+auto; }
+  else { st='ok'; tx=ora?'Sincronizzato '+ora:'Sincronizzato'; tip='Tutto salvato su GitHub'+(GH.last?' ('+new Date(GH.last).toLocaleString('it-IT')+')':'')+'. Tocca per salvare e sincronizzare ora.'+auto; }
   b.setAttribute('data-st',st); t.textContent=tx; b.title=tip; b.setAttribute('aria-label',tip);
 }
 function ghClean(v){ return String(v||'').trim().replace(/^https?:\/\/github\.com\//i,'').replace(/\.git$/i,'').replace(/^\/+|\/+$/g,''); }
 function renderGh(){
   if(!$('gh-repo')) return;
-  $('gh-repo').value=GH.repo; $('gh-token').value=GH.token; $('gh-auto').checked=GH.auto;
+  $('gh-repo').value=GH.repo; $('gh-token').value=GH.token; $('gh-auto').checked=GH.auto; $('gh-every').value=String(GH.every);
   $('gh-sync').disabled=!GH.on; $('gh-off').disabled=!GH.on;
   $('gh-on').textContent=GH.on?'Salva e sincronizza':'Collega e sincronizza';
   if(!$('gh-state').textContent) ghStatus(GH.on?('Collegato a '+GH.repo+(GH.last?'. Ultima sincronizzazione: '+new Date(GH.last).toLocaleString('it-IT'):'')+'.'):'Non collegato.');
@@ -206,6 +208,24 @@ $('gh-on').addEventListener('click',function(){
 $('gh-sync').addEventListener('click',function(){ ghSync(true); });
 $('gh-off').addEventListener('click',function(){ GH.on=false; GH.token=''; ghStore(); ghStatus('Scollegato. I dati restano su questo dispositivo e su GitHub.'); renderGh(); });
 document.addEventListener('visibilitychange',function(){ if(!document.hidden&&GH.on&&GH.auto&&Date.now()-GH.last>60000) ghSync(false); });
+// salvataggio automatico su GitHub ogni tot minuti (scelto in «Salva e sincronizza»): prima il preventivo aperto va
+// nell'archivio se è cambiato, poi si sincronizza; se non è cambiato niente non si salva nulla. Anche quando esci dall'app.
+function ghPrepara(){
+  if(!dbReady||!S) return;
+  var demo=false; try{ demo=Object.keys(libDemo()).length>0; }catch(e){}
+  if(S.qid) saveQuote(true); else if(S.lines.length&&!demo) saveQuote(true);
+}
+function ghTick(forza){
+  var P=window.PINPAD;
+  if(!GH.on||!GH.token||!(GH.every>0)||ghBusy||(P&&P.locked)) return false;
+  if(!forza&&Date.now()-GH.last<GH.every*60000) return false;
+  ghPrepara();
+  if(!GH.dirty) { ghChip(); return false; }
+  ghSync(false); return true;
+}
+setInterval(function(){ ghTick(false); },30000);
+document.addEventListener('visibilitychange',function(){ if(document.hidden&&GH.on&&GH.every>0&&(GH.dirty||ghOpenDirty())) ghTick(true); });
+$('gh-every').addEventListener('change',function(e){ GH.every=Math.max(0,+e.target.value||0); ghStore(); ghChip(); toast(GH.every?'Salvataggio automatico su GitHub ogni '+GH.every+' minuti':'Salvataggio automatico su GitHub spento'); });
 ghLoad();
 $('gh-chip').addEventListener('click',function(){
   if(GH.on&&GH.token){ if(S.qid&&dbReady) saveQuote(true); ghSync(true); return; }
@@ -227,3 +247,5 @@ $('gd-off').addEventListener('click',function(){
 document.addEventListener('visibilitychange',function(){ if(!document.hidden&&GD.on&&GD.auto&&tokOk()) gdSync(false); });
 gdLoad();
 
+
+(function(T){ if(!T) return; T.ghTick=ghTick; T.GH=function(){ return GH; }; })(window.IECI_T);

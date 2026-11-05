@@ -157,7 +157,7 @@ function renderLogoPrev(){ var u=S.style.logo; $('logo-prev').innerHTML=u?'<div 
 function renderAll(){ try{ renderCondSave(); }catch(e){} if(S.products[0]&&openP[S.products[0].id]===undefined) openP[S.products[0].id]=true; renderTabs(); renderRooms(); renderVc(); renderCat(); renderLines(); renderProducts(); renderContent(); renderOrder(); renderCustom(); renderEcon(); renderTiers(); renderTrust(); renderIcons(); renderTpl(); syncFields(); sigDraw('cli'); sigDraw('dit'); renderStamp(); renderPlan(); renderFvRes(); renderInvio(); renderArchivio(); renderGd(); renderGh(); renderQbar(); renderAiSet(); renderImp(); renderArts(); renderAq(); schedule(); refreshVariants(); }
 var docVer=0;
 var lastEdit=0;
-function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); libSoon(); pcSoon(); }
+function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); libSoon(); pcSoon(); if(typeof GH!=='undefined'&&GH&&GH.on) ghChip(); }
 
 var TTL_G='Rifacimento impianto appartamento', TTL_T={luce:'Impianto di illuminazione',wb:'Installazione wallbox per ricarica auto elettrica',rip:'Riparazione impianto elettrico',vid:'Impianto di videosorveglianza',all:'Impianto di allarme antintrusione',vcit:'Impianto videocitofonico',aut:'Automazione cancello e accessi',fv:'Impianto fotovoltaico',tv:'Impianto TV e antenna',ind:'Impianto elettrico industriale',sw:'Programmazione e messa in servizio'};
 function typeTitle(prev){ if(S.meta.title===TTL_G||S.meta.title===TTL_T[prev]||(prev&&S.meta.title===(MODELS[prev]||{}).name)){ S.meta.title=TTL_T[S.model]||TTL_G; if($('m-title')) $('m-title').value=S.meta.title; } }

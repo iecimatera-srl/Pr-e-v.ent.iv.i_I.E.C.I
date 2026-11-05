@@ -234,10 +234,13 @@ function specsHtml(t){
   }).join('')+'</tbody></table>';
 }
 // marca nella scheda: il logo se lo conosco, il resto (es. la serie) scritto accanto
-function brandLine(b){
+// grandezza del logo della marca nella scheda prodotto (px di altezza): quella del prodotto, altrimenti quella scelta per tutti
+function logoH(p){ var h=num(p&&p.ls)||num(S.style.logoH)||18; return Math.max(12,Math.min(64,Math.round(h))); }
+function brandLine(b,p){
   var lg=brandLogo(b); if(!lg) return '<div class="brand">'+esc(b)+'</div>';
+  var h=logoH(p);
   var base=iwBase(b), rest=String(b).trim(); if(base&&rest.toLowerCase().indexOf(base.toLowerCase())===0) rest=rest.slice(base.length).replace(/^[\s\-·:]+/,'');
-  return '<div class="brand lg"><img src="'+lg+'" alt="'+esc(base||b)+'">'+(rest?'<span>'+esc(rest)+'</span>':'')+'</div>';
+  return '<div class="brand lg"><img src="'+lg+'" alt="'+esc(base||b)+'" style="height:'+h+'px;max-width:'+(h*7)+'px">'+(rest?'<span>'+esc(rest)+'</span>':'')+'</div>';
 }
 function prodHtml(p,big){
   var x=p.x||{}, ph=x.photos?[]:(p.photos||[]), has=ph.length>0, ps=Math.max(15,Math.min(100,num(p.ps)||45));
@@ -251,7 +254,7 @@ function prodHtml(p,big){
   if(PG_GROUPED) solb='';
   var alt=prodAlt(p);
   return '<article class="prod'+(has?'':' nophoto')+(big?' big':'')+(alt?' alt':'')+'"><div class="p-i">'+solb+prodBadge(p,alt)+
-    (p.brand?brandLine(p.brand):'')+'<h3>'+esc(p.name)+'</h3>'+(p.code?'<div class="code">'+esc(p.code)+'</div>':'')+
+    (p.brand?brandLine(p.brand,p):'')+'<h3>'+esc(p.name)+'</h3>'+(p.code?'<div class="code">'+esc(p.code)+'</div>':'')+
     ((!x.desc&&p.desc)?'<p>'+esc(p.desc)+'</p>':'')+'</div>'+photos+(rest?'<div class="p-i">'+rest+'</div>':'')+'</article>';
 }
 

@@ -146,3 +146,11 @@ textarea.t1.as-dr-d{min-height:0}
 .pcbox .pcgo{font-weight:800}.pcnota{margin:0}.pcres{display:grid;gap:10px}.pcit{display:grid;gap:4px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .pcit small{color:var(--muted);font-size:.74rem}.pcit p{margin:0;font-size:.9rem}.pcit pre{margin:0;white-space:pre-wrap;font:inherit;font-size:.84rem}.pcit .btn{justify-self:start}
 .pcimg{display:flex;flex-wrap:wrap;gap:6px}.pcimg button{border:1px solid var(--line);border-radius:8px;background:#fff;padding:2px;cursor:pointer}.pcimg img{width:72px;height:72px;object-fit:contain;display:block}
+/* logo della marca: grandezza regolabile nella scheda prodotto, piccolo logo nelle voci del preventivo economico */
+.p-i .brand.lg img{max-height:none}
+.lsz{display:grid;gap:8px;margin:4px 0 10px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px}
+.lsz-p{display:flex;align-items:center;min-height:68px;padding:8px 12px;border-radius:10px;background:#fff;border:1px solid var(--line);overflow:hidden}
+.lsz-p img{display:block;object-fit:contain;object-position:left center}
+.lsz .btn{justify-self:start}
+.cap.br.lg{display:flex;align-items:center;flex-wrap:wrap;gap:2px 7px;margin-top:2px}
+.cap.br.lg .brl{height:14px;max-width:72px;object-fit:contain;object-position:left center;flex:none}

@@ -58,7 +58,7 @@ function fresh(){
       {d:'Dichiarazione di conformità (DM 37/08)',u:'a corpo',q:1,p:120,s:0}
     ],
     cat:defaultCat(),
-    style:{wmOn:true,wmMode:'tile',wmOp:9,wmSize:135,wmRot:-15,b1:'#2F65AE',b2:'#8793A3',font:'tec',cover:'band',order:'A',showAzienda:true,showProdotti:true,logo:LOGO0,coverLogo:'white',prodLayout:'flow',attachPdf:true},
+    style:{logoH:18,wmOn:true,wmMode:'tile',wmOp:9,wmSize:135,wmRot:-15,b1:'#2F65AE',b2:'#8793A3',font:'tec',cover:'band',order:'A',showAzienda:true,showProdotti:true,logo:LOGO0,coverLogo:'white',prodLayout:'flow',attachPdf:true},
     profile:defaultProfile(),
     products:defaultProducts(),
     layout:BASE_IDS.slice(),
@@ -73,7 +73,7 @@ function fresh(){
     custom:[],
     show:{cover:true,cvSocial:true,cvRef:true,cvKicker:true,cvSlogan:true,cvCable:true,cvClient:true,cvValid:true,cvCompany:true,
       prodIntro:true,azSlogan:true,azAbout:true,azStats:true,azSteps:true,azCerts:true,azGuar:true,
-      prev:true,pvStrip:true,pvAcc:true,pvOpt:true,pvBrand:true,cond:true,cdPay:true,cdNotes:true,cdSign:true,cdChoice:true,pgHead:true,pgFoot:true,
+      prev:true,pvStrip:true,pvAcc:true,pvOpt:true,pvBrand:true,pvLogo:true,cond:true,cdPay:true,cdNotes:true,cdSign:true,cdChoice:true,pgHead:true,pgFoot:true,
       fiducia:true,trBA:true,trWorks:true,trRev:true,trBrand:true,trQR:true,planimetria:false,fv:false,crono:false,conferma:false,lavoro:false,collaudo:false}
   };
 }

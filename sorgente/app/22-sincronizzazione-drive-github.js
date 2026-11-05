@@ -118,10 +118,21 @@ function gdPushSoon(){
   clearTimeout(gdT); gdT=setTimeout(function(){ gdSync(false); },20000);
 }
 /* ---------- GitHub (archivio privato, file JSON) ---------- */
-var GH={repo:'',token:'',on:false,auto:true,last:0}, ghBusy=false, ghT=0, GHFILE='archivio-preventivi-ieci.json';
+var GH={repo:'',token:'',on:false,auto:true,last:0,err:'',dirty:false}, ghBusy=false, ghT=0, GHFILE='archivio-preventivi-ieci.json';
 function ghLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-gh')||'{}'); GH.repo=o.repo||''; GH.token=o.token||''; GH.on=!!o.on; GH.auto=o.auto!==false; GH.last=o.last||0; }catch(e){} }
 function ghStore(){ try{ localStorage.setItem('ieci-gh',JSON.stringify(GH)); }catch(e){} }
-function ghStatus(t){ var el=$('gh-state'); if(el) el.textContent=t; }
+function ghStatus(t){ var el=$('gh-state'); if(el) el.textContent=t; ghChip(); }
+// comando sempre in alto nella prima schermata: stato della sincronizzazione e un tocco per salvare e sincronizzare
+function ghChip(){
+  var b=$('gh-chip'), t=$('gh-chip-t'); if(!b||!t) return;
+  var st, tx, tip, ora=GH.last?new Date(GH.last).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'';
+  if(!GH.on){ st='off'; tx='Collega GitHub'; tip='GitHub non collegato: tocca per collegarlo e tenere uguali telefono e computer'; }
+  else if(ghBusy){ st='run'; tx='Sincronizzo…'; tip='Salvataggio su GitHub in corso'; }
+  else if(GH.err){ st='err'; tx='Riprova'; tip='Sincronizzazione non riuscita: '+GH.err+' Tocca per riprovare.'; }
+  else if(GH.dirty){ st='dirty'; tx='Da salvare'; tip='Ci sono modifiche non ancora su GitHub: tocca per salvare e sincronizzare'; }
+  else { st='ok'; tx=ora?'Sincronizzato '+ora:'Sincronizzato'; tip='Tutto salvato su GitHub'+(GH.last?' ('+new Date(GH.last).toLocaleString('it-IT')+')':'')+'. Tocca per salvare e sincronizzare ora'; }
+  b.setAttribute('data-st',st); t.textContent=tx; b.title=tip; b.setAttribute('aria-label',tip);
+}
 function ghClean(v){ return String(v||'').trim().replace(/^https?:\/\/github\.com\//i,'').replace(/\.git$/i,'').replace(/^\/+|\/+$/g,''); }
 function renderGh(){
   if(!$('gh-repo')) return;
@@ -160,7 +171,7 @@ function ghPut(sha,text){
 }
 function ghSync(interactive,retry){
   if(ghBusy||!GH.on||!GH.token||!GH.repo) return;
-  ghBusy=true; ghStatus('Sincronizzazione in corso…');
+  ghBusy=true; GH.err=''; ghStatus('Sincronizzazione in corso…');
   if(S.qid&&dbReady) saveQuote(true);
   clearTimeout(ghT);
   var again=false;
@@ -169,14 +180,15 @@ function ghSync(interactive,retry){
     settingsStamp(); renderArchivio();
     return ghPut(res&&res.sha,JSON.stringify(buildPayload()));
   }).then(function(){
-    GH.last=Date.now(); ghStore(); dbSave(true); clearTimeout(ghT);
+    GH.last=Date.now(); GH.dirty=false; ghStore(); dbSave(true); clearTimeout(ghT);
     ghStatus('Sincronizzato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'. Archivio, listino, dati ditta e stile sono aggiornati su GitHub.');
   }).catch(function(e){
     if((e.status===409||e.status===422)&&!retry){ again=true; return; }
-    ghStatus(ghErr(e));
-  }).then(function(){ ghBusy=false; if(again) ghSync(interactive,true); });
+    GH.err=ghErr(e); ghStatus(GH.err);
+  }).then(function(){ ghBusy=false; ghChip(); if(again) ghSync(interactive,true); });
 }
 function ghPushSoon(){
+  if(GH.on&&!GH.dirty){ GH.dirty=true; ghChip(); }
   if(!GH.on||!GH.auto||!GH.token) return;
   clearTimeout(ghT); ghT=setTimeout(function(){ ghSync(false); },15000);
 }
@@ -195,6 +207,11 @@ $('gh-sync').addEventListener('click',function(){ ghSync(true); });
 $('gh-off').addEventListener('click',function(){ GH.on=false; GH.token=''; ghStore(); ghStatus('Scollegato. I dati restano su questo dispositivo e su GitHub.'); renderGh(); });
 document.addEventListener('visibilitychange',function(){ if(!document.hidden&&GH.on&&GH.auto&&Date.now()-GH.last>60000) ghSync(false); });
 ghLoad();
+$('gh-chip').addEventListener('click',function(){
+  if(GH.on&&GH.token){ if(S.qid&&dbReady) saveQuote(true); ghSync(true); return; }
+  showPanel('salva'); var r=$('gh-repo'); if(r){ var d=r.closest('details'); if(d) d.open=true; setTimeout(function(){ r.scrollIntoView({block:'center'}); try{ r.focus({preventScroll:true}); }catch(e){} },120); }
+});
+ghChip();
 (function(){ var n=0, iv=setInterval(function(){ n++; if(dbReady){ clearInterval(iv); if(GH.on&&GH.auto) ghSync(false); } else if(n>40) clearInterval(iv); },500); })();
 $('gd-cid').addEventListener('input',function(e){ GD.cid=e.target.value.trim(); gdStore(); });
 $('gd-auto').addEventListener('change',function(e){ GD.auto=e.target.checked; gdStore(); });

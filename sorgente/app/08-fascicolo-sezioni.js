@@ -119,7 +119,8 @@ function lineBrand(l){
   if(!p) S.products.forEach(function(x){ if(!p&&String(x.name||'').trim().toLowerCase()===nm&&(!l.sy||!x.sys||x.sys===l.sy)) p=x; });
   var b=String(l.br||(p&&p.brand)||'').trim(), cd=p&&p.code?String(p.code):'';
   if(!b&&!cd) return '';
-  return '<div class="cap br">'+(b?'Marca: <b>'+esc(b)+'</b>':'')+(b&&cd?' · ':'')+(cd?'Modello: '+esc(cd):'')+'</div>';
+  var lg=b&&S.show.pvLogo!==false?brandLogo(b):'';
+  return '<div class="cap br'+(lg?' lg':'')+'">'+(lg?'<img class="brl" src="'+imgB(lg)+'" alt="">':'')+(b?'Marca: <b>'+esc(b)+'</b>':'')+(b&&cd?' · ':'')+(cd?'Modello: '+esc(cd):'')+'</div>';
 }
 
 function vcBoxSys(j){

@@ -4,7 +4,7 @@ var GROUPS=[
   ['Prodotti e soluzioni','@prodotti',[['prodIntro','Testo introduttivo']]],
   ['Chi siamo','@azienda',[['azSlogan','Slogan'],['azAbout','Presentazione'],['azStats','Numeri'],['azSteps','Come lavoriamo'],['azCerts','Abilitazioni'],['azGuar','Garanzie']]],
   ['Planimetria con posizioni','planimetria',[]],
-  ['Preventivo economico','prev',[['pvStrip','Riepilogo in alto'],['pvBrand','Marca e modello di ogni voce'],['pvOpt','Opzioni facoltative'],['pvAcc','Acconto e saldo']]],
+  ['Preventivo economico','prev',[['pvStrip','Riepilogo in alto'],['pvBrand','Marca e modello di ogni voce'],['pvLogo','Piccolo logo della marca accanto alla voce'],['pvOpt','Opzioni facoltative'],['pvAcc','Acconto e saldo']]],
   ['Offerta a livelli','@tiers',[]],
   ['Stima fotovoltaico','fv',[]],
   ['Cronoprogramma','crono',[]],
@@ -51,9 +51,10 @@ $('plist').addEventListener('input',function(e){
   var f=e.target.getAttribute('data-pf'); if(!f) return;
   var i=+e.target.getAttribute('data-pi'), pr0=S.products[i], old0=pr0[f];
   if(f==='name'||f==='brand') prodLinkAll(pr0);
-  S.products[i][f]=(f==='ps')?num(e.target.value):e.target.value;
+  S.products[i][f]=(f==='ps'||f==='ls')?num(e.target.value):e.target.value;
   if(f==='name'||f==='brand') prodSync(pr0,f,old0,S.products[i][f]);
   if(f==='ps'){ var pv=e.target.closest('.pe').querySelector('.psv'); if(pv) pv.textContent=S.products[i].ps+'%'; }
+  if(f==='ls'){ var lb=e.target.closest('.pe'), lv=lb.querySelector('.lsv'), li=lb.querySelector('.lsz-p img'), h=logoH(S.products[i]); if(lv) lv.textContent=h+' px'; if(li){ li.style.height=h+'px'; li.style.maxWidth=(h*7)+'px'; } }
   if(f==='name'){ S.products[i].man=true; var pn=e.target.closest('.pe').querySelector('.pn'); if(pn) pn.textContent=e.target.value||'Nuovo prodotto'; }
   touch();
 });
@@ -80,6 +81,7 @@ $('plist').addEventListener('click',function(e){
   if(act==='lib'){ saveProd(i); return; }
   if(act==='iwph'||act==='iwlg'){ iwProd(i,act); return; }
   if(act==='bgcut'||act==='bgkeep'){ setBg(i,act==='bgcut'?'cut':'keep'); return; }
+  if(act==='lsall'){ var h0=logoH(S.products[i]), nn=0; S.products.forEach(function(x){ if(x.brand){ x.ls=h0; nn++; } }); S.style.logoH=h0; renderProducts(); touch(); toast('Loghi a '+h0+' px su '+nn+(nn===1?' prodotto':' prodotti')+' (anche per i prossimi)'); return; }
   if(act==='rm'){ S.products.splice(i,1); }
   else if(act==='up'&&i>0){ var t=S.products[i]; S.products[i]=S.products[i-1]; S.products[i-1]=t; }
   else if(act==='down'&&i<S.products.length-1){ var u=S.products[i]; S.products[i]=S.products[i+1]; S.products[i+1]=u; }

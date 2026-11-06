@@ -13,6 +13,12 @@ function ckList(){
   }
   var q0=L.filter(function(l){ return num(l.q)<=0&&!l.opt; }); if(q0.length) add('warn',(q0.length===1?'1 voce con quantità zero':q0.length+' voci con quantità zero')+': «'+String(q0[0].d).slice(0,40)+'»','q0','Mostra');
   var vu=L.filter(function(l){ return !String(l.d||'').trim(); }); if(vu.length) add('warn',vu.length===1?'1 riga senza descrizione':vu.length+' righe senza descrizione','vuote','Mostra');
+  if(FREE()&&L.length){
+    var zt=[]; if(brOn()) sysList().forEach(function(x,i){ if(num(x.tot)<=0) zt.push(sysName(x,i)); });
+    else if(vcBothFlag()){ if(num(S.cond.tc)<=0) zt.push(S.tiers.names[0]||'soluzione 1'); if(num(S.cond.tv)<=0) zt.push(S.tiers.names[1]||'soluzione 2'); }
+    else if(num(S.econ.total)<=0) zt.push('');
+    if(zt.length) add('err',zt[0]===''?'Il totale libero è a zero: scrivi il prezzo dei lavori':'Totale a zero per '+zt.map(function(n){ return '«'+n+'»'; }).join(' e ')+': scrivi il prezzo','tot','Scrivilo');
+  }
   if(brOn()) sysList().forEach(function(x,i){ if(!S.lines.some(function(l){ return l.sy===x.id&&!l.vm&&!l.off; })) add('err','«'+sysName(x,i)+'» non ha voci: completala o chiudi il confronto','prop','Apri'); });
   if(!String(S.meta.num||'').trim()) add('warn','Manca il numero del preventivo','num','Numera');
   var age=ckDays(S.meta.date), val=num(S.meta.val)||30;
@@ -59,6 +65,7 @@ function ckDo(x){
   if(a==='cli') ckGo('#k-name','dati');
   else if(a==='tel') ckGo('[data-panel="invio"] [data-b="client.tel"]','invio');
   else if(a==='voci'||a==='prop') ckGo('#acc-as','prev');
+  else if(a==='tot'){ var ti=null; Array.prototype.forEach.call(document.querySelectorAll(vcOn()?'#vc-tot input[type=number]':'#econ-box input[type=number]'),function(e){ if(!ti&&num(e.value)<=0) ti=e; }); if(ti){ var dd=ti.closest('details'); while(dd){ dd.open=true; dd=dd.parentElement&&dd.parentElement.closest('details'); } ckGo(ti,'prev'); } else ckGo(vcOn()?'#acc-vc':'#acc-prezzo','prev'); }
   else if(a==='zero') ckFlash(function(l){ return !l.off&&!l.vm&&!l.opt&&num(l.p)<=0; });
   else if(a==='q0') ckFlash(function(l){ return !l.off&&!l.vm&&!l.opt&&num(l.q)<=0; });
   else if(a==='vuote') ckFlash(function(l){ return !l.off&&!l.vm&&!String(l.d||'').trim(); });
@@ -74,4 +81,4 @@ function ckDo(x){
   if($('ck-box')) $('ck-box').addEventListener('click',h);
   if($('sh-ck')) $('sh-ck').addEventListener('click',h);
 })();
-(function(T){ if(!T) return; T.DB=function(){ return DB; }; T.APP=function(){ return APP; }; T.iwScan=iwScan; T.iwProd=iwProd; T.iwFill=iwFill; T.linkLine=linkLine; T.ckList=ckList; T.asNorm=asNorm; T.asAnalizza=asAnalizza; T.prVoci=prVoci; T.prCerca=prCerca; T.maVoci=maVoci; T.buildPdf=buildPdf; T.prodotti=function(){ renderProducts(true); }; T.renderAll=renderAll; })(window.IECI_T);
+(function(T){ if(!T) return; T.DB=function(){ return DB; }; T.APP=function(){ return APP; }; T.iwScan=iwScan; T.iwProd=iwProd; T.iwFill=iwFill; T.linkLine=linkLine; T.ckList=ckList; T.asNorm=asNorm; T.asAnalizza=asAnalizza; T.prVoci=prVoci; T.prCerca=prCerca; T.maVoci=maVoci; T.buildPdf=buildPdf; T.prodotti=function(){ renderProducts(true); }; T.renderAll=renderAll; T.totals=totals; T.headTotal=headTotal; T.showPanel=showPanel; T.acceptedCalc=acceptedCalc; })(window.IECI_T);

@@ -20,7 +20,7 @@ function afterB(el){
     renderLines();
   }
   if(p.indexOf('company.')===0||p.indexOf('trust.')===0||p.indexOf('client.')===0) renderInvio();
-  if(p.indexOf('cond.')===0||p==='econ.total'||p==='econ.vat') syncB();
+  if(p.indexOf('cond.')===0||p.indexOf('cmp.')===0||p==='econ.total'||p==='econ.vat') syncB();
 }
 document.addEventListener('input',function(e){
   var t=e.target, p=t.getAttribute&&t.getAttribute('data-b'); if(!p) return;

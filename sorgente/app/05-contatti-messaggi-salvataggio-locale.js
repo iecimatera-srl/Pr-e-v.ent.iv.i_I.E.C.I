@@ -134,6 +134,9 @@ function normalize(old){
   if(!old.__vc){ var cvv=old.cat.vcit; MODELS.vcit.items.forEach(function(d){ var f=null; cvv.forEach(function(x){ if(x[0]===d[0]) f=x; }); if(f){ f[3]=f[3]||d[3]; f[4]=f[4]||d[4]; } else cvv.push(copy(d)); }); old.__vc=1; }
   if(!old.cgroups||typeof old.cgroups!=='object'||Array.isArray(old.cgroups)) old.cgroups={};
   ORDER.forEach(function(k){ cgSync(k,old); });
+  // recupero: i totali liberi delle proposte A/B finivano per errore in cond.sys (oggetto) invece che in cmp.sys
+  if(old.cond&&old.cond.sys&&!Array.isArray(old.cond.sys)){ var cs=old.cond.sys; if(old.cmp&&Array.isArray(old.cmp.sys)) old.cmp.sys.forEach(function(x,i){ var v=cs[i]&&cs[i].tot; if(x&&!num(x.tot)&&num(v)) x.tot=v; }); old.cond.sys=[]; }
+  if(!old.cmp||typeof old.cmp!=='object') old.cmp={on:false,cur:0,sys:[]}; if(!Array.isArray(old.cmp.sys)) old.cmp.sys=[];
   if(!Array.isArray(old.rooms)) old.rooms=[];
   old.rooms=old.rooms.filter(function(r){ return r&&r.id; }).map(function(r){ return {id:String(r.id),name:String(r.name||'Stanza'),kind:ROOMICO[r.kind]?r.kind:'al'}; });
   if(typeof old.curRoom!=='string') old.curRoom='';

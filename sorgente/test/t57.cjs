@@ -2,7 +2,7 @@ const {chromium}=require('./_amb.cjs');
 let fail=0;const ok=(c,m)=>{console.log((c?'OK   ':'FAIL ')+m);if(!c)fail++;};
 (async()=>{const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium'});
 const p=await (await b.newContext({viewport:{width:420,height:900}})).newPage();const errs=[];p.on('pageerror',e=>errs.push(e.message));
-await p.goto(require('./_amb.cjs').SRC);await p.waitForTimeout(1500);
+await p.goto(require('./_amb.cjs').SRC);await p.waitForTimeout(1500);await p.waitForFunction(()=>window.IECI_T&&window.IECI_T.S&&window.IECI_T.normalize,null,{timeout:30000});
 // vecchio stato: listini come prima (12 voci senza gruppo, prezzo personalizzato)
 const r=await p.evaluate(()=>{const T=window.IECI_T;const st=JSON.parse(JSON.stringify(T.S()));
  const old={vid:[['Telecamera IP 4 MP bullet PoE','cad',199],['Posa cavo UTP cat. 6','m',2.8],['Voce mia','cad',7]],fv:[['Modulo fotovoltaico 430 Wp','cad',111]]};

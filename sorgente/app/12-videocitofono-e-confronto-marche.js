@@ -49,7 +49,7 @@ function sysRemove(i){
   if(parseInt(S.tiers.sel,10)===i) S.tiers.sel=-1; else if(parseInt(S.tiers.sel,10)>i) S.tiers.sel=parseInt(S.tiers.sel,10)-1;
   if(parseInt(S.tiers.rec,10)===i) S.tiers.rec=-1; else if(parseInt(S.tiers.rec,10)>i) S.tiers.rec=parseInt(S.tiers.rec,10)-1;
 }
-function vcFreeFields(){ return sysList().map(function(x,i){ return '<label class="f">Totale: '+esc(sysName(x,i))+' (€)<input type="number" step="any" min="0" inputmode="decimal" data-b="cond.sys.'+i+'.tot" placeholder="es. 4500"></label>'; }).join(''); }
+function vcFreeFields(){ return sysList().map(function(x,i){ return '<label class="f">Totale: '+esc(sysName(x,i))+' (€)<input type="number" step="any" min="0" inputmode="decimal" data-b="'+(vcOn()?'cond':'cmp')+'.sys.'+i+'.tot" placeholder="es. 4500"></label>'; }).join(''); }
 function prodSysLabel(p){ var x=p.sys&&sysById(p.sys); return '<div><span class="solb t">'+(x?esc(sysName(x,sysIdx(x.id))):(vcOn()?'Per tutti gli impianti':'Per tutte le proposte'))+'</span></div>'; }
 function prodSysSel(p,i){ return '<label class="f">Questo prodotto fa parte di<select data-pf="sys" data-pi="'+i+'"><option value=""'+(p.sys?'':' selected')+'>'+(vcOn()?'Tutti gli impianti':'Tutte le proposte')+'</option>'+sysList().map(function(x,j){ return '<option value="'+x.id+'"'+(p.sys===x.id?' selected':'')+'>'+esc(sysName(x,j))+'</option>'; }).join('')+'</select></label>'; }
 function brLead(){ var l=sysList(); return '<p class="lead">Questo preventivo mette a confronto '+l.length+' impianti: '+l.map(function(x,i){ return '<b>'+esc(sysName(x,i))+'</b>'+(x.b?' ('+esc(x.b)+')':''); }).join(', ')+'. Qui sotto trovi i prodotti di ciascuno.</p>'; }

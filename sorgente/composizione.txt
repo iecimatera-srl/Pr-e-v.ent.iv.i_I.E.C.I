@@ -12,6 +12,7 @@ css/09-immagini-e-controllo.css
 css/10-grafica-quadro.css
 css/11-blocco-pin.css
 css/12-illuminazione.css
+css/13-ordine.css
 html/01-inizio.html
 html/02-archivio.html
 html/03-salva.html
@@ -73,5 +74,6 @@ app/27-immagini-dal-web.js
 app/27b-compila-schede-prodotto.js
 app/28-controllo-invio.js
 app/28b-assistente-documenti-e-clienti.js
+app/28c-percorso.js
 app/29-pubblicazione-installazione-avvio.js
 html/99-fine.html

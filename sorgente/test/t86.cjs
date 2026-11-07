@@ -11,7 +11,7 @@ await S(()=>{ const s=window.IECI_T.S(); s.lines=[]; s.products=[]; window.IECI_
 
 // 1. il tipo «Illuminazione»
 ok(await S(()=>!document.getElementById('acc-lu')||document.getElementById('acc-lu').hidden),'negli altri tipi i calcolatori luce non ci sono');
-await A.mostra(p,'#tabs'); await p.click('#tabs [data-m="luce"]'); await p.waitForTimeout(400);
+await A.mostra(p,'#tabs'); await p.click('#tabs [data-m="luce"]'); await p.waitForTimeout(400); await A.mostra(p,'#cat');
 let st=await S(()=>({m:window.IECI_T.S().model,t:window.IECI_T.S().meta.title,lu:!document.getElementById('acc-lu').hidden,cat:document.getElementById('cat').innerText}));
 ok(st.m==='luce'&&st.t==='Impianto di illuminazione'&&st.lu,'nuovo tipo «Illuminazione»: titolo e calcolatori luce');
 ok(['Faretti','Plafoniere e lampade','Fari ed esterni','Strip LED','Comandi e regolazione'].every(g=>new RegExp(g,'i').test(st.cat))&&/Alimentatore LED 24 V 150 W/.test(st.cat)&&/Montaggio lampadario/.test(st.cat),'listino dedicato: faretti, plafoniere, fari, strip LED con alimentatori, comandi, montaggio lampadari');

@@ -6,11 +6,21 @@ const exe = process.env.IECI_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromi
 // L'app disegna solo le pagine del fascicolo che si vedono (content-visibility): il loro testo non risulta in innerText.
 // Nei test che leggono il testo del fascicolo le pagine si disegnano tutte, come per il PDF (IECI_CV=1 per misurare).
 const TUTTE = "document.addEventListener('DOMContentLoaded',function(){var s=document.createElement('style');s.textContent='#doc>.page{content-visibility:visible!important}';document.head.appendChild(s);});";
+// L'app tiene chiusi i riquadri che non servono subito: prima di toccare una casella la prova apre il riquadro che la
+// contiene, come farebbe una persona (solo i riquadri: il pannello giusto lo sceglie la prova).
+const APRI = (sel) => { let el = null; try { el = document.querySelector(sel); } catch (e) { return; } let d = el && el.closest('details'); const sm = el && el.closest('summary'); if (d && sm && sm.parentElement === d) d = d.parentElement && d.parentElement.closest('details'); while (d) { if (!d.open) d.open = true; d = d.parentElement && d.parentElement.closest('details'); } };
+function apriRiquadri(p) {
+  ['click', 'fill', 'check', 'uncheck', 'selectOption', 'setInputFiles', 'type', 'press', 'tap', 'dblclick', 'focus'].forEach(m => {
+    const f = p[m] && p[m].bind(p); if (!f) return;
+    p[m] = async (sel, ...a) => { if (typeof sel === 'string') { try { await p.evaluate(APRI, sel); } catch (e) {} } return f(sel, ...a); };
+  });
+  return p;
+}
 function pagineTutte(b) {
-  if (process.env.IECI_CV) return b;
   const nc = b.newContext.bind(b), np = b.newPage.bind(b);
-  b.newContext = async (...a) => { const c = await nc(...a); await c.addInitScript(TUTTE); return c; };
-  b.newPage = async (...a) => { const p = await np(...a); await p.addInitScript(TUTTE); return p; };
+  const ctxp = (c) => { const cp = c.newPage.bind(c); c.newPage = async (...a) => apriRiquadri(await cp(...a)); return c; };
+  b.newContext = async (...a) => { const c = ctxp(await nc(...a)); if (!process.env.IECI_CV) await c.addInitScript(TUTTE); return c; };
+  b.newPage = async (...a) => { const p = apriRiquadri(await np(...a)); if (!process.env.IECI_CV) await p.addInitScript(TUTTE); return p; };
   return b;
 }
 const chromium = { launch: (o) => { o = Object.assign({}, o || {}); delete o.executablePath; if (exe) o.executablePath = exe; return pw.chromium.launch(o).then(pagineTutte); } };

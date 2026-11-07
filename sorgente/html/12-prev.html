@@ -1,26 +1,17 @@
       <section class="card" data-panel="prev">
         <h2>Preventivo</h2>
-        <details class="acc as" id="acc-as" open><summary><span>Assistente: descrivi il preventivo</span></summary><div class="accb">
-          <p class="hint">Scrivi o detta come lo diresti a un collega, anche di fretta: «fv 6 con batteria», «citofono 10», «trilocale Vimar Plana per Bianchi». Con un preventivo aperto puoi anche correggerlo: «aggiungi 3 prese in cucina, togli il quadro, sconto 10%». Usa i prezzi del <b>tuo listino</b>, ti mostra un'anteprima e impara le tue parole. Gratis, anche senza internet, non invia dati a nessuno.</p>
+        <div class="flow" id="flow" aria-label="A che punto è il preventivo"></div>
+        <div class="tipo-row"><span class="tipo-l" aria-hidden="true">Tipo</span><div class="tabs tipo" id="tabs" role="group" aria-label="Tipo di preventivo"></div></div>
+        <details class="acc as" id="acc-as" open><summary><span>Assistente <small class="acc-sub">descrivi il lavoro, lo preparo io</small></span></summary><div class="accb">
+          <p class="hint as-h1">Scrivi o detta il lavoro come lo diresti a un collega: «fv 6 con batteria», «citofono 10», «aggiungi 3 prese in cucina».</p>
           <textarea id="as-txt" rows="4" placeholder="es. Rifacimento appartamento 95 mq per Rossi Mario, via Roma 3, Matera: 2 camere, 2 bagni, cucina, soggiorno, Bticino"></textarea>
           <div class="as-live" id="as-live" aria-live="polite"></div>
           <div class="row"><button class="btn" id="as-go" type="button">Prepara il preventivo</button><button class="btn ghost" id="as-mic" type="button">Detta</button><label class="btn ghost as-docb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"/></svg>Carica documento<input type="file" id="as-doc" hidden multiple accept=".pdf,application/pdf,image/*,.xlsx,.docx,.csv,.txt,.vcf,text/vcard,text/x-vcard,text/plain"></label><label class="btn ghost as-docb"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>Foto dati cliente<input type="file" id="as-cli-foto" hidden multiple accept="image/*,.pdf,.vcf,text/vcard"></label></div>
-          <p class="hint as-doch">Carica il <b>preventivo di un fornitore</b> (PDF, foto, Excel, Word): capisco che lavoro è, preparo le voci con le foto dei prodotti e ricontrollo il totale. Con <b>Foto dati cliente</b> fotografi carta d'identità, tessera sanitaria, biglietto da visita o la schermata di un messaggio: leggo nome, indirizzo, telefono e codice fiscale. Tutto resta sul telefono.</p>
+          <details class="sv as-how"><summary>Come funziona</summary><p class="hint">Scrivi o detta come lo diresti a un collega, anche di fretta: «fv 6 con batteria», «citofono 10», «trilocale Vimar Plana per Bianchi». Con un preventivo aperto puoi anche correggerlo: «aggiungi 3 prese in cucina, togli il quadro, sconto 10%». Usa i prezzi del <b>tuo listino</b>, ti mostra un'anteprima e impara le tue parole. Gratis, anche senza internet, non invia dati a nessuno.</p><p class="hint as-doch">Carica il <b>preventivo di un fornitore</b> (PDF, foto, Excel, Word): capisco che lavoro è, preparo le voci con le foto dei prodotti e ricontrollo il totale. Con <b>Foto dati cliente</b> fotografi carta d'identità, tessera sanitaria, biglietto da visita o la schermata di un messaggio: leggo nome, indirizzo, telefono e codice fiscale. Tutto resta sul telefono.</p></details>
           <div class="as-doc-st" id="as-doc-st" role="status" aria-live="polite" hidden></div>
           <details class="sv"><summary>Esempi di richieste</summary><div class="as-ex" id="as-ex"></div></details>
           <details class="sv" id="as-par-d" hidden><summary>Parole che ho imparato <em id="as-par-n"></em></summary><div class="as-par" id="as-par"></div></details>
           <div id="as-out"></div>
-        </div></details>
-        <details class="acc" id="acc-save" open><summary><span>Salvataggi e preventivi salvati</span><em id="acc-save-n"></em></summary><div class="accb">
-        <div class="row"><button class="btn" id="q-save" type="button">Salva preventivo</button><button class="btn ghost" id="q-new" type="button">+ Nuovo preventivo</button></div>
-        <p class="hint" id="q-state"></p>
-                <input type="search" id="q-search" placeholder="Cerca per cliente, numero o titolo">
-        <div class="chips" id="q-filt"></div><p class="hint" id="q-sum"></p>
-        <div class="lines" id="q-list"></div>
-        <div class="row"><button class="btn ghost sm" id="q-more" type="button" hidden>Mostra tutti</button></div>
-        </div></details>
-        <details class="acc" open><summary><span>Tipo di preventivo</span></summary><div class="accb">
-        <div class="tabs" id="tabs" role="group" aria-label="Tipo di preventivo"></div>
         </div></details>
         <details class="acc" id="acc-rooms" open hidden><summary><span>Stanze dell'appartamento</span></summary><div class="accb"><div id="rooms"></div></div></details>
         <details class="acc" id="acc-vc" open hidden><summary><span>Impianto condominiale · quota a condomino</span></summary><div class="accb">
@@ -44,7 +35,7 @@
           <p class="hint"><b>Entrambe</b> prepara un'offerta con due livelli, «Solo citofono» e «Videocitofono» (consigliato): nel preventivo il cliente vede le due soluzioni a confronto con la quota a condomino di ciascuna, e nelle schede prodotto ogni articolo porta l'etichetta della sua soluzione. «Aggiungi le voci tipiche» inserisce un impianto completo per la soluzione scelta. Le voci «Per ogni condomino» seguono da sole il numero dei condomini; le altre sono a corpo, e la spesa si divide per tutti. Cambiando il numero la quota si aggiorna subito.</p>
         </div></details>
         <details class="acc" id="acc-lu" open hidden><summary><span>Calcolatori luce · strip LED e faretti</span></summary><div class="accb" id="lu-in"></div></details>
-        <details class="acc" id="acc-list" open><summary><span>Aggiungi dal listino <span id="cat-name"></span></span></summary><div class="accb">
+        <details class="acc" id="acc-list" open><summary><span>Aggiungi dal listino <small class="acc-sub" id="cat-name"></small></span><em id="acc-list-n"></em></summary><div class="accb">
         <p class="hint" id="cat-hint">Tocca + per aggiungere la voce al preventivo. I prezzi sono di esempio: modificali, restano salvati.</p>
         <div class="row catbar"><input type="search" id="cat-q" placeholder="Cerca una voce…" aria-label="Cerca nel listino"><button type="button" class="chip" id="cat-f" hidden></button></div>
         <div class="cat" id="cat"></div>
@@ -57,12 +48,8 @@
           <button class="btn sm" id="n-add" type="button">Aggiungi al listino</button>
         </div>
         </div></details>
-        <details class="acc" id="acc-forn"><summary><span>Articoli dai fornitori</span></summary><div class="accb">
-        <input type="search" id="aq-search" placeholder="Cerca per nome, codice o marca">
-        <div class="cat" id="aq-list" style="max-height:230px"></div>
-        </div></details>
-        <details class="acc" id="acc-righe" open><summary><span>Righe del preventivo</span><em id="lines-count"></em></summary><div class="accb">
-        <div class="lbulk"><label class="f">Marca per tutte le voci<input type="text" id="l-brall" data-brsug placeholder="es. Vimar" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done"></label><button class="btn ghost sm" id="l-brgo" type="button">Applica</button></div>
+        <details class="acc" id="acc-righe" open><summary><span>Voci del preventivo</span><em id="lines-count"></em></summary><div class="accb">
+        <details class="sv lbulk-d"><summary>Stessa marca per tutte le voci</summary><div class="lbulk"><label class="f">Marca per tutte le voci<input type="text" id="l-brall" data-brsug placeholder="es. Vimar" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done"></label><button class="btn ghost sm" id="l-brgo" type="button">Applica</button></div></details>
         <div class="lines" id="lines"></div>
         <div class="row">
           <button class="btn ghost" id="add-free" type="button">+ Riga libera</button>
@@ -70,7 +57,7 @@
           <button class="btn ghost" id="lines-to-cat" type="button">Salva righe nel listino</button>
         </div>
         </div></details>
-        <details class="acc" id="acc-prezzo" open><summary><span>Prezzo e totale</span></summary><div class="accb">
+        <details class="acc" id="acc-prezzo"><summary><span>Prezzo, IVA e sconto</span><em id="acc-prezzo-n"></em></summary><div class="accb">
         <div id="econ-box" class="col" style="gap:8px"></div>
         <div class="grid2">
           <label class="f">IVA
@@ -86,13 +73,25 @@
         </div>
         <p class="hint">L'aliquota IVA dipende dal tipo di lavoro e dal committente: verificala con il tuo commercialista.</p>
         </div></details>
-        <details class="acc" id="acc-br"><summary><span>Proposte a confronto per marca</span></summary><div class="accb">
+        <div class="acc-sep"><span>Altre possibilità</span></div>
+        <details class="acc" id="acc-br"><summary><span>Proposte a confronto <small class="acc-sub">due o tre marche, il cliente sceglie</small></span><em id="acc-br-n"></em></summary><div class="accb">
           <p class="hint">Metti nello stesso preventivo due o tre proposte di marche diverse (per esempio Bticino e Vimar): ognuna con le sue voci, il suo totale, il suo logo e le sue schede prodotto. Il cliente le vede a confronto e sceglie.</p>
           <label class="chk"><input type="checkbox" id="br-on"><b>Confronta più marche in questo preventivo</b></label>
           <div id="br-sys"></div>
         </div></details>
-        <details class="acc" id="acc-tier"><summary><span>Offerta a livelli (Base / Comfort / Premium)</span></summary><div class="accb">
+        <details class="acc" id="acc-tier"><summary><span>Offerta a livelli <small class="acc-sub">Base, Comfort, Premium</small></span><em id="acc-tier-n"></em></summary><div class="accb">
         <div id="tier-box" class="col" style="gap:8px"></div>
         </div></details>
+        <details class="acc" id="acc-forn"><summary><span>Articoli dai fornitori <small class="acc-sub">cerca per nome, codice o marca</small></span></summary><div class="accb">
+        <input type="search" id="aq-search" placeholder="Cerca per nome, codice o marca">
+        <div class="cat" id="aq-list" style="max-height:230px"></div>
+        </div></details>
+        <details class="acc" id="acc-save"><summary><span>Preventivi salvati</span><em id="acc-save-n"></em></summary><div class="accb">
+        <div class="row"><button class="btn" id="q-save" type="button">Salva preventivo</button><button class="btn ghost" id="q-new" type="button">+ Nuovo preventivo</button></div>
+        <p class="hint" id="q-state"></p>
+                <input type="search" id="q-search" placeholder="Cerca per cliente, numero o titolo">
+        <div class="chips" id="q-filt"></div><p class="hint" id="q-sum"></p>
+        <div class="lines" id="q-list"></div>
+        <div class="row"><button class="btn ghost sm" id="q-more" type="button" hidden>Mostra tutti</button></div>
+        </div></details>
       </section>
-

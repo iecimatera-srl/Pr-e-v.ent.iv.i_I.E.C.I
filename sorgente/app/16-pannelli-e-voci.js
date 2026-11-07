@@ -1,9 +1,9 @@
 function renderTabs(){
-  $('tabs').innerHTML=ORDER.map(function(k){ return '<button type="button" class="tab" data-m="'+k+'" aria-pressed="'+(S.model===k)+'">'+esc(MODELS[k].short)+'</button>'; }).join('');
+  $('tabs').innerHTML=ORDER.map(function(k){ return '<button type="button" class="tab" data-m="'+k+'" aria-pressed="'+(S.model===k)+'">'+tipoIc(k)+'<span>'+esc(MODELS[k].short)+'</span></button>'; }).join(''); setTimeout(tipoInVista,0);
 }
 function renderCat(){
   var app=S.model==='app';
-  $('cat-name').textContent='· '+MODELS[S.model].name;
+  $('cat-name').textContent=MODELS[S.model].name;
   var items=S.cat[S.model]||[], q=($('cat-q')?$('cat-q').value:'').trim().toLowerCase(), kd=curKind();
   var vc=S.model==='vcit'; if(vc) kd=vcKind();
   var useF=(app&&!catAll&&!q&&kd!=='al')||(vc&&vcMode()!=='both'&&vcMode()!=='brands'&&!catAll&&!q);
@@ -39,24 +39,39 @@ function keepFocus(box,fn){
 }
 function renderLines(){ keepFocus($('lines'),renderLines0); }
 function renderLines0(){
-  $('lines-count').textContent=S.lines.length?'· '+S.lines.length+' voci':'';
+  $('lines-count').textContent=S.lines.length?S.lines.length+(S.lines.length===1?' voce':' voci'):'';
   if(!S.lines.length){ $('lines').innerHTML='<div class="empty">Nessuna riga. Aggiungi voci dal listino o crea una riga libera.</div>'; return; }
   var n=tierN();
   var lineHtml=function(l,i){
-    var extra='<div class="nums2"><label class="chk"><input type="checkbox" data-f="opt"'+(l.opt?' checked':'')+'>Facoltativa</label>';
-    if(l.opt) extra+='<label class="chk"><input type="checkbox" data-f="acc"'+(l.acc?' checked':'')+'>Scelta dal cliente</label>';
-    else if(S.tiers.on){ extra+='<span class="hint">'+(brOn()?(vcOn()?'Impianti':'Proposte'):'Livelli')+':</span>'; for(var j=0;j<n;j++) extra+='<label class="chk"><input type="checkbox" data-tm="'+j+'"'+(inTier(l,j)?' checked':'')+'>'+esc(S.tiers.names[j])+'</label>'; }
-    if(l.pc) extra+='<span class="hint">Per ogni condomino: la quantità segue il numero dei condomini ('+vcN()+')</span>';
-    if(S.model==='app') extra+='<label class="f rsel">Stanza<select data-f="r">'+roomOpts(l.r)+'</select></label>';
-    extra+=prodChip(l,i)+'</div>';
-    return '<div class="line'+(l.off?' off':'')+(SYNC.set.has(l)?' sync':'')+'" data-i="'+i+'"><div class="ltools"><span class="lnum">'+(i+1)+'</span><span class="sp"></span><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su"'+(i?'':' disabled')+'>▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù"'+(i<S.lines.length-1?'':' disabled')+'>▼</button><button type="button" class="lt" data-ldup="'+i+'">Duplica</button><button type="button" class="lt del" data-rm="'+i+'" aria-label="Rimuovi riga">Elimina</button></div><textarea rows="1" class="t1" data-f="d" aria-label="Descrizione">'+esc(l.d)+'</textarea>'+lineBrandHtml(l)+'<div class="nums">'+
-      '<label class="f">Q.tà<input type="number" step="any" min="0" data-f="q" value="'+esc(l.q)+'"></label>'+
+    // voce compatta: descrizione, quantità, prezzo e totale sempre a vista; il resto in «Altro» (si apre solo se serve)
+    var p=prodOfLine(l), fl=[], ex='';
+    if(num(l.s)>0&&!FREE()) fl.push('sconto '+String(num(l.s)).replace('.',',')+'%');
+    var bb=lineBrandOf(l); if(bb) fl.push(bb);
+    if(l.opt) fl.push(l.acc?'facoltativa, scelta':'facoltativa');
+    if(l.off) fl.push('esclusa');
+    if(l.pc) fl.push('per condomino');
+    if(S.tiers.on&&!l.opt){ var tn=[]; for(var j=0;j<n;j++) if(inTier(l,j)) tn.push(S.tiers.names[j]); if(tn.length&&tn.length<n) fl.push(tn.join(', ')); }
+    ex+='<div class="ltools"><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su"'+(i?'':' disabled')+'>▲ Su</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù"'+(i<S.lines.length-1?'':' disabled')+'>▼ Giù</button><button type="button" class="lt" data-ldup="'+i+'">Duplica</button><span class="sp"></span><label class="chk lincl"><input type="checkbox" data-f="off"'+(l.off?'':' checked')+'>Nel totale</label></div>';
+    if(!FREE()) ex+='<div class="nums lsc"><label class="f">Sconto su questa voce %<input type="number" step="any" min="0" max="100" data-f="s" value="'+esc(l.s)+'"></label></div>';
+    ex+=lineBrandHtml(l);
+    ex+='<div class="nums2"><label class="chk"><input type="checkbox" data-f="opt"'+(l.opt?' checked':'')+'>Facoltativa</label>';
+    if(l.opt) ex+='<label class="chk"><input type="checkbox" data-f="acc"'+(l.acc?' checked':'')+'>Scelta dal cliente</label>';
+    else if(S.tiers.on){ ex+='<span class="hint">'+(brOn()?(vcOn()?'Impianti':'Proposte'):'Livelli')+':</span>'; for(var j2=0;j2<n;j2++) ex+='<label class="chk"><input type="checkbox" data-tm="'+j2+'"'+(inTier(l,j2)?' checked':'')+'>'+esc(S.tiers.names[j2])+'</label>'; }
+    if(l.pc) ex+='<span class="hint">Per ogni condomino: la quantità segue il numero dei condomini ('+vcN()+')</span>';
+    if(!p) ex+=prodChip(l,i);
+    ex+='</div>';
+    var room=S.model==='app'?'<label class="f rsel">Stanza<select data-f="r">'+roomOpts(l.r)+'</select></label>':'';
+    return '<div class="line'+(l.off?' off':'')+(SYNC.set.has(l)?' sync':'')+'" data-i="'+i+'">'+
+      '<div class="lhead"><span class="lnum">'+(i+1)+'</span><textarea rows="1" class="t1" data-f="d" aria-label="Descrizione" placeholder="Descrizione della voce">'+esc(l.d)+'</textarea>'+
+      '<button type="button" class="lx" data-rm="'+i+'" aria-label="Rimuovi riga" title="Togli la voce"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button></div>'+
+      '<div class="nums lnums">'+
+      '<label class="f">Q.tà<input type="number" step="any" min="0" data-f="q" value="'+esc(l.q)+'" inputmode="decimal"></label>'+
       '<label class="f">U.m.<input type="text" data-f="u" value="'+esc(l.u)+'"></label>'+
-      (FREE()?'':'<label class="f">€ unit.<input type="number" step="any" min="0" data-f="p" value="'+esc(l.p)+'"></label>'+
-      '<label class="f">Sc. %<input type="number" step="any" min="0" max="100" data-f="s" value="'+esc(l.s)+'"></label>')+
-      '<label class="chk" style="padding-bottom:6px"><input type="checkbox" data-f="off"'+(l.off?'':' checked')+'>Incl.</label>'+
+      (FREE()?'':'<label class="f">€ cad.<input type="number" step="any" min="0" data-f="p" value="'+esc(l.p)+'" inputmode="decimal"></label>')+
       (FREE()?'':'<span class="tot">'+eur(lineTotal(l))+'</span>')+
-      '</div>'+extra+'</div>';
+      '</div>'+room+(p?'<div class="lprod">'+prodChip(l,i)+'</div>':'')+
+      '<details class="lmore"'+(LMO.has(l)?' open':'')+'><summary><span>Altro</span>'+(fl.length?'<small>'+esc(fl.join(' · '))+'</small>':'<small class="lm-0">sconto, marca, facoltativa, ordine</small>')+'</summary><div class="lmb">'+ex+'</div></details>'+
+      '</div>';
   };
   brDatalist();
   if(S.model==='app'){
@@ -64,8 +79,12 @@ function renderLines0(){
       return '<div class="rgh"><span class="ri">'+roomSvg(g.room?g.room.kind:'ge','rsvg')+'</span><b>'+esc(groupName(g))+'</b><span class="rs">'+g.items.length+' · '+eur(groupSum(g))+'</span></div>'+g.items.map(function(x){ return lineHtml(x.l,x.i); }).join('');
     }).join('')));
   } else morph($('lines'),docImgs(S.lines.map(lineHtml).join('')));
+  Array.prototype.forEach.call($('lines').querySelectorAll('.line'),function(r){ var l=S.lines[+r.getAttribute('data-i')], d=r.querySelector('.lmore'); if(l&&d&&d.open!==LMO.has(l)) d.open=LMO.has(l); });
   if(!$('lines').closest('[data-panel]').hidden) setTimeout(function(){ if(Date.now()-(SYNC.addT||0)>2400) SYNC.set=new WeakSet(); },2500);
 }
+var LMO=new WeakSet();
+$('lines').addEventListener('click',function(e){ var sm=e.target.closest('.lmore>summary'); if(!sm) return; var d=sm.parentNode, r=d.closest('.line'), l=r&&S.lines[+r.getAttribute('data-i')]; if(!l) return; if(d.open) LMO.delete(l); else LMO.add(l); });
+$('lines').addEventListener('toggle',function(e){ var d=e.target; if(!d.classList||!d.classList.contains('lmore')) return; var r=d.closest('.line'), l=r&&S.lines[+r.getAttribute('data-i')]; if(!l) return; if(d.open) LMO.add(l); else LMO.delete(l); },true);
 /* marca nelle righe: si scrive qui oppure nella scheda Prodotti, e resta uguale nei due posti */
 var SYNC={set:new WeakSet(),t:0,n:0,rows:0};
 function lineBrandOf(l){ var p=prodOfLine(l); return String(l.br||(p&&p.brand)||'').trim(); }

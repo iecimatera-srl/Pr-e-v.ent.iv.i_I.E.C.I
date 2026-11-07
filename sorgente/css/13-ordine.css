@@ -1,0 +1,97 @@
+/* ===== Ordine 2026.11: meno cose insieme, il prossimo passo sempre in vista ===== */
+
+/* percorso del preventivo: Cliente → Voci → Prezzo → Invio */
+.flow{margin:0 0 14px}
+.fl-s{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;position:relative}
+.fl-s::before,.fl-s::after{content:'';position:absolute;left:12.5%;right:12.5%;top:17px;height:3px;border-radius:3px;background:var(--line)}
+.fl-s::after{right:auto;width:calc(75% * var(--fl,0));background:linear-gradient(90deg,var(--ok-c,#1F9D61),var(--tensione));transition:width .5s var(--ease)}
+.fl-s li{position:relative;z-index:1;min-width:0}
+.fl-b{width:100%;display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 2px 6px;border:0;background:none;color:var(--ink);cursor:pointer;font:inherit;text-align:center;border-radius:12px;-webkit-tap-highlight-color:transparent}
+.fl-b i{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;font-style:normal;font-weight:800;font-size:.95rem;background:var(--surface);border:2px solid var(--line);color:var(--muted);transition:background .2s,border-color .2s,color .2s,transform .2s var(--ease)}
+.fl-b b{font-size:.84rem;font-weight:800;line-height:1.1;font-family:var(--f-uid)}
+.fl-b small{font-size:.72rem;color:var(--muted);line-height:1.2;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.fl-b.ok i{background:#1F9D61;border-color:#1F9D61;color:#fff}
+.fl-b.warn i{background:#FFF4D6;border-color:#E0A400;color:#8A5A00}
+.fl-b.warn small{color:#9A6500;font-weight:700}
+.fl-b.ok.warn i{background:#E0A400;border-color:#E0A400;color:#fff}
+.fl-b.cur i{border-color:var(--notte);color:var(--notte);box-shadow:0 0 0 4px color-mix(in srgb,var(--tensione) 45%,transparent)}
+.fl-b.cur.warn i{border-color:#E0A400;color:#8A5A00}
+.fl-b.cur b{color:var(--ink)}
+.fl-b:active i{transform:scale(.92)}
+.fl-n{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:8px;padding:12px 14px;border-radius:16px;background:linear-gradient(180deg,var(--notte2),var(--notte));color:#EAF0F7;box-shadow:var(--sh)}
+.fl-n p{flex:1 1 200px;margin:0;font-size:.95rem;line-height:1.35}
+.fl-n p b{color:#fff}
+.fl-a{display:flex;flex-wrap:wrap;gap:8px}
+.fl-a .btn{min-height:42px;border-radius:12px;background:#fff;border-color:#fff;color:var(--notte);font-weight:800}
+.fl-a .btn.ghost{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.22);color:#EAF0F7}
+.fl-a .btn.go{background:var(--tensione);border-color:var(--tensione);color:#1B1400}
+.fl-a .btn.ok{background:#1F9D61;border-color:#1F9D61;color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .fl-b.warn i{background:#3A2C05;color:#FFD66B}}
+:root[data-theme="dark"] .fl-b.warn i{background:#3A2C05;color:#FFD66B}
+@media (prefers-reduced-motion:reduce){.fl-s::after{transition:none}}
+
+/* tipo di preventivo: una riga sola, scorre di lato, con un'icona per tipo */
+.tipo-row{display:flex;align-items:center;gap:10px;margin:0 0 12px;min-width:0}
+.tipo-l{flex:none;font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.tabs.tipo{flex:1;min-width:0;display:flex;flex-wrap:nowrap;gap:6px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:3px 2px 6px;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.tabs.tipo::-webkit-scrollbar{display:none}
+.tabs.tipo .tab{flex:none;display:inline-flex;align-items:center;gap:6px;scroll-snap-align:start;white-space:nowrap;padding:7px 12px 7px 10px}
+.tabs.tipo .tab .ti{flex:none;opacity:.8}
+.tabs.tipo .tab[aria-pressed="true"] .ti{opacity:1}
+
+/* riquadri: un sottotitolo leggero e un riassunto a destra, così chiusi dicono già cosa c'è dentro */
+details.acc>summary .acc-sub{display:block;font-family:var(--f-ui);font-weight:500;font-size:.78rem;color:var(--muted);margin-top:1px;letter-spacing:0}
+details.acc>summary em{font-variant-numeric:tabular-nums;white-space:nowrap}
+#acc-prezzo>summary em{background:var(--notte);color:#fff}
+#acc-list>summary em,#acc-br>summary em,#acc-tier>summary em{background:var(--field);color:var(--muted);border:1px solid var(--line)}
+.acc-sep{display:flex;align-items:center;gap:10px;margin:14px 2px 2px;color:var(--muted);font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+.acc-sep::before,.acc-sep::after{content:'';flex:1;height:1px;background:var(--line)}
+.as-h1{margin:0}
+.as-how>summary{font-size:.84rem}
+.as-how .hint{margin:8px 0 0}
+.lbulk-d>summary{font-size:.84rem}
+
+/* voci compatte: descrizione, quantità, prezzo, totale; il resto in «Altro» */
+.line{gap:6px;padding:10px 10px 6px}
+.lhead{display:flex;align-items:flex-start;gap:8px}
+.lhead .lnum{margin-top:9px}
+.lhead textarea.t1{flex:1 1 auto;width:100%;min-width:0;font-weight:600}
+.lx{flex:none;display:flex;align-items:center;justify-content:center;width:40px;height:40px;margin-top:2px;border-radius:12px;border:1px solid transparent;background:none;color:var(--muted);cursor:pointer;transition:color .15s,background .15s,border-color .15s}
+.lx:hover,.lx:focus-visible{color:var(--danger,#C0362C);background:color-mix(in srgb,var(--danger,#C0362C) 8%,transparent);border-color:color-mix(in srgb,var(--danger,#C0362C) 30%,transparent)}
+.line .nums.lnums{display:grid;grid-template-columns:minmax(54px,.8fr) minmax(0,1.1fr) minmax(66px,1fr) auto;gap:6px;align-items:end}
+.line .nums.lnums input{padding-left:9px;padding-right:6px;min-width:0}
+.line .nums.lnums .tot{grid-column:auto;text-align:right;font-size:1.02rem;padding-bottom:12px;white-space:nowrap}
+.line .nums.lnums label.f{font-size:.74rem}
+.line .lsc{display:grid;grid-template-columns:minmax(0,1fr);max-width:260px}
+.lprod{display:flex}
+.lmore{border-top:1px dashed var(--line);margin:2px -2px 0;padding:0 2px}
+.lmore>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:38px;cursor:pointer;font-size:.8rem;font-weight:800;color:var(--muted)}
+.lmore>summary::-webkit-details-marker{display:none}
+.lmore>summary::before{content:'';flex:none;width:6px;height:6px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .18s var(--ease);margin:0 2px}
+.lmore[open]>summary::before{transform:rotate(45deg)}
+.lmore>summary small{flex:1;min-width:0;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lmore>summary small.lm-0{font-weight:500;color:var(--muted)}
+.lmb{display:flex;flex-direction:column;gap:10px;padding:2px 0 10px;animation:aOpen .2s var(--ease)}
+.lmb .ltools{flex-wrap:wrap}
+.lmb .lincl{font-size:.82rem}
+.line.off .lhead textarea,.line.off .lnums{opacity:.55}
+@media (max-width:359px){.line .nums.lnums{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* barra del preventivo: scorrendo diventa sottile */
+.qbar{transition:padding .2s var(--ease)}
+.qbar.mini{padding-top:7px;padding-bottom:7px}
+.qbar.mini #qb-sub,.qbar.mini .qb-tot small{display:none}
+.qbar.mini .qb-tot b{font-size:1.2rem}
+.qbar.mini .qb-act{margin-top:6px}
+.qbar.mini .qb-act .btn{min-height:34px;padding-top:4px;padding-bottom:4px;font-size:.8rem}
+@media (min-width:1060px){.qbar.mini .qb-act{margin-top:0}}
+@media print{.flow,.tipo-row,.acc-sep{display:none!important}}
+
+/* telefono: meno margini annidati, più spazio alle caselle */
+@media (max-width:520px){
+  [data-panel] details.acc>.accb{padding:12px 10px 14px}
+  [data-panel] details.acc>summary{padding:12px 12px 12px 14px}
+  .line{padding:9px 8px 4px}
+  .lhead .lnum{width:24px;height:24px;font-size:.72rem;margin-top:10px}
+}
+#cat-name.acc-sub{display:block}

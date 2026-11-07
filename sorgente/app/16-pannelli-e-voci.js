@@ -267,6 +267,8 @@ $('rooms').addEventListener('input',function(e){
 });
 
 var lsModel='dom', lsQ='', lsClosed={};
+// all'inizio le categorie sono chiuse: si vede l'elenco e si apre solo quella che serve
+function lsChiusa(k){ return lsClosed[k]===undefined?true:!!lsClosed[k]; }
 function kindsText(k){
   if(!k||k==='*') return 'tutte le stanze';
   if(k==='x') return 'nessuna (solo in ricerca)';
@@ -283,7 +285,7 @@ function renderListini(){
     var all=idx.length;
     if(q) idx=idx.filter(function(i){ return String(items[i][0]).toLowerCase().indexOf(q)>-1||sc.g.toLowerCase().indexOf(q)>-1; });
     if(q&&!idx.length) return; if(!sc.g&&!all) return;
-    var key=sc.g||'~', closed=!q&&lsClosed[m+'|'+key];
+    var key=sc.g||'~', closed=!q&&lsChiusa(m+'|'+key);
     html+='<section class="lsg"><div class="lsh"><button type="button" class="lt" data-gtog="'+esc(key)+'" aria-label="Apri o chiudi" aria-expanded="'+(!closed)+'">'+(closed?'▸':'▾')+'</button>'+
       (sc.g?'<textarea rows="1" class="t1 gname" data-gren="'+sc.gi+'" aria-label="Nome categoria" maxlength="60">'+esc(sc.g)+'</textarea>':'<span class="gname plain">Senza categoria</span>')+
       '<em>'+all+'</em>'+
@@ -311,17 +313,18 @@ $('ls-nadd').addEventListener('click',function(){
   var d=$('ls-nd').value.trim(); if(!d){ toast('Scrivi la descrizione della voce'); $('ls-nd').focus(); return; }
   var g=$('ls-ng').value, it=[d,$('ls-nu').value.trim()||'cad',num($('ls-np').value)]; if(g){ it.push(g); if(lsModel==='app') it.push('*'); }
   S.cat[lsModel].push(it); $('ls-nd').value=''; $('ls-np').value=''; lsQ=''; $('ls-q').value='';
-  renderListini(); lsChanged(); toast('Voce aggiunta'+(g?' in «'+g+'»':''));
+  lsClosed[lsModel+'|'+(g||'~')]=false;
+  renderListini(); setTimeout(function(){ var r=document.querySelector('#ls-body .lsr[data-i="'+(S.cat[lsModel].length-1)+'"]'); if(r){ try{ r.scrollIntoView({behavior:'smooth',block:'center'}); }catch(x){} r.classList.add('trovato'); setTimeout(function(){ r.classList.remove('trovato'); },2000); } },60); lsChanged(); toast('Voce aggiunta'+(g?' in «'+g+'»':''));
   if(lsModel===S.model&&S.model!=='app'&&false){}
 });
 $('ls-cgadd').addEventListener('click',function(){
   var n=$('ls-cg').value.trim(); if(!n){ toast('Scrivi il nome della categoria'); $('ls-cg').focus(); return; }
   var gl=cgSync(lsModel); if(gl.some(function(x){ return x.toLowerCase()===n.toLowerCase(); })){ toast('Esiste già una categoria con questo nome'); return; }
-  gl.push(n); $('ls-cg').value=''; $('ls-ng').value=n; renderListini(); $('ls-ng').value=n; lsChanged(); toast('Categoria aggiunta: '+n+'. Ora puoi inserirci le voci');
+  gl.push(n); $('ls-cg').value=''; $('ls-ng').value=n; lsClosed[lsModel+'|'+n]=false; renderListini(); $('ls-ng').value=n; lsChanged(); toast('Categoria aggiunta: '+n+'. Ora puoi inserirci le voci');
 });
 $('ls-body').addEventListener('click',function(e){
   var m=lsModel, items=S.cat[m], gl=cgSync(m), t;
-  if((t=e.target.closest('[data-gtog]'))){ var k=m+'|'+t.getAttribute('data-gtog'); lsClosed[k]=!lsClosed[k]; renderListini(); return; }
+  if((t=e.target.closest('[data-gtog]'))||((t=e.target.closest('.lsh'))&&!e.target.closest('textarea,button,input,select')&&(t=t.querySelector('[data-gtog]')))){ var k=m+'|'+t.getAttribute('data-gtog'); lsClosed[k]=!lsChiusa(k); renderListini(); return; }
   if((t=e.target.closest('[data-gup],[data-gdn]'))){
     var up=t.hasAttribute('data-gup'), i=+t.getAttribute(up?'data-gup':'data-gdn'), j=up?i-1:i+1;
     if(j<0||j>=gl.length) return; gl.splice(j,0,gl.splice(i,1)[0]); renderListini(); lsChanged(); return; }
@@ -344,9 +347,9 @@ $('ls-body').addEventListener('change',function(e){
     var gi=+t.getAttribute('data-gren'), old=gl[gi], n=t.value.trim();
     if(!n){ t.value=old; toast('Il nome non può essere vuoto'); return; }
     if(gl.some(function(x,k){ return k!==gi&&x.toLowerCase()===n.toLowerCase(); })){ t.value=old; toast('Esiste già una categoria con questo nome'); return; }
-    if(n===old) return; items.forEach(function(it){ if(it[3]===old) it[3]=n; }); gl[gi]=n; renderListini(); lsChanged(); toast('Categoria rinominata'); return; }
+    if(n===old) return; items.forEach(function(it){ if(it[3]===old) it[3]=n; }); gl[gi]=n; if(lsClosed[m+'|'+old]!==undefined){ lsClosed[m+'|'+n]=lsClosed[m+'|'+old]; delete lsClosed[m+'|'+old]; } renderListini(); lsChanged(); toast('Categoria rinominata'); return; }
   var row=t.closest('.lsr'); if(!row) return; var it=items[+row.getAttribute('data-i')];
-  if(t.getAttribute('data-lf')==='g'){ setItG(it,t.value); renderListini(); lsChanged(); toast(t.value?'Voce spostata in «'+t.value+'»':'Voce senza categoria'); return; }
+  if(t.getAttribute('data-lf')==='g'){ setItG(it,t.value); lsClosed[m+'|'+(t.value||'~')]=false; renderListini(); lsChanged(); toast(t.value?'Voce spostata in «'+t.value+'»':'Voce senza categoria'); return; }
   if(t.hasAttribute('data-lk')){
     var codes=[]; row.querySelectorAll('[data-lk]').forEach(function(c){ if(c.checked) codes.push(c.getAttribute('data-lk')); });
     var all=ROOMORD.length+1; setItG(it,it[3]||''); it[4]=codes.length===all?'*':(codes.length?codes.join(','):'x');
@@ -368,7 +371,7 @@ $('ls-reset').addEventListener('click',function(){
 });
 $('n-add').addEventListener('click',function(){
   var d=$('n-d').value.trim(); if(!d){ toast('Scrivi la descrizione della voce'); return; }
-  var ng=$('n-g').value, ni=[d,$('n-u').value.trim()||'cad',num($('n-p').value)]; if(ng){ ni.push(ng); if(S.model==='app') ni.push('*'); } S.cat[S.model].push(ni);
+  var ng=$('n-g').value, ni=[d,$('n-u').value.trim()||'cad',num($('n-p').value)]; if(ng){ ni.push(ng); if(S.model==='app') ni.push('*'); } S.cat[S.model].push(ni); lsClosed[S.model+'|'+(ng||'~')]=false;
   $('n-d').value=''; $('n-u').value=''; $('n-p').value=''; renderCat(); save();
 });
 $('lines').addEventListener('input',function(e){

@@ -162,12 +162,15 @@ function renderNav(){
   el.className='mnav';
   var gname='', gi=MENU.items.filter(function(i){ return i.p===panel; })[0]; if(gi){ var g=MENU.groups.filter(function(x){ return x.id===gi.g; })[0]; gname=g?g.n:''; }
   var h='<button type="button" class="mstep" data-step="-1" aria-label="Sezione precedente">‹</button><button type="button" class="mbtn" id="mn-btn" aria-expanded="'+mnOpen+'" aria-haspopup="true">'+navIc(panel)+'<span class="mt"><small>'+esc(gname||'Menu')+'</small>'+esc(secLabel(panel))+'</span><span class="ar">▾</span></button><button type="button" class="mstep" data-step="1" aria-label="Sezione successiva">›</button>';
-  h+='<div class="mdrop" id="mn-drop"'+(mnOpen?'':' hidden')+'>';
+  h+='<div class="mback" data-mclose'+(mnOpen?'':' hidden')+'></div><div class="mdrop" id="mn-drop" role="dialog" aria-label="Menu"'+(mnOpen?'':' hidden')+'>';
+  h+='<div class="mhd"><span class="mgrab" aria-hidden="true"></span><b>Dove vuoi andare?</b><button type="button" class="mx" data-mclose aria-label="Chiudi il menu">×</button></div>';
+  h+='<label class="msrch"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="mn-q" placeholder="Cerca una funzione: IVA, logo, PIN, firma…" autocomplete="off" enterkeyhint="go" aria-label="Cerca una funzione"></label><div class="mres" id="mn-res" hidden></div><div class="mgs" id="mn-gs">';
   MENU.groups.forEach(function(g){
     var its=MENU.items.filter(function(i){ return i.g===g.id&&i.on; }); if(!its.length) return;
-    h+='<div><div class="mgt">'+esc(g.n)+'</div><div class="mgi">'+its.map(function(i){ return '<button type="button" class="mit" data-p="'+i.p+'"'+(i.p===panel?' aria-current="true"':'')+'>'+navIc(i.p)+'<span>'+esc(secLabel(i.p))+'</span></button>'; }).join('')+'</div></div>';
+    h+='<div><div class="mgt">'+esc(g.n)+'</div><div class="mgi">'+its.map(function(i){ return '<button type="button" class="mit" data-p="'+i.p+'"'+(i.p===panel?' aria-current="true"':'')+'>'+navIc(i.p)+'<span class="mtx" data-d="'+esc(secDesc(i.p))+'">'+esc(secLabel(i.p))+'</span></button>'; }).join('')+'</div></div>';
   });
-  el.innerHTML=h+'</div>';
+  el.innerHTML=h+'</div></div>';
+  navDopo();
 }
 
 /* ---------- barra preventivo, icone menu, scorciatoie ---------- */

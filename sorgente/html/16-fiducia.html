@@ -9,23 +9,27 @@
           <label class="chk"><input type="checkbox" data-b="show.trBrand" data-after="content">Marchi</label>
           <label class="chk"><input type="checkbox" data-b="show.trQR" data-after="content">Contatti con link</label>
         </div>
-        <h3>Prima e dopo (max 4)</h3>
+        <details class="acc"><summary><span>Prima e dopo (max 4)</span></summary><div class="accb">
         <div class="lines" id="tr-ba"></div>
         <div class="row"><button class="btn sm" id="ba-add" type="button">+ Aggiungi coppia di foto</button></div>
-        <h3>Lavori eseguiti (max 9 foto)</h3>
+        </div></details>
+        <details class="acc"><summary><span>Lavori eseguiti (max 9 foto)</span></summary><div class="accb">
         <p class="hint">Foto di impianti già realizzati, con una breve didascalia (es. «Fotovoltaico 6 kWp, Matera»).</p>
         <div class="lines" id="tr-works"></div>
         <div class="row"><label class="btn sm">+ Carica foto di lavori<input id="wk-file" type="file" accept="image/*" multiple hidden></label></div>
-        <h3>Recensioni dei clienti (max 6)</h3>
+        </div></details>
+        <details class="acc"><summary><span>Recensioni dei clienti (max 6)</span></summary><div class="accb">
         <p class="hint">Inserisci solo recensioni vere, con il consenso di chi le ha scritte.</p>
         <div class="lines" id="tr-rev"></div>
         <div class="row"><button class="btn sm" id="rev-add" type="button">+ Aggiungi recensione</button></div>
-        <h3>Marchi che installi, per categoria</h3>
+        </div></details>
+        <details class="acc"><summary><span>Marchi che installi, per categoria</span></summary><div class="accb">
         <p class="hint">Ogni riga ha il suo titolo (per esempio Domotica, Videosorveglianza, Civile) e i suoi loghi. Le righe vuote non compaiono nel fascicolo.</p>
         <div class="col" style="gap:10px" id="tr-brand"></div>
         <div class="row"><button class="btn sm" id="bg-add" type="button">+ Nuova riga di marchi</button><button class="btn sm ghost" id="bg-from" type="button">Usa i loghi di un altro preventivo</button></div>
         <p class="hint">I loghi dei marchi valgono per tutti i preventivi, vecchi e nuovi. Se in un preventivo salvato li avevi disposti meglio, toccando «Usa i loghi di un altro preventivo» scegli quello e diventano la disposizione di tutti.</p>
-        <h3>Contatti con link e icone</h3>
+        </div></details>
+        <details class="acc"><summary><span>Contatti con link e icone</span></summary><div class="accb">
         <label class="f">Titolo del blocco<textarea rows="1" class="t1" data-b="trust.qrTitle"></textarea></label>
         <div class="subs" style="padding-left:0">
           <label class="chk"><input type="checkbox" data-b="trust.qr.wa">WhatsApp (principale)</label>
@@ -36,8 +40,10 @@
           <label class="chk"><input type="checkbox" data-b="trust.qr.mail">Email</label>
         </div>
         <p class="hint">I contatti si modificano nella scheda Azienda. Compaiono con link anche in copertina (si spegne da Contenuto → Copertina).</p>
-        <h3>Icone dei social</h3>
+        </div></details>
+        <details class="acc"><summary><span>Icone dei social</span></summary><div class="accb">
         <p class="hint">Carica le icone ufficiali di ogni social (PNG o SVG scaricati dalle pagine ufficiali dei marchi). Finché non ne carichi una, compare un'icona neutra.</p>
         <div class="lines" id="ico-list"></div>
+        </div></details>
       </section>
 

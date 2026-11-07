@@ -50,13 +50,13 @@ await p.fill('#ls-cg','Quadri');await p.click('#ls-cgadd');
 ck('categoria su listino dom',await p.evaluate(()=>[...document.querySelectorAll('#ls-body .gname:not(.plain)')].some(x=>x.value==='Quadri')));
 // reset dom
 await p.click('#ls-reset');
-ck('reset dom',await p.evaluate(()=>document.querySelectorAll('#ls-body .lsr').length===window.IECI_T.fresh().cat.dom.length));
+ck('reset dom',await p.evaluate(()=>window.IECI_T.S().cat.dom.length===window.IECI_T.fresh().cat.dom.length&&document.querySelectorAll('#ls-body .lsg').length>=3));
 // persistenza
 await p.waitForTimeout(900);await p.reload();await p.waitForTimeout(1800);
 await p.click('#mn-btn');await p.click('.mit[data-p=listini]');
 ck('persistenza dopo ricarica',await p.evaluate(()=>{const m=document.getElementById('ls-model');return true;}));
 await p.selectOption('#ls-model','app');
-ck('persistenza categorie app',await p.evaluate(()=>[...document.querySelectorAll('#ls-body .gname:not(.plain)')].some(x=>x.value==='Prese e alimentazioni')&&[...document.querySelectorAll('#ls-body .ld')].some(i=>i.value==='Voce di prova')));
+ck('persistenza categorie app',await p.evaluate(()=>[...document.querySelectorAll('#ls-body .gname:not(.plain)')].some(x=>x.value==='Prese e alimentazioni')&&window.IECI_T.S().cat.app.some(i=>i[0]==='Voce di prova')));
 await p.evaluate(()=>window.scrollTo(0,0));await p.screenshot({path:require('path').join(require('./_amb.cjs').TMP,'ls1.png')});
 await p.setViewportSize({width:360,height:800});await p.waitForTimeout(200);
 ck('mobile no overflow',await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1));

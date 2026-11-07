@@ -179,7 +179,10 @@ $('ptabs').addEventListener('click',function(e){
   e.stopPropagation();
   var st=e.target.closest('[data-step]');
   if(st){ var f=menuFlat(), i=f.indexOf(panel), n=f.length; if(!n) return; showPanel(f[((i<0?0:i)+(+st.getAttribute('data-step'))+n)%n]); window.scrollTo(0,0); return; }
-  if(e.target.closest('#mn-btn')){ mnOpen=!mnOpen; renderNav(); return; }
+  if(e.target.closest('[data-mclose]')){ mnOpen=false; renderNav(); return; }
+  var sr=e.target.closest('[data-msr]'); if(sr){ cercaVai(+sr.getAttribute('data-msr')); return; }
+  if(e.target.closest('#mn-q,.msrch')) return;
+  if(e.target.closest('#mn-btn')){ mnOpen=!mnOpen; renderNav(); if(mnOpen) menuAperto(); return; }
   var b=e.target.closest('[data-p]'); if(b) showPanel(b.getAttribute('data-p'));
 });
 document.addEventListener('click',function(e){ if(mnOpen&&!e.target.closest('#ptabs')){ mnOpen=false; renderNav(); } });

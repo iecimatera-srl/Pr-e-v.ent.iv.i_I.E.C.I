@@ -1,0 +1,70 @@
+/* ===== Listino ⇄ Prodotti ===== */
+/* filtri: Tutte · Le mie voci · Con scheda · Senza prezzo */
+.lsf{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 8px;margin:4px 0 6px}
+.lsf:empty{display:none}
+.lsf::-webkit-scrollbar{display:none}
+.lsc{flex:none;display:inline-flex;align-items:center;gap:6px;min-height:38px;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:.86rem;font-weight:700;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,color .15s}
+.lsc b{font-size:.76rem;font-weight:800;min-width:22px;padding:1px 7px;border-radius:999px;background:var(--field);color:var(--muted);text-align:center;font-variant-numeric:tabular-nums}
+.lsc.mie{border-color:color-mix(in srgb,var(--tensione) 60%,var(--line))}
+.lsc.mie b{background:color-mix(in srgb,var(--tensione) 30%,var(--surface));color:#6B4E00}
+.lsc[aria-pressed="true"]{background:var(--notte);border-color:var(--notte);color:#fff}
+.lsc[aria-pressed="true"] b{background:rgba(255,255,255,.18);color:#fff}
+.lsc.mie[aria-pressed="true"]{background:var(--tensione);border-color:var(--tensione);color:#1B1400}
+.lsc.mie[aria-pressed="true"] b{background:rgba(0,0,0,.12);color:#1B1400}
+
+/* contrassegni */
+.lsb{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:.68rem;font-weight:800;letter-spacing:.02em;white-space:nowrap;vertical-align:middle}
+.lsb.mia{background:color-mix(in srgb,var(--tensione) 30%,var(--surface));color:#6B4E00;border:1px solid color-mix(in srgb,var(--tensione) 55%,transparent)}
+.lsb.prz{background:color-mix(in srgb,var(--brand) 12%,var(--surface));color:var(--brand);border:1px solid color-mix(in srgb,var(--brand) 30%,transparent)}
+:root[data-theme="dark"] .lsb.mia,:root[data-theme="dark"] .lsc.mie b{color:#FFD66B}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .lsb.mia,:root:not([data-theme="light"]) .lsc.mie b{color:#FFD66B}}
+
+/* nuova voce: un pulsante chiaro, il modulo si apre sotto */
+.lsnew{margin:4px 0 10px;border:1.5px dashed color-mix(in srgb,var(--brand) 45%,var(--line));border-radius:16px;background:color-mix(in srgb,var(--brand) 4%,var(--surface))}
+.lsnew>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:12px 14px;cursor:pointer;font-weight:800;color:var(--brand)}
+.lsnew>summary::-webkit-details-marker{display:none}
+.lsnew>summary small{display:block;font-weight:500;font-size:.78rem;color:var(--muted)}
+.lsn-i{flex:none;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--brand);color:#fff;font-size:1.3rem;line-height:1;transition:transform .2s var(--ease)}
+.lsnew[open]>summary .lsn-i{transform:rotate(45deg)}
+.lsn-b{padding:0 12px 12px;display:flex;flex-direction:column;gap:10px}
+.lsn-b .lsbox{margin:0}
+.lsbox small.hint{display:block;margin:2px 0 6px}
+
+/* riga del listino */
+.lsr{gap:8px}
+.lsr.t-mia{background:linear-gradient(90deg,color-mix(in srgb,var(--tensione) 9%,transparent),transparent 60%);box-shadow:inset 3px 0 0 var(--tensione)}
+.lsr1{display:flex;align-items:flex-start;gap:8px}
+.lsr1 .ld{flex:1 1 auto;width:100%;min-width:0;font-weight:600}
+.lth{flex:none;width:44px;height:44px;border-radius:10px;object-fit:cover;background:#fff;border:1px solid var(--line)}
+.lth.lg{object-fit:contain;padding:5px}
+.lsadd{flex:none;display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:12px;border:0;background:var(--brand);color:#fff;cursor:pointer;box-shadow:0 6px 14px -8px var(--brand);transition:transform .15s var(--ease),background .2s}
+.lsadd:active{transform:scale(.9)}
+.lsadd.fatto{background:#1F9D61}
+.lsadd.fatto svg{animation:lsOk .5s var(--ease)}
+@keyframes lsOk{from{transform:rotate(-90deg) scale(.6)}to{transform:none}}
+.lsr .lr2{align-items:center}
+.lsr .lr2 .lsb{margin-top:14px}
+.lsr3{display:flex}
+.lsr3 .pchip{margin:0}
+.lsm{margin-top:0}
+.lsm .lmb{flex-direction:row;flex-wrap:wrap;align-items:flex-end}
+.lsm .lmb .f.lg{flex:1 1 180px}
+.lsh .lsb{margin-left:2px}
+
+/* Aggiungi dal listino: foto e voci tue */
+.crow.t-mia .d{font-weight:700}
+.crow .d small{display:block;color:var(--muted);font-size:.72rem;font-weight:500}
+.cthb{flex:none;padding:0;border:0;background:none;cursor:pointer;border-radius:8px}
+.cth{display:block;width:34px;height:34px;border-radius:8px;object-fit:cover;background:#fff;border:1px solid var(--line)}
+.cth.lg{object-fit:contain;padding:3px}
+.cth.no{background:var(--field)}
+.cgh.libh{color:var(--brand)}
+.crow.lib .u{font-size:.78rem}
+
+/* nella scheda di Prodotti: dove sta nel listino */
+.plist-ls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:8px 12px;margin:6px 0;border-radius:12px;background:color-mix(in srgb,var(--brand) 7%,var(--surface));border:1px solid color-mix(in srgb,var(--brand) 22%,var(--line));font-size:.86rem}
+.plist-ls span{flex:1 1 180px}
+.plist-ls.no{background:var(--field);border-color:var(--line);color:var(--muted)}
+/* listino e ricerca affiancati anche sul telefono */
+[data-panel="listini"] .lstop{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:8px;align-items:end}
+[data-panel="listini"] .lstop .f{margin:0}

@@ -1,16 +1,19 @@
       <section class="card" data-panel="listini" hidden>
         <h2>Modifica listini</h2>
-        <p class="hint">Qui gestisci le voci di ogni listino: categorie, descrizioni, prezzi e unità di misura. Le modifiche valgono per «Aggiungi dal listino»; le righe già inserite nei preventivi non cambiano.</p>
+        <p class="hint">Le voci di ogni listino con prezzi, categorie e schede prodotto. Tocca <b>+</b> per metterle nel preventivo. Le modifiche valgono per «Aggiungi dal listino»; le righe già inserite nei preventivi non cambiano.</p>
         <div class="lstop">
           <label class="f">Listino<select id="ls-model"></select></label>
-          <label class="f">Cerca<input type="search" id="ls-q" placeholder="Cerca…"></label>
+          <label class="f">Cerca<input type="search" id="ls-q" placeholder="Cerca una voce…"></label>
         </div>
-        <div class="lsbox"><b>Nuova voce</b>
+        <div class="lsf" id="ls-f" role="group" aria-label="Quali voci mostrare"></div>
+        <details class="lsnew" id="ls-new"><summary><span class="lsn-i" aria-hidden="true">+</span><span>Nuova voce o categoria <small>la trovi poi in «Le mie voci»</small></span></summary><div class="lsn-b">
+        <div class="lsbox"><b>Nuova voce</b><small class="hint">Descrizione, unità e prezzo. Poi, se vuoi, aggiungi foto e marca con «Crea la scheda».</small>
           <div class="newitem"><input id="ls-nd" type="text" placeholder="Descrizione della voce"><input id="ls-nu" type="text" placeholder="u.m."><input id="ls-np" type="number" step="any" min="0" placeholder="€"><select id="ls-ng" aria-label="Categoria"></select><button class="btn sm" id="ls-nadd" type="button">Aggiungi</button></div>
         </div>
         <div class="lsbox"><b>Nuova categoria</b>
           <div class="newitem"><input id="ls-cg" type="text" placeholder="Nome della categoria (es. Illuminazione)"><button class="btn sm" id="ls-cgadd" type="button">Aggiungi categoria</button></div>
         </div>
+        </div></details>
         <details class="sv prbox" id="pr-box"><summary>Prontuario IECI · oltre 400 voci per ogni ambito elettrico</summary>
           <p class="hint">Materiali e lavorazioni già descritti, con unità di misura e un prezzo <b>indicativo</b> fornito e posato. Portali nel listino «<b id="pr-dest"></b>» (quello scelto qui sopra) e poi adatta i prezzi ai tuoi. L'assistente li conosce già: se scrivi una voce che nel tuo listino non c'è, la prende da qui.</p>
           <div class="lstop"><label class="f">Ambito<select id="pr-amb"></select></label><label class="f">Cerca nel prontuario<input type="search" id="pr-q" placeholder="es. multipresa, elettrovalvola, rack…"></label></div>

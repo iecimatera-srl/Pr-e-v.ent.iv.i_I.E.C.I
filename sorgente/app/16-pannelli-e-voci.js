@@ -10,20 +10,25 @@ function renderCat(){
   if($('cat-f')){ $('cat-f').hidden=!(app||(vc&&vcMode()!=='both'&&vcMode()!=='brands')); if(app||(vc&&vcMode()!=='both'&&vcMode()!=='brands')){ $('cat-f').textContent=vc?(catAll?'Tutte le voci · mostra solo '+(kd==='cit'?'il citofono':'il videocitofono'):'Solo voci per '+(kd==='cit'?'citofono':'videocitofono')+' · mostra tutte'):(catAll?'Tutte le voci · mostra solo le adatte':'Solo voci adatte · mostra tutte'); $('cat-f').classList.toggle('on',!catAll); } }
   $('cat-hint').textContent=vc?(brOn()?'Tocca + per aggiungere la voce a «'+sysName(sysCur(),brS().cur)+'» (cambia impianto qui sopra). Le voci «Per ogni condomino» prendono da sole il numero dei condomini.':'Tocca + per aggiungere la voce. Le voci «Per ogni condomino» prendono da sole il numero dei condomini.'):app?('Tocca + per aggiungere la voce a «'+curRoomName()+'». Cerca per trovare qualunque voce.'):'Tocca + per aggiungere la voce al preventivo. I prezzi sono di esempio: modificali, restano salvati.';
   if(!vc&&brOn()) $('cat-hint').textContent='Le voci vanno in «'+sysName(sysCur(),brS().cur)+'»: cambia proposta nel riquadro «Proposte a confronto per marca». '+$('cat-hint').textContent;
-  var html='', lastG=null, hasG=cgSync(S.model).length>0;
+  var CF=(typeof LSX!=='undefined'&&LSX)?LSX.cf:'tutte', cc=lsConta(S.model), libX=prodiInLibreriaNonInListino('');
+  if(CF!=='tutte'&&!(cc[CF]+(CF==='mie'?libX.length:0))) CF='tutte';
+  if($('cat-fl')) $('cat-fl').innerHTML=(cc.mie||libX.length||CF!=='tutte')?lsChips(CF,{tutte:cc.tutte,mie:cc.mie,scheda:0,zero:0},libX.length):'';
+  var html='', lastG=null, hasG=cgSync(S.model).length>0&&CF==='tutte';
   catOrderIdx(S.model).forEach(function(i){
     var it=items[i];
     if(q&&String(it[0]).toLowerCase().indexOf(q)<0) return;
+    if(CF!=='tutte'&&!lsPassa(CF,S.model,it)) return;
     if(useF&&it[4]&&it[4]!=='*'&&it[4].split(',').indexOf(kd)<0) return;
     var gn=it[3]&&cgSync(S.model).indexOf(it[3])>-1?it[3]:'';
     if(hasG&&gn!==lastG){ lastG=gn; html+='<div class="cgh">'+esc(gn||'Altre voci')+'</div>'; }
-    html+='<div class="crow"><span class="d">'+esc(it[0])+'</span><span class="u">€/'+esc(it[1])+'</span>'+
+    var ctp=lsTipo(S.model,it), cP=lsProd(it);
+    html+='<div class="crow'+(ctp?' t-'+ctp:'')+'">'+(cP?'<button type="button" class="cthb" data-csp="'+i+'" aria-label="Apri la scheda di '+esc(it[0])+'">'+(lsThumb(cP,'cth')||'<span class="cth no"></span>')+'</button>':'')+'<span class="d">'+esc(it[0])+'</span>'+(ctp==='mia'?'<span class="lsb mia">Mia</span>':'')+'<span class="u">€/'+esc(it[1])+'</span>'+
       '<input type="number" step="any" min="0" value="'+esc(it[2])+'" data-cp="'+i+'" aria-label="Prezzo '+esc(it[0])+'">'+
       '<button type="button" class="btn sm" data-add="'+i+'" aria-label="Aggiungi al preventivo">+</button>'+
       '<button type="button" class="btn x" data-del="'+i+'" aria-label="Elimina dal listino">×</button></div>';
   });
   if($('n-g')){ var cv=$('n-g').value; $('n-g').innerHTML=groupOpts(S.model,cv,'Categoria…'); $('n-g').value=cgSync(S.model).indexOf(cv)>-1?cv:''; }
-  var prh=q?prCatHtml(q,items):'';
+  var prh=(q||CF==='mie'?libRigheHtml(prodiInLibreriaNonInListino(q)):'')+(q?prCatHtml(q,items):'');
   $('cat').innerHTML=(html||(prh?'':'<div class="empty">'+(q?'Nessuna voce trovata.':(items.length?'Nessuna voce per questo filtro: mostra tutte.':'Listino vuoto. Aggiungi una voce qui sotto.'))+'</div>'))+prh;
 }
 /* ridisegnare un elenco senza perdere il campo in cui stai scrivendo (e la posizione del cursore) */
@@ -137,7 +142,7 @@ function renderProducts0(){
     return '<details class="pe" data-pid="'+esc(p.id)+'"'+(openP[p.id]?' open':'')+'><summary><span class="pn"'+(p.on===false?' style="opacity:.5"':'')+'>'+esc(p.name||'Nuovo prodotto')+'</span>'+(prodUsers(p).length?'':'<span class="pwarn">non nel preventivo</span>')+
       '<button type="button" class="btn ghost sm" data-act="up" data-pi="'+i+'" aria-label="Sposta su">▲</button>'+
       '<button type="button" class="btn ghost sm" data-act="down" data-pi="'+i+'" aria-label="Sposta giù">▼</button>'+
-      '<button type="button" class="btn x" data-act="rm" data-pi="'+i+'" aria-label="Elimina prodotto">×</button></summary><div class="pbody">'+prodLinkInfo(p,i)+
+      '<button type="button" class="btn x" data-act="rm" data-pi="'+i+'" aria-label="Elimina prodotto">×</button></summary><div class="pbody">'+prodLinkInfo(p,i)+prodListino(p,i)+
       '<div class="subs" style="padding-left:0"><label class="chk sub"><input type="checkbox" data-px="on" data-pi="'+i+'"'+(p.on===false?'':' checked')+'><b>Includi nel fascicolo</b></label>'+
       [['photos','Foto'],['desc','Descrizione'],['specs','Caratteristiche'],['tags','Etichette'],['link','Link scheda'],['pdf','PDF allegato']].map(function(o){ return '<label class="chk sub"><input type="checkbox" data-px="'+o[0]+'" data-pi="'+i+'"'+((p.x&&p.x[o[0]])?'':' checked')+'>'+o[1]+'</label>'; }).join('')+'</div>'+
       (brOn()?prodSysSel(p,i):S.model==='vcit'?'<label class="f">Questo prodotto fa parte di<select data-pf="sol" data-pi="'+i+'"><option value=""'+(p.sol?'':' selected')+'>Tutte le soluzioni</option><option value="video"'+(p.sol==='video'?' selected':'')+'>Solo soluzione videocitofono</option><option value="cit"'+(p.sol==='cit'?' selected':'')+'>Solo soluzione citofono</option></select></label>':'')+
@@ -278,31 +283,38 @@ function renderListini(){
   var m=lsModel, items=S.cat[m]||[], gl=cgSync(m), app=m==='app', q=lsQ.trim().toLowerCase();
   $('ls-model').innerHTML=ORDER.map(function(k){ return '<option value="'+k+'"'+(k===m?' selected':'')+'>'+esc(MODELS[k].short)+'</option>'; }).join('');
   var cur=$('ls-ng').value; $('ls-ng').innerHTML=groupOpts(m,cur,'Categoria…'); $('ls-ng').value=gl.indexOf(cur)>-1?cur:'';
+  var LF=(typeof LSX!=='undefined'&&LSX)?LSX.f:'tutte', cnt=lsConta(m); if(LF!=='tutte'&&!cnt[LF]) LF='tutte';
+  $('ls-f').innerHTML=lsChips(LF,cnt);
   var secs=gl.map(function(g,gi){ return {g:g,gi:gi}; }); secs.push({g:'',gi:-1});
   var html='';
   secs.forEach(function(sc){
     var idx=[]; items.forEach(function(it,i){ var gn=it[3]&&gl.indexOf(it[3])>-1?it[3]:''; if(gn===sc.g) idx.push(i); });
     var all=idx.length;
     if(q) idx=idx.filter(function(i){ return String(items[i][0]).toLowerCase().indexOf(q)>-1||sc.g.toLowerCase().indexOf(q)>-1; });
-    if(q&&!idx.length) return; if(!sc.g&&!all) return;
-    var key=sc.g||'~', closed=!q&&lsChiusa(m+'|'+key);
+    if(LF!=='tutte') idx=idx.filter(function(i){ return lsPassa(LF,m,items[i]); });
+    if((q||LF!=='tutte')&&!idx.length) return; if(!sc.g&&!all) return;
+    var mie=0; if(LF==='tutte') idx.forEach(function(i){ if(lsTipo(m,items[i])==='mia') mie++; });
+    var key=sc.g||'~', closed=!q&&LF==='tutte'&&lsChiusa(m+'|'+key);
     html+='<section class="lsg"><div class="lsh"><button type="button" class="lt" data-gtog="'+esc(key)+'" aria-label="Apri o chiudi" aria-expanded="'+(!closed)+'">'+(closed?'▸':'▾')+'</button>'+
       (sc.g?'<textarea rows="1" class="t1 gname" data-gren="'+sc.gi+'" aria-label="Nome categoria" maxlength="60">'+esc(sc.g)+'</textarea>':'<span class="gname plain">Senza categoria</span>')+
-      '<em>'+all+'</em>'+
+      '<em>'+(LF!=='tutte'?idx.length+' di '+all:all)+'</em>'+(mie?'<span class="lsb mia" title="Voci create da te">'+mie+' mie</span>':'')+
       (sc.g?'<button type="button" class="lt" data-gup="'+sc.gi+'" aria-label="Sposta categoria su"'+(sc.gi?'':' disabled')+'>▲</button><button type="button" class="lt" data-gdn="'+sc.gi+'" aria-label="Sposta categoria giù"'+(sc.gi<gl.length-1?'':' disabled')+'>▼</button><button type="button" class="btn x" data-gdel="'+sc.gi+'" aria-label="Elimina categoria">×</button>':'')+'</div>';
     if(!closed){
       html+=idx.map(function(i){
-        var it=items[i];
-        return '<div class="lsr" data-i="'+i+'"><textarea rows="1" class="t1 ld" data-lf="d" aria-label="Descrizione">'+esc(it[0])+'</textarea>'+
-          '<div class="lr2"><label class="f sm">u.m.<input type="text" class="lu" data-lf="u" value="'+esc(it[1])+'"></label><label class="f sm">Prezzo €<input type="number" step="any" min="0" class="lp" data-lf="p" value="'+esc(it[2])+'"></label>'+
+        var it=items[i], tp=lsTipo(m,it), P=lsProd(it);
+        return '<div class="lsr'+(tp?' t-'+tp:'')+'" data-i="'+i+'"><div class="lsr1">'+lsThumb(P,'lth')+'<textarea rows="1" class="t1 ld" data-lf="d" aria-label="Descrizione">'+esc(it[0])+'</textarea>'+
+          '<button type="button" class="lsadd" data-lsadd="'+i+'" aria-label="Aggiungi al preventivo" title="Aggiungi al preventivo"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>'+
+          '<div class="lr2"><label class="f sm">u.m.<input type="text" class="lu" data-lf="u" value="'+esc(it[1])+'"></label><label class="f sm">Prezzo €<input type="number" step="any" min="0" class="lp" data-lf="p" value="'+esc(it[2])+'"></label>'+lsBadge(tp)+'</div>'+
+          '<div class="lsr3">'+lsSchedaChip(it,i)+'</div>'+
+          '<details class="lmore lsm"><summary><span>Altro</span><small class="lm-0">categoria, ordine'+(app?', stanze':'')+', elimina</small></summary><div class="lmb">'+
           '<label class="f sm lg">Categoria<select data-lf="g">'+groupOpts(m,sc.g)+'</select></label>'+
-          '<span class="lacts"><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su">▲</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù">▼</button><button type="button" class="btn x" data-ldel="'+i+'" aria-label="Elimina voce">×</button></span></div>'+
-          (app?'<details class="lsk"><summary>Adatta a: <span>'+esc(kindsText(it[4]))+'</span></summary><div class="kchk">'+ROOMORD.concat(['ge']).map(function(c){ var on=!it[4]||it[4]==='*'||(it[4]!=='x'&&it[4].split(',').indexOf(c)>-1); return '<label class="chk sub"><input type="checkbox" data-lk="'+c+'"'+(on?' checked':'')+'>'+esc(c==='ge'?'Parti comuni':ROOMNAME[c])+'</label>'; }).join('')+'</div></details>':'')+'</div>';
+          '<span class="lacts"><button type="button" class="lt" data-lup="'+i+'" aria-label="Sposta su">▲ Su</button><button type="button" class="lt" data-ldn="'+i+'" aria-label="Sposta giù">▼ Giù</button><button type="button" class="btn x" data-ldel="'+i+'" aria-label="Elimina voce">×</button></span>'+
+          (app?'<details class="lsk"><summary>Adatta a: <span>'+esc(kindsText(it[4]))+'</span></summary><div class="kchk">'+ROOMORD.concat(['ge']).map(function(c){ var on=!it[4]||it[4]==='*'||(it[4]!=='x'&&it[4].split(',').indexOf(c)>-1); return '<label class="chk sub"><input type="checkbox" data-lk="'+c+'"'+(on?' checked':'')+'>'+esc(c==='ge'?'Parti comuni':ROOMNAME[c])+'</label>'; }).join('')+'</div></details>':'')+'</div></details></div>';
       }).join('')||'<div class="empty">Nessuna voce in questa categoria.</div>';
     }
     html+='</section>';
   });
-  $('ls-body').innerHTML=html||'<div class="empty">'+(q?'Nessuna voce trovata.':'Questo listino è vuoto. Aggiungi una voce qui sopra.')+'</div>';
+  $('ls-body').innerHTML=html||'<div class="empty">'+(q?'Nessuna voce trovata.':LF==='mie'?'Non hai ancora voci tue in questo listino. Creane una con «Nuova voce o categoria» qui sopra: la ritrovi qui.':'Questo listino è vuoto. Aggiungi una voce qui sopra.')+'</div>';
 }
 function lsChanged(){ renderCat(); save(); }
 $('ls-model').addEventListener('change',function(e){ lsModel=e.target.value; renderListini(); });

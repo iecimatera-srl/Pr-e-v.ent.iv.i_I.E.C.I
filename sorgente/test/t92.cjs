@@ -9,7 +9,7 @@ await p.goto(A.SA);await p.waitForTimeout(1500);await p.waitForFunction(()=>wind
 const S=(f,a)=>p.evaluate(f,a);
 // 1. barra in basso
 let st=await S(()=>{ const n=document.getElementById('bnav'), r=n.getBoundingClientRect(); return {v:n.checkVisibility(),b:Math.round(r.bottom),t:[...n.querySelectorAll('button')].map(b=>b.innerText.trim()),cur:(n.querySelector('[aria-current="page"]')||{}).innerText}; });
-ok(st.v&&st.b===844&&st.t.join()==='Preventivo,Cliente,Invio,Archivio,Menu'&&st.cur==='Preventivo','barra in basso: Preventivo, Cliente, Invio, Archivio, Menu ('+st.t.join(' · ')+')');
+ok(st.v&&st.b===844&&st.t.join()==='Oggi,Preventivo,Cliente,Invio,Menu'&&st.cur==='Preventivo','barra in basso: Oggi, Preventivo, Cliente, Invio, Menu ('+st.t.join(' · ')+')');
 await p.click('#bnav [data-bp="dati"]'); await p.waitForTimeout(300);
 st=await S(()=>({p:[...document.querySelectorAll('[data-panel]')].find(s=>!s.hidden).getAttribute('data-panel'),cur:document.querySelector('#bnav [aria-current="page"]').innerText.trim(),sub:(document.querySelector('[data-panel="dati"] .psub')||{}).textContent}));
 ok(st.p==='dati'&&st.cur==='Cliente','«Cliente» apre i dati del cliente e si accende');
@@ -18,8 +18,8 @@ ok(st.sub==='Cliente, numero, date e stato','sotto il titolo una riga dice a cos
 await p.click('#bnav [data-bm]'); await p.waitForTimeout(400);
 st=await S(()=>{ const d=document.getElementById('mn-drop'), r=d.getBoundingClientRect(), bk=document.querySelector('.mback'); const m=[...d.querySelectorAll('.mit')]; return {open:!d.hidden,bot:Math.round(r.bottom),top:Math.round(r.top),back:bk&&!bk.hidden&&getComputedStyle(bk).position==='fixed',n:m.length,desc:m.map(x=>getComputedStyle(x.querySelector('.mtx'),'::after').content),txt:m[0].textContent}; });
 ok(st.open&&st.back&&st.bot>700&&st.top>100,'il menu sale dal basso sopra la barra, con lo sfondo scurito');
-ok(st.n===20&&st.desc.every(c=>c.length>8),'ogni voce del menu ha la sua riga di spiegazione');
-ok(st.txt==='Preventivo','il nome della voce resta pulito (la spiegazione è a parte)');
+ok(st.n===21&&st.desc.every(c=>c.length>8),'ogni voce del menu ha la sua riga di spiegazione');
+ok(st.txt==='Oggi','il nome della voce resta pulito (la spiegazione è a parte)');
 await p.click('.mback',{position:{x:200,y:40}}); await p.waitForTimeout(250);
 ok(await S(()=>document.getElementById('mn-drop').hidden),'toccando fuori il menu si chiude');
 // 3. cerca una funzione

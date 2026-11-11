@@ -5,7 +5,9 @@ let pw; try { pw = require('playwright'); } catch (e) { pw = require('/opt/npm-t
 const exe = process.env.IECI_CHROMIUM || (fs.existsSync('/opt/pw-browsers/chromium') ? '/opt/pw-browsers/chromium' : undefined);
 // L'app disegna solo le pagine del fascicolo che si vedono (content-visibility): il loro testo non risulta in innerText.
 // Nei test che leggono il testo del fascicolo le pagine si disegnano tutte, come per il PDF (IECI_CV=1 per misurare).
-const TUTTE = "document.addEventListener('DOMContentLoaded',function(){var s=document.createElement('style');s.textContent='#doc>.page{content-visibility:visible!important}';document.head.appendChild(s);});";
+// le prove partono dal preventivo, come prima (IECI_OGGI=1 per provare l'apertura su «Oggi») e senza passaggi animati
+const AVVIO = process.env.IECI_OGGI ? '' : "try{ if(!localStorage.getItem('ieci-avvio')) localStorage.setItem('ieci-avvio','prev'); }catch(e){} window.IECI_NOVT=1;";
+const TUTTE = AVVIO + "document.addEventListener('DOMContentLoaded',function(){var s=document.createElement('style');s.textContent='#doc>.page{content-visibility:visible!important}';document.head.appendChild(s);});";
 // L'app tiene chiusi i riquadri che non servono subito: prima di toccare una casella la prova apre il riquadro che la
 // contiene, come farebbe una persona (solo i riquadri: il pannello giusto lo sceglie la prova).
 const APRI = (sel) => { let el = null; try { el = document.querySelector(sel); } catch (e) { return; } let d = el && el.closest('details'); const sm = el && el.closest('summary'); if (d && sm && sm.parentElement === d) d = d.parentElement && d.parentElement.closest('details'); while (d) { if (!d.open) d.open = true; d = d.parentElement && d.parentElement.closest('details'); } };

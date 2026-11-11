@@ -167,13 +167,22 @@ var NAVIC={listini:'<path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.0
   fornitori:'<path d="M1 6h13v10H1zM14 10h4l3 3v3h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
   azienda:'<rect x="4" y="3" width="16" height="18" rx="1"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/>',
   stile:'<path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.8 2-1.8 0-.5-.2-.9-.5-1.2-.3-.3-.5-.7-.5-1.2 0-1 .8-1.8 1.8-1.8H17a4 4 0 0 0 4-4C21 6.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/>',
+  home:'<path d="M4 11.5 12 4l8 7.5"/><path d="M6.5 10v9.5h11V10"/><path d="M10 19.5v-5h4v5"/>',
   menu:'<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="1.8" fill="currentColor"/><circle cx="15" cy="12" r="1.8" fill="currentColor"/><circle cx="10" cy="18" r="1.8" fill="currentColor"/>'
 };
 function navIc(p){ return '<svg class="ni" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+(NAVIC[p]||'<circle cx="12" cy="12" r="3"/>')+'</svg>'; }
+// passaggio animato tra le pagine dove il browser lo prevede (View Transitions); altrimenti cambio immediato
 function showPanel(p){
+  var vt=p!==panel&&document.startViewTransition&&!document.documentElement.classList.contains('locked')&&!document.hidden&&!window['IECI_NOVT'];
+  try{ if(vt&&matchMedia('(prefers-reduced-motion:reduce)').matches) vt=false; }catch(e){}
+  document.documentElement.setAttribute('data-pan',p);
+  if(vt){ try{ var tr=document.startViewTransition(function(){ showPanelOra(p); }), zit=function(){}; if(tr){ if(tr.ready) tr.ready.catch(zit); if(tr.finished) tr.finished.catch(zit); if(tr.updateCallbackDone) tr.updateCallbackDone.catch(zit); } return; }catch(e){} }
+  showPanelOra(p);
+}
+function showPanelOra(p){
   panel=p; mnOpen=false;
   Array.prototype.forEach.call(document.querySelectorAll('[data-panel]'),function(s){ s.hidden=(s.getAttribute('data-panel')!==p); });
-  renderNav(); if(p==='menu') renderMenuEd(); if(p==='app') apUI(); if(p==='salva') svDash(); if(p==='messaggi') renderMt(); if(p==='listini'){ lsModel=S.model; renderListini(); } if(p==='invio') ckRender(); if(p==='prodotti'&&PLAZY) renderProducts(); renderQbar();
+  renderNav(); if(p==='menu') renderMenuEd(); if(p==='app') apUI(); if(p==='salva') svDash(); if(p==='messaggi') renderMt(); if(p==='listini'){ lsModel=S.model; renderListini(); } if(p==='invio') ckRender(); if(p==='prodotti'&&PLAZY) renderProducts(); if(p==='home') renderOggi(); renderQbar();
 }
 $('ptabs').addEventListener('click',function(e){
   e.stopPropagation();

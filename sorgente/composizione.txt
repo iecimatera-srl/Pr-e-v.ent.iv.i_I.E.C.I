@@ -15,7 +15,9 @@ css/12-illuminazione.css
 css/13-ordine.css
 css/14-menu.css
 css/15-listino.css
+css/16-oggi.css
 html/01-inizio.html
+html/01b-oggi.html
 html/02-archivio.html
 html/03-salva.html
 html/04-stile.html
@@ -79,5 +81,6 @@ app/28b-assistente-documenti-e-clienti.js
 app/28c-percorso.js
 app/28d-menu-funzioni.js
 app/28e-listino-prodotti.js
+app/28f-oggi.js
 app/29-pubblicazione-installazione-avvio.js
 html/99-fine.html

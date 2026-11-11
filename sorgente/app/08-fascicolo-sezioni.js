@@ -275,7 +275,7 @@ function fvChart(R){
   return '<svg class="fvchart" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg">'+g+zero+'<polyline points="'+pts+'" fill="none" style="stroke:var(--b1)" stroke-width="3" stroke-linejoin="round"/>'+pay+
     '<text x="'+(ml+(W-ml-mr)/2)+'" y="'+(H-1)+'" text-anchor="middle" font-size="10" fill="#5d646c">anni dall\'installazione</text></svg>';
 }
-function fmt0(v){ return new Intl.NumberFormat('it-IT',{maximumFractionDigits:0}).format(v)+' €'; }
+function fmt0(v){ return itNum(v,0,0)+' €'; }
 function fvCalc(){
   var f=S.fv, N=Math.max(5,Math.min(30,Math.round(num(f.years))||20));
   var cost=num(f.cost)>0?num(f.cost):totals().tot, net=r2(cost*(1-num(f.detr)/100));
@@ -302,7 +302,7 @@ function secFv(){
     '<div class="h4" style="margin-top:18px">Ipotesi di calcolo</div><table class="leg"><tbody>'+rows.map(function(r){ return '<tr><td>'+esc(r[0])+'</td><td class="n">'+esc(r[1])+'</td></tr>'; }).join('')+'</tbody></table>'+
     '<p class="note-s">Stima indicativa basata sulle ipotesi indicate: non è una garanzia di produzione o di risparmio. Producibilità, consumi e prezzi dell\'energia possono variare nel tempo.</p></div>'+pageFoot()+'</section>';
 }
-function fmt0n(v){ return new Intl.NumberFormat('it-IT',{maximumFractionDigits:0}).format(v); }
+function fmt0n(v){ return itNum(v,0,0); }
 function parsePhases(){ return lines(S.crono.phases).map(function(l){ var a=l.split('|'); return {n:(a[0]||'').trim(),d:Math.max(1,Math.round(num(a[1]))||1)}; }); }
 function isoDate(s){ var p=String(s||'').split('-'); return p.length===3?new Date(+p[0],+p[1]-1,+p[2]):new Date(); }
 function addDays(d,n){ var x=new Date(d.getTime()); x.setDate(x.getDate()+n); return x; }

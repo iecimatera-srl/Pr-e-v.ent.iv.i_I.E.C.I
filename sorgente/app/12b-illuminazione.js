@@ -18,7 +18,7 @@ var LU_ALIM=[60,100,150,240,320];
 var LU_SEZ=[0.75,1,1.5,2.5,4,6,10];
 function luDef(){ return {st:{m:5,t:'w',v:24,tr:1,pr:'sup',ct:'dim',d:3,k:3000},sp:{r:'so',lx:200,l:5,w:4,h:2.7,f:7,k:3000,cg:true,dim:false},ore:4,show:true}; }
 function luS(){ if(!S.luce||typeof S.luce!=='object') S.luce=luDef(); var d=luDef(); ['st','sp'].forEach(function(k){ if(!S.luce[k]||typeof S.luce[k]!=='object') S.luce[k]=d[k]; Object.keys(d[k]).forEach(function(x){ if(S.luce[k][x]===undefined) S.luce[k][x]=d[k][x]; }); }); if(S.luce.ore==null) S.luce.ore=4; if(S.luce.show==null) S.luce.show=true; return S.luce; }
-function luF(n,d){ return Number(n||0).toLocaleString('it-IT',{maximumFractionDigits:d==null?1:d,minimumFractionDigits:0}); }
+function luF(n,d){ return itNum(n||0,0,d==null?1:d); }
 // potenza per metro dalla descrizione della strip
 function luWm(desc){ var d=String(desc||''), m=d.match(/(\d+(?:[.,]\d+)?)\s*W\s*\/\s*m/i); if(m) return parseFloat(m[1].replace(',','.')); return /COB/i.test(d)?10:/Tunable/i.test(d)?19.2:14.4; }
 // alimentatori: potenza con il 25% di margine, taglie commerciali; oltre 320 W più alimentatori uguali

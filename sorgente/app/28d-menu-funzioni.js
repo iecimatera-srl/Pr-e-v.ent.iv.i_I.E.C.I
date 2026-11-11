@@ -4,7 +4,7 @@
    - sul telefono: menu che sale dal basso e barra fissa in basso con le 4 sezioni di tutti i giorni
    - testi di aiuto lunghi ridotti a due righe con «Leggi tutto» */
 function secDesc(p){
-  var D={prev:'Voci, prezzi, totale e invio',dati:'Cliente, numero, date e stato',invio:'Controllo finale, WhatsApp ed email',archivio:'Tutti i preventivi e i clienti',
+  var D={home:'Cosa c\'è da fare e come va',prev:'Voci, prezzi, totale e invio',dati:'Cliente, numero, date e stato',invio:'Controllo finale, WhatsApp ed email',archivio:'Tutti i preventivi e i clienti',
     prodotti:'Schede, foto e loghi dei prodotti',contenuto:'Cosa mostrare nel fascicolo',pagine:'Quali pagine e in che ordine',piante:'Planimetria con i punti',
     stime:'Risparmi, consumi e tempi',fiducia:'La pagina che rassicura il cliente',cond:'Pagamento, note e firma',documenti:'Allegati e certificazioni',
     listini:'Le tue voci e i tuoi prezzi',fornitori:'Offerte e articoli dei fornitori',messaggi:'Testi per WhatsApp ed email',azienda:'Dati e presentazione della ditta',
@@ -38,9 +38,9 @@ function hintLunghe(){
   });
 }
 /* ---- barra in basso (telefono) ---- */
-function bnavItems(){ var on={}; MENU.items.forEach(function(i){ if(i.on) on[i.p]=1; }); return ['prev','dati','invio','archivio'].filter(function(p){ return on[p]; }); }
+function bnavItems(){ var on={}; MENU.items.forEach(function(i){ if(i.on) on[i.p]=1; }); return ['home','prev','dati','invio'].filter(function(p){ return on[p]; }); }
 function bnavSync(){
-  var lab={prev:'Preventivo',dati:'Cliente',invio:'Invio',archivio:'Archivio'};
+  var lab={home:'Oggi',prev:'Preventivo',dati:'Cliente',invio:'Invio',archivio:'Archivio'};
   if(!NAVX.bar){
     var n=document.createElement('nav'); n.className='bnav noprint'; n.id='bnav'; n.setAttribute('aria-label','Sezioni principali'); document.body.appendChild(n); NAVX.bar=n;
     n.addEventListener('click',function(e){

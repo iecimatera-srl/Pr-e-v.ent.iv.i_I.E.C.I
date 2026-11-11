@@ -109,6 +109,7 @@ var STL={bozza:'Bozza',inviato:'Inviato',accettato:'Accettato',rifiutato:'Rifiut
 function qSt(q){ return q.st||(q.data&&q.data.meta&&q.data.meta.status)||'bozza'; }
 function renderArchivio(){
   if(typeof renderQbar==='function') renderQbar();
+  ogDopoArchivio();
   try{ renderRecover(); }catch(e){}
   if(!$('q-list')) return;
   $('q-state').textContent=S.qid?'Preventivo in archivio: si aggiorna da solo a ogni modifica.':'Non ancora salvato in archivio.';

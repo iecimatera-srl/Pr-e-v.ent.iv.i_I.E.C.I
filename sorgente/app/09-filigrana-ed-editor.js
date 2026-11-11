@@ -118,7 +118,7 @@ window.addEventListener('resize',function(){ FITW=0; fit(); });
 try{ new ResizeObserver(function(){ var w=$('paperWrap').clientWidth; if(w&&w!==FITW){ FITW=w; fit(); } }).observe($('paperWrap')); }catch(e){}
 
 /* ---------- editor ---------- */
-var SEC=[{p:'dati',l:'Dati'},{p:'prev',l:'Preventivo'},{p:'contenuto',l:'Contenuto'},{p:'pagine',l:'Pagine'},{p:'prodotti',l:'Prodotti'},{p:'piante',l:'Piante'},{p:'stime',l:'Stime'},{p:'fiducia',l:'Fiducia'},{p:'cond',l:'Condizioni e firma'},{p:'documenti',l:'Documenti'},{p:'invio',l:'Invio'},{p:'messaggi',l:'Messaggi di invio'},{p:'archivio',l:'Archivio'},{p:'listini',l:'Modifica listini'},{p:'fornitori',l:'Fornitori'},{p:'azienda',l:'Azienda'},{p:'stile',l:'Stile e logo'},{p:'salva',l:'Salvataggi e aggiornamenti'},{p:'app',l:'Personalizza app'},{p:'menu',l:'Personalizza menu'}];
+var SEC=[{p:'home',l:'Oggi'},{p:'dati',l:'Dati'},{p:'prev',l:'Preventivo'},{p:'contenuto',l:'Contenuto'},{p:'pagine',l:'Pagine'},{p:'prodotti',l:'Prodotti'},{p:'piante',l:'Piante'},{p:'stime',l:'Stime'},{p:'fiducia',l:'Fiducia'},{p:'cond',l:'Condizioni e firma'},{p:'documenti',l:'Documenti'},{p:'invio',l:'Invio'},{p:'messaggi',l:'Messaggi di invio'},{p:'archivio',l:'Archivio'},{p:'listini',l:'Modifica listini'},{p:'fornitori',l:'Fornitori'},{p:'azienda',l:'Azienda'},{p:'stile',l:'Stile e logo'},{p:'salva',l:'Salvataggi e aggiornamenti'},{p:'app',l:'Personalizza app'},{p:'menu',l:'Personalizza menu'}];
 function secDef(p){ for(var i=0;i<SEC.length;i++) if(SEC[i].p===p) return SEC[i].l; return p; }
 function secLabel(p){ var n=MENU&&MENU.names&&MENU.names[p]; return n?n:secDef(p); }
 function applyNames(){
@@ -128,7 +128,7 @@ function applyNames(){
   });
 }
 function menuDefault(){
-  var g={g1:['prev','dati','invio','archivio'],g2:['prodotti','contenuto','pagine','piante','stime','fiducia','cond','documenti'],g3:['listini','fornitori','messaggi'],g4:['azienda','stile','salva','app','menu']}, it=[];
+  var g={g1:['home','prev','dati','invio','archivio'],g2:['prodotti','contenuto','pagine','piante','stime','fiducia','cond','documenti'],g3:['listini','fornitori','messaggi'],g4:['azienda','stile','salva','app','menu']}, it=[];
   Object.keys(g).forEach(function(k){ g[k].forEach(function(p){ it.push({p:p,g:k,on:true}); }); });
   return {v:3,mode:'menu',names:{},groups:[{id:'g1',n:'Ogni giorno'},{id:'g2',n:'Fascicolo per il cliente'},{id:'g3',n:'Listini, fornitori e messaggi'},{id:'g4',n:'Azienda e app'}],items:it};
 }
@@ -147,6 +147,7 @@ function menuFix(){
   var gid={}; MENU.groups.forEach(function(g){ gid[g.id]=1; });
   var seen={}; MENU.items=MENU.items.filter(function(i){ if(!secLabel(i.p)||secLabel(i.p)===i.p&&!SEC.some(function(s){ return s.p===i.p; })||seen[i.p]) return false; seen[i.p]=1; return true; });
   MENU.items.forEach(function(i){ if(!gid[i.g]) i.g=MENU.groups[0].id; if(i.p==='menu') i.on=true; });
+  if(!seen.home){ MENU.items.unshift({p:'home',g:MENU.groups[0].id,on:true}); seen.home=1; }
   d.items.forEach(function(i){ if(!seen[i.p]){ var dg=d.groups.filter(function(x){ return x.id===i.g; })[0], ex=MENU.groups.filter(function(x){ return x.id===i.g; })[0]; MENU.items.push({p:i.p,g:ex?i.g:MENU.groups[0].id,on:true}); } });
 }
 function menuLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-menu')||'null'); if(o){ if((o.v||0)<2){ var nm=o.names&&typeof o.names==='object'?o.names:{}, md=o.mode==='tabs'?'tabs':'menu'; o=menuDefault(); o.names=nm; o.mode=md; } if(o.v===2){ var nm2=o.names&&typeof o.names==='object'?o.names:{}, md2=o.mode==='tabs'?'tabs':'menu'; if(menuUguale(o,menuV2())){ o=menuDefault(); o.names=nm2; o.mode=md2; } else o.v=3; } MENU=o; } }catch(e){} menuFix(); }

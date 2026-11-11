@@ -210,9 +210,16 @@ function morphVal(x,y){
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
 function num(v){ var n=parseFloat(String(v).replace(',','.')); return isFinite(n)?n:0; }
 function r2(x){ return Math.round(x*100)/100; }
-var fmt=new Intl.NumberFormat('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});
+// numeri all'italiana scritti sempre allo stesso modo su ogni telefono e computer: punto delle migliaia già da 1.000
+// (alcuni browser scrivono «4850,00» e altri «4.850,00»: in un preventivo deve essere sempre «4.850,00»)
+function itNum(x,minD,maxD){
+  x=Number(x); if(!isFinite(x)) x=0; var p=Math.pow(10,maxD), v=Math.round(Math.abs(x)*p)/p, neg=x<0&&v>0;
+  var a=v.toFixed(maxD).split('.'), dec=a[1]||''; while(dec.length>minD&&dec.charAt(dec.length-1)==='0') dec=dec.slice(0,-1);
+  return (neg?'-':'')+a[0].replace(/\B(?=(\d{3})+(?!\d))/g,'.')+(dec?','+dec:'');
+}
+var fmt={format:function(x){ return itNum(x,2,2); }};
 function eur(x){ return fmt.format(r2(x))+' €'; }
-function qfmt(x){ return new Intl.NumberFormat('it-IT',{maximumFractionDigits:3}).format(x); }
+function qfmt(x){ return itNum(x,0,3); }
 function dateIt(iso){ if(!iso) return ''; var p=iso.split('-'); return p.length===3? p[2]+'/'+p[1]+'/'+p[0] : iso; }
 function lines(t){ return String(t||'').split('\n').map(function(x){return x.trim();}).filter(Boolean); }
 function activeLines(){ return S.lines.filter(function(l){return !l.off;}); }

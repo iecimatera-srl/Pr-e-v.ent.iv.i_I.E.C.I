@@ -244,7 +244,7 @@ window.addEventListener('beforeprint',function(){ _ttl=document.title; document.
 window.addEventListener('afterprint',function(){ if(_ttl) document.title=_ttl; });
 try{ if(window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener('change',function(){ lastAppLogo=''; brandUI(); }); }catch(e){}
 COLL.app=COLL.dom; CRONO_DEF.app=CRONO_DEF.dom; MARKT.app=MARKT.dom;
-showPanel('prev');
+showPanelOra((typeof OG!=='undefined'&&OG&&OG.avvio==='home'&&menuFlat().indexOf('home')>-1)?'home':'prev'); document.documentElement.setAttribute('data-pan',panel); ogAzioneUrl();
 // un solo disegno all'avvio, con i dati veri: prima si legge il preventivo salvato, poi si disegna (al massimo si aspetta 600 ms)
 // con il PIN attivo l'app si prepara dietro il tastierino (che ha il suo motore e risponde comunque):
 // allo sblocco è già pronta, manca solo il fascicolo, che si disegna subito dopo

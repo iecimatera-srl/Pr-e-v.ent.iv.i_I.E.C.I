@@ -11,12 +11,12 @@ const flow=()=>S(()=>({s:[...document.querySelectorAll('#flow .fl-b')].map(b=>b.
 
 // 1. menu: «Ogni giorno» in cima con Preventivo, Dati, Invio, Archivio
 let st=await S(()=>({g:[...document.querySelectorAll('#mn-drop .mgt')].map(e=>e.textContent),i:[...document.querySelectorAll('#mn-drop .mgi')][0]?[...[...document.querySelectorAll('#mn-drop .mgi')][0].querySelectorAll('.mit')].map(e=>e.getAttribute('data-p')):[]}));
-ok(st.g.join('|')==='Ogni giorno|Fascicolo per il cliente|Listini, fornitori e messaggi|Azienda e app'&&st.i.join()==='prev,dati,invio,archivio','menu in 4 gruppi, «Ogni giorno» per primo: '+st.g.join(' | '));
+ok(st.g.join('|')==='Ogni giorno|Fascicolo per il cliente|Listini, fornitori e messaggi|Azienda e app'&&st.i.join()==='home,prev,dati,invio,archivio','menu in 4 gruppi, «Ogni giorno» per primo: '+st.g.join(' | '));
 // il menu com'era prima, mai toccato, passa al nuovo; uno personalizzato resta com'è
 st=await S(()=>{ const T=window.IECI_T; const v2=(n)=>{ const g={g1:['dati','prev','prodotti','contenuto','pagine'],g5:['piante','stime','fiducia','cond','documenti','invio','messaggi'],g2:['archivio','fornitori','listini'],g3:['azienda','stile'],g4:['salva','app','menu']},it=[]; Object.keys(g).forEach(k=>g[k].forEach(x=>it.push({p:x,g:k,on:true}))); return {v:2,mode:'menu',names:n||{},groups:[{id:'g1',n:'Preventivo'},{id:'g5',n:'Allegati e invio'},{id:'g2',n:'Catalogo e archivio'},{id:'g3',n:'Azienda e stile'},{id:'g4',n:'Gestione app'}],items:it}; };
   const prova=(o)=>{ localStorage.setItem('ieci-menu',JSON.stringify(o)); T.menuLoad(); return T.MENU(); };
   const a=prova(v2({prev:'Prezzi e voci'})); const c=v2(); c.items[5].on=false; const b=prova(c);
-  const r={a:[a.v,a.groups[0].n,a.names.prev],b:[b.v,b.groups[0].n,b.items[5].on]}; localStorage.removeItem('ieci-menu'); T.menuLoad(); return r; });
+  const r={a:[a.v,a.groups[0].n,a.names.prev],b:[b.v,b.groups[0].n,b.items.find(i=>i.p==='piante').on]}; localStorage.removeItem('ieci-menu'); T.menuLoad(); return r; });
 ok(st.a.join()==='3,Ogni giorno,Prezzi e voci','menu mai personalizzato: passa al nuovo ordine e tiene i nomi che avevi dato');
 ok(st.b.join()==='3,Preventivo,false','menu personalizzato: resta com\'era');
 

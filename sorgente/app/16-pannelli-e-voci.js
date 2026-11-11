@@ -70,7 +70,7 @@ function renderLines0(){
       '<div class="lhead"><span class="lnum">'+(i+1)+'</span><textarea rows="1" class="t1" data-f="d" aria-label="Descrizione" placeholder="Descrizione della voce">'+esc(l.d)+'</textarea>'+
       '<button type="button" class="lx" data-rm="'+i+'" aria-label="Rimuovi riga" title="Togli la voce"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button></div>'+
       '<div class="nums lnums">'+
-      '<label class="f">Q.tà<input type="number" step="any" min="0" data-f="q" value="'+esc(l.q)+'" inputmode="decimal"></label>'+
+      '<label class="f lq">Q.tà<span class="qst"><button type="button" class="qsb" data-qpm="-1" aria-label="Uno in meno" tabindex="-1">−</button><input type="number" step="any" min="0" data-f="q" value="'+esc(l.q)+'" inputmode="decimal"><button type="button" class="qsb" data-qpm="1" aria-label="Uno in più" tabindex="-1">+</button></span></label>'+
       '<label class="f">U.m.<input type="text" data-f="u" value="'+esc(l.u)+'"></label>'+
       (FREE()?'':'<label class="f">€ cad.<input type="number" step="any" min="0" data-f="p" value="'+esc(l.p)+'" inputmode="decimal"></label>')+
       (FREE()?'':'<span class="tot">'+eur(lineTotal(l))+'</span>')+
@@ -85,6 +85,7 @@ function renderLines0(){
     }).join('')));
   } else morph($('lines'),docImgs(S.lines.map(lineHtml).join('')));
   Array.prototype.forEach.call($('lines').querySelectorAll('.line'),function(r){ var l=S.lines[+r.getAttribute('data-i')], d=r.querySelector('.lmore'); if(l&&d&&d.open!==LMO.has(l)) d.open=LMO.has(l); });
+  if(typeof QA!=='undefined'&&QA) qaChips();
   if(!$('lines').closest('[data-panel]').hidden) setTimeout(function(){ if(Date.now()-(SYNC.addT||0)>2400) SYNC.set=new WeakSet(); },2500);
 }
 var LMO=new WeakSet();

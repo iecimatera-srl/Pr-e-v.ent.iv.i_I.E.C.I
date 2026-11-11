@@ -51,6 +51,11 @@
         </div></details>
         <details class="acc" id="acc-righe" open><summary><span>Voci del preventivo</span><em id="lines-count"></em></summary><div class="accb">
         <details class="sv lbulk-d"><summary>Stessa marca per tutte le voci</summary><div class="lbulk"><label class="f">Marca per tutte le voci<input type="text" id="l-brall" data-brsug placeholder="es. Vimar" autocomplete="off" autocapitalize="words" spellcheck="false" enterkeyhint="done"></label><button class="btn ghost sm" id="l-brgo" type="button">Applica</button></div></details>
+        <div class="qa" id="qa">
+          <label class="qa-box"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><input type="text" id="qa-in" placeholder="Aggiungi una voce: «3 prese», «20 m canalina»…" autocomplete="off" autocapitalize="sentences" spellcheck="false" enterkeyhint="done" aria-label="Aggiungi una voce al preventivo" role="combobox" aria-expanded="false" aria-controls="qa-sug"><button type="button" class="qa-x" id="qa-x" aria-label="Cancella" hidden>×</button></label>
+          <div class="qa-sug" id="qa-sug" role="listbox" hidden></div>
+          <div class="qa-chips" id="qa-chips"></div>
+        </div>
         <div class="lines" id="lines"></div>
         <div class="row">
           <button class="btn ghost" id="add-free" type="button">+ Riga libera</button>

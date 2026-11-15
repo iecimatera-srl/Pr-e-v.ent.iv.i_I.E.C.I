@@ -17,6 +17,7 @@ css/14-menu.css
 css/15-listino.css
 css/16-oggi.css
 css/17-rapido.css
+css/18-trascina.css
 html/01-inizio.html
 html/01b-oggi.html
 html/02-archivio.html
@@ -84,5 +85,6 @@ app/28d-menu-funzioni.js
 app/28e-listino-prodotti.js
 app/28f-oggi.js
 app/28g-rapido.js
+app/28h-trascina.js
 app/29-pubblicazione-installazione-avvio.js
 html/99-fine.html

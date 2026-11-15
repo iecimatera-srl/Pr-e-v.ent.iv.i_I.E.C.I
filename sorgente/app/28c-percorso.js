@@ -5,6 +5,7 @@ function tipoIc(k){
     dom:'<path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v10h13V10"/><path d="M12.6 11.5 10.5 15h3l-2.1 3.5"/>',
     app:'<rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M8 7h2M14 7h2M8 11h2M14 11h2M8 15h2M14 15h2"/>',
     rip:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.2L4 16.8V20h3.2l5.3-5.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.4-.6-.6-2.4z"/>',
+    rif:'<rect x="12" y="3" width="9" height="12" rx="1.5"/><path d="M14.5 6v3M18.5 6v3M16.5 15v6"/><path d="M3 7c2-2 4 2 6 0M3 12c2-2 4 2 6 0" stroke-dasharray="2 2"/><path d="M4 18h5l-1.5-1.5M9 18l-1.5 1.5"/>',
     luce:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.3 1 2.2h5.2c0-.9.4-1.7 1-2.2A6 6 0 0 0 12 3z"/>',
     vid:'<path d="M3 7h11l3 3-3 3H3z"/><path d="M8 13v4M5 21h6M17 10h4"/>',
     vcit:'<rect x="6" y="3" width="12" height="18" rx="2"/><circle cx="12" cy="9" r="2.5"/><path d="M9.5 15h5M10.5 18h3"/>',

@@ -1,0 +1,14 @@
+/* ===== Trascina per riordinare ===== */
+.grip{flex:none;display:flex;align-items:center;justify-content:center;width:30px;min-height:40px;margin:0 -4px 0 -4px;padding:0;border:0;border-radius:10px;background:none;color:var(--muted);cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;opacity:.75;transition:opacity .15s,color .15s,background .15s}
+.grip svg{fill:currentColor}
+.grip:hover,.grip:focus-visible{opacity:1;color:var(--brand);background:color-mix(in srgb,var(--brand) 9%,transparent)}
+.lhead .grip{align-self:flex-start;margin-top:3px}
+details.pe>summary .grip{min-height:36px;margin-right:2px}
+.dnd-on,.dnd-on *{cursor:grabbing!important;-webkit-user-select:none!important;user-select:none!important}
+.dnd>*{transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+.dnd>.trascino{transition:none;position:relative;z-index:20;box-shadow:0 22px 44px -16px rgba(10,19,32,.45),0 0 0 2px var(--brand)!important;background:var(--surface);opacity:.97}
+.dnd>.trascino .grip{opacity:1;color:var(--brand)}
+.posata{animation:posata .6s var(--ease)}
+@keyframes posata{0%{box-shadow:0 0 0 3px var(--brand)}100%{box-shadow:0 0 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.dnd>*{transition:none}.posata{animation:none}}
+@media print{.grip{display:none!important}}

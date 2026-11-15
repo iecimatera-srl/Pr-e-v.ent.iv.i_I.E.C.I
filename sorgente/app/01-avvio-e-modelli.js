@@ -1,5 +1,5 @@
 var CAN_PRINT = false;
-var APP_VER = '2026.11.11.2';
+var APP_VER = '2026.11.15.1';
 // tutta l'app è una funzione: con il PIN sullo schermo parte dopo lo sblocco (vedi la fine di 29), così il tastierino resta leggero
 var __ieciApp=function(){
 'use strict';
@@ -202,3 +202,44 @@ MODELS.luce={name:'Impianti di illuminazione',short:'Illuminazione',items:[
  ['Dichiarazione di conformità (DM 37/08)','a corpo',90,'Opere e servizi','*']],
  notes:"Corpi illuminanti, temperatura di colore (es. 3000 K luce calda, 4000 K luce naturale) e finiture da confermare prima dell'ordine.\nGli apparecchi forniti dal cliente vengono montati e collegati; la garanzia su di essi resta del venditore.\nAlimentatori e controller delle strip LED vengono posti in punti ispezionabili, con aerazione adeguata.\nNei bagni gli apparecchi rispettano le zone di sicurezza della norma CEI 64-8 (sezione 701), con grado di protezione adatto.\nLampade e apparecchi sostituiti vengono smaltiti come RAEE, se indicato nelle righe.\nGaranzia sui prodotti LED secondo il costruttore."};
 ORDER.splice(ORDER.indexOf('rip')+1,0,'luce');
+// Rifacimento completo di un impianto esistente: si toglie il vecchio, si rifanno linee, quadro, terra e certificazione
+MODELS.rif={name:'Rifacimento impianto elettrico',short:'Rifacimento',items:[
+ ['Smontaggio e smaltimento del vecchio impianto (cavi, frutti, scatole, quadro)','a corpo',350,'Smantellamento e opere murarie','*'],
+ ['Sfilaggio dei vecchi conduttori e verifica delle tubazioni riutilizzabili','pt',12,'Smantellamento e opere murarie','*'],
+ ['Apertura tracce a muro e chiusura con malta','m',18,'Smantellamento e opere murarie','*'],
+ ['Tubo corrugato Ø 20/25 mm, fornito e posato sottotraccia','m',4.5,'Smantellamento e opere murarie','*'],
+ ['Scatola da incasso 503 o di derivazione, fornita e murata','cad',9,'Smantellamento e opere murarie','*'],
+ ['Rasatura delle tracce (tinteggiatura esclusa)','m',9,'Smantellamento e opere murarie','*'],
+ ['Pulizia del cantiere e smaltimento delle macerie','a corpo',120,'Smantellamento e opere murarie','*'],
+ ['Quadro elettrico 24 moduli cablato, con differenziali e magnetotermici','cad',650,'Quadro e protezioni','*'],
+ ['Quadro elettrico 36 moduli cablato, con differenziali e magnetotermici','cad',850,'Quadro e protezioni','*'],
+ ['Interruttore generale magnetotermico differenziale','cad',120,'Quadro e protezioni','*'],
+ ['Differenziale tipo F per lavatrice / tipo A per piano a induzione','cad',95,'Quadro e protezioni','*'],
+ ['Scaricatore di sovratensioni (SPD)','cad',140,'Quadro e protezioni','*'],
+ ['Linea montante dal contatore al quadro (cavo 6-10 mm²)','m',14,'Quadro e protezioni','*'],
+ ['Impianto di messa a terra con dispersore e pozzetto','a corpo',380,'Messa a terra','*'],
+ ['Collegamenti equipotenziali in bagno e sulle tubazioni metalliche','a corpo',120,'Messa a terra','*'],
+ ['Misura della resistenza di terra','a corpo',60,'Messa a terra','*'],
+ ['Punto luce semplice','pt',45,'Linee e punti','*'],
+ ['Punto luce deviato','pt',58,'Linee e punti','*'],
+ ['Punto luce invertito','pt',68,'Linee e punti','*'],
+ ['Punto presa 10/16 A','pt',42,'Linee e punti','*'],
+ ['Punto presa con linea dedicata 16 A (forno, lavatrice, lavastoviglie)','pt',75,'Linee e punti','*'],
+ ['Linea dedicata piano a induzione (cavo 6 mm²)','cad',160,'Linee e punti','*'],
+ ['Linea dedicata climatizzatore','cad',120,'Linee e punti','*'],
+ ['Punto presa TV / SAT','pt',50,'Linee e punti','*'],
+ ['Punto presa dati RJ45 cat. 6','pt',55,'Linee e punti','*'],
+ ['Punto campanello con pulsante','pt',40,'Linee e punti','*'],
+ ['Serie civile gamma base (frutti e placche), per punto','pt',12,'Frutti e placche','*'],
+ ['Serie civile gamma media (frutti e placche), per punto','pt',22,'Frutti e placche','*'],
+ ['Serie civile gamma alta o domotica, per punto','pt',45,'Frutti e placche','*'],
+ ['Rimontaggio e collegamento dei lampadari esistenti','cad',25,'Frutti e placche','*'],
+ ['Quadro provvisorio di cantiere durante i lavori','a corpo',90,'Pratiche e certificazioni','*'],
+ ['Progetto dell\'impianto (quando obbligatorio, DM 37/08)','a corpo',250,'Pratiche e certificazioni','*'],
+ ['Verifiche strumentali e collaudo','a corpo',90,'Pratiche e certificazioni','*'],
+ ['Dichiarazione di conformità (DM 37/08)','a corpo',120,'Pratiche e certificazioni','*'],
+ ['Pratica di aumento di potenza con il distributore','a corpo',80,'Pratiche e certificazioni','*'],
+ ['Manodopera oraria','h',38,'Pratiche e certificazioni','*']],
+ notes:"Il rifacimento comprende la rimozione del vecchio impianto e la realizzazione di un impianto nuovo a regola d'arte secondo la norma CEI 64-8 (livello 1 come minimo per le abitazioni ristrutturate).\nOpere murarie: apertura e chiusura delle tracce incluse dove indicate; tinteggiatura e ripristini di finitura esclusi salvo accordi.\nDurante i lavori la corrente viene garantita a tratti con un quadro provvisorio; i tempi di interruzione vengono concordati prima.\nA fine lavori: verifiche strumentali, schema del quadro con i circuiti indicati e Dichiarazione di Conformità (DM 37/08)."};
+ORDER.splice(ORDER.indexOf('app')+1,0,'rif');
+

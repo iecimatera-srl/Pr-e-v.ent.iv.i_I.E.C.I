@@ -181,6 +181,30 @@ COVART.luce=function(){
     '<g stroke-width="1.8" opacity=".8"><circle cx="92" cy="122" r="5"/><circle cx="170" cy="182" r="5"/></g>';
   return r;
 };
+COLL.rif="Verifica a vista di tracce, scatole, morsetti e collegamenti\nContinuità dei conduttori di protezione ed equipotenziali\nResistenza di isolamento di ogni circuito\nMisura della resistenza di terra\nProva di intervento dei differenziali (tempo e corrente)\nVerifica della polarità e del funzionamento di prese e punti luce\nEtichettatura dei circuiti e schema del quadro\nConsegna della Dichiarazione di Conformità e delle istruzioni";
+CRONO_DEF.rif='Sopralluogo, rilievo e progetto | 2\nOrdine dei materiali | 3\nSmontaggio del vecchio impianto e quadro provvisorio | 1\nTracce, tubazioni e scatole | 3\nPosa dei cavi e delle linee dedicate | 2\nQuadro, protezioni e messa a terra | 1\nFrutti, placche e chiusura delle tracce | 2\nVerifiche, collaudo e certificazione | 1';
+MARKT.rif=[['Punto luce','#F5B800'],['Presa','#2F65AE'],['Interruttore','#2E9E5B'],['Quadro elettrico','#C0392B'],['Linea dedicata','#E67E22'],['Messa a terra','#16A085'],['Dati / TV','#8E44AD'],['Altro','#555555']];
+// copertina: a sinistra i vecchi cavi aggrovigliati (sbiaditi), la freccia del rifacimento, a destra il quadro nuovo con tre file di interruttori,
+// le linee ordinate che scendono verso una presa nuova e un punto luce, la messa a terra
+COVART.rif=function(){
+  var r='<g transform="translate(-6 44)"><g stroke-width="1.6" opacity=".42" stroke-dasharray="5 6"><path d="M150 70C190 40 214 120 250 86S300 40 290 104 214 150 178 126 160 180 214 186"/><path d="M168 150C206 108 250 176 276 140S236 74 196 96"/><path d="M188 52C230 70 196 132 244 140"/></g>'+
+    '<g stroke-width="1.8" opacity=".45"><circle cx="214" cy="186" r="15"/><path d="M204 176L224 196M224 176L204 196"/></g></g>'+
+    '<g stroke-width="2.6"><path d="M266 214Q298 196 316 162"/><path d="M304 164L318 158L320 174"/></g>'+
+    '<g stroke-width="3"><rect x="330" y="26" width="160" height="196" rx="12"/></g><g stroke-width="1.6" opacity=".7"><path d="M342 26V222M478 26V222" stroke-dasharray="1 0" opacity=".35"/></g>';
+  [58,112,166].forEach(function(y,row){
+    r+='<g stroke-width="1.6" opacity=".7"><path d="M344 '+(y+18)+'H476"/></g><g stroke-width="2.2">';
+    for(var i=0;i<7;i++){ var x=348+i*18; r+='<rect x="'+x+'" y="'+y+'" width="14" height="34" rx="3"/>'; }
+    r+='</g><g stroke-width="1.8" opacity=".85">';
+    for(var j=0;j<7;j++){ var xx=348+j*18; r+='<path d="M'+(xx+7)+' '+(y+8)+'V'+(y+(row===1&&j===2?20:15))+'"/>'; }
+    r+='</g>';
+  });
+  r+='<g stroke-width="2.4"><path d="M372 222V292Q372 300 364 300H262"/><path d="M406 222V312"/><path d="M440 222V256Q440 264 448 264H520"/><path d="M362 26V12Q362 6 356 6H292Q286 6 286 12V34"/></g>'+
+    '<g stroke-width="3"><rect x="206" y="280" width="56" height="40" rx="9"/><path d="M276 34H296M280 34L272 60H300L292 34"/></g>'+
+    '<g stroke-width="1.8" opacity=".85"><circle cx="226" cy="300" r="3.5"/><circle cx="242" cy="300" r="3.5"/><path d="M270 68L260 84M286 70V88M302 68L312 84" stroke-dasharray="2 6" opacity=".7"/></g>'+
+    '<g stroke-width="2.4"><path d="M392 312H420M397 320H415M402 328H410"/></g>'+
+    '<g stroke-width="1.8" opacity=".8"><circle cx="372" cy="222" r="4"/><circle cx="406" cy="222" r="4"/><circle cx="440" cy="222" r="4"/><circle cx="362" cy="26" r="4"/></g>';
+  return r;
+};
 COLL.dom="Continuità dei conduttori di protezione\nResistenza di isolamento dei circuiti\nMisura della resistenza di terra\nProva di intervento dei differenziali\nVerifica polarità e funzionamento di prese e punti luce\nVerifica della caduta di tensione sulle linee più lunghe\nVerifica targhette e identificazione dei circuiti\nConsegna Dichiarazione di Conformità e istruzioni";
 CRONO_DEF.dom="Sopralluogo e predisposizioni | 1\nTracce e posa tubazioni | 3\nPosa cavi e scatole | 3\nQuadro e collegamenti | 2\nFrutti, placche e apparecchi | 2\nVerifiche e collaudo | 1\nConsegna e Dichiarazione di Conformità | 1";
 COLL.vid="Funzionamento e inquadratura di ogni telecamera\nRegistrazione e riproduzione sul registratore\nAccesso remoto da app configurato e provato\nVisione notturna / infrarossi\nPrestazioni dell'alimentazione PoE e della rete\nData e ora del registratore e tempo di conservazione\nPassword personalizzate impostate e consegnate\nCartello informativo posizionato\nFormazione al cliente sull'uso";

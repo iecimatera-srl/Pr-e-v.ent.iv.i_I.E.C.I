@@ -42,7 +42,8 @@ function keepFocus(box,fn){
   fn();
   if(k&&k.sel){ var n=null; try{ n=box.querySelector(k.sel); }catch(e){} if(n&&n!==document.activeElement){ try{ n.focus({preventScroll:true}); if(k.s!=null&&n.setSelectionRange) n.setSelectionRange(k.s,k.e); }catch(e){} } }
 }
-function renderLines(){ keepFocus($('lines'),renderLines0); }
+function renderLines(){  if(typeof DND!=='undefined'&&DND&&DND.on&&DND.on.box===$('lines')){ DND.on.rif=1; return; } // durante il trascinamento l'elenco resta fermo
+ keepFocus($('lines'),renderLines0); }
 function renderLines0(){
   $('lines-count').textContent=S.lines.length?S.lines.length+(S.lines.length===1?' voce':' voci'):'';
   if(!S.lines.length){ $('lines').innerHTML='<div class="empty">Nessuna riga. Aggiungi voci dal listino o crea una riga libera.</div>'; return; }
@@ -67,7 +68,7 @@ function renderLines0(){
     ex+='</div>';
     var room=S.model==='app'?'<label class="f rsel">Stanza<select data-f="r">'+roomOpts(l.r)+'</select></label>':'';
     return '<div class="line'+(l.off?' off':'')+(SYNC.set.has(l)?' sync':'')+'" data-i="'+i+'">'+
-      '<div class="lhead"><span class="lnum">'+(i+1)+'</span><textarea rows="1" class="t1" data-f="d" aria-label="Descrizione" placeholder="Descrizione della voce">'+esc(l.d)+'</textarea>'+
+      '<div class="lhead">'+grip('Sposta la voce '+(i+1))+'<span class="lnum">'+(i+1)+'</span><textarea rows="1" class="t1" data-f="d" aria-label="Descrizione" placeholder="Descrizione della voce">'+esc(l.d)+'</textarea>'+
       '<button type="button" class="lx" data-rm="'+i+'" aria-label="Rimuovi riga" title="Togli la voce"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg></button></div>'+
       '<div class="nums lnums">'+
       '<label class="f lq">Q.tà<span class="qst"><button type="button" class="qsb" data-qpm="-1" aria-label="Uno in meno" tabindex="-1">−</button><input type="number" step="any" min="0" data-f="q" value="'+esc(l.q)+'" inputmode="decimal"><button type="button" class="qsb" data-qpm="1" aria-label="Uno in più" tabindex="-1">+</button></span></label>'+
@@ -134,13 +135,13 @@ function lineBrandSet(L,v,row){
 var openP={}, MAXPH=6, MAXCP=4;
 // la scheda Prodotti (piena di foto) si ridisegna solo quando la guardi
 var PLAZY=false;
-function renderProducts(force){ var sec=$('plist').closest('[data-panel]'); if(sec&&sec.hidden&&force!==true){ PLAZY=true; return; } PLAZY=false; keepFocus($('plist'),renderProducts0); }
+function renderProducts(force){ if(typeof DND!=='undefined'&&DND&&DND.on&&DND.on.box===$('plist')){ DND.on.rif=1; return; } var sec=$('plist').closest('[data-panel]'); if(sec&&sec.hidden&&force!==true){ PLAZY=true; return; } PLAZY=false; keepFocus($('plist'),renderProducts0); }
 (function(){ var sec=$('plist').closest('[data-panel]'); if(sec&&window.MutationObserver) new MutationObserver(function(){ if(!sec.hidden&&PLAZY) renderProducts(); }).observe(sec,{attributes:true,attributeFilter:['hidden']}); })();
 function renderProducts0(){
   if(!S.products.length){ $('plist').innerHTML='<div class="empty">Nessun prodotto. Aggiungine uno o crealo dalle righe del preventivo.</div>'; return; }
   morph($('plist'),docImgs(S.products.map(function(p,i){
     var th=(p.photos||[]).map(function(u,j){ return '<div class="thumb"><img src="'+u+'" alt=""><button type="button" data-rph="'+i+':'+j+'" aria-label="Rimuovi foto">×</button>'+(j>0?'<button type="button" class="star" data-mph="'+i+':'+j+'" aria-label="Usa come foto principale" title="Foto principale">★</button>':'')+'</div>'; }).join('');
-    return '<details class="pe" data-pid="'+esc(p.id)+'"'+(openP[p.id]?' open':'')+'><summary><span class="pn"'+(p.on===false?' style="opacity:.5"':'')+'>'+esc(p.name||'Nuovo prodotto')+'</span>'+(prodUsers(p).length?'':'<span class="pwarn">non nel preventivo</span>')+
+    return '<details class="pe" data-pid="'+esc(p.id)+'"'+(openP[p.id]?' open':'')+'><summary>'+grip('Sposta il prodotto '+(i+1))+'<span class="pn"'+(p.on===false?' style="opacity:.5"':'')+'>'+esc(p.name||'Nuovo prodotto')+'</span>'+(prodUsers(p).length?'':'<span class="pwarn">non nel preventivo</span>')+
       '<button type="button" class="btn ghost sm" data-act="up" data-pi="'+i+'" aria-label="Sposta su">▲</button>'+
       '<button type="button" class="btn ghost sm" data-act="down" data-pi="'+i+'" aria-label="Sposta giù">▼</button>'+
       '<button type="button" class="btn x" data-act="rm" data-pi="'+i+'" aria-label="Elimina prodotto">×</button></summary><div class="pbody">'+prodLinkInfo(p,i)+prodListino(p,i)+
@@ -184,7 +185,7 @@ var docVer=0;
 var lastEdit=0;
 function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); libSoon(); pcSoon(); if(typeof GH!=='undefined'&&GH&&GH.on) ghChip(); }
 
-var TTL_G='Rifacimento impianto appartamento', TTL_T={luce:'Impianto di illuminazione',wb:'Installazione wallbox per ricarica auto elettrica',rip:'Riparazione impianto elettrico',vid:'Impianto di videosorveglianza',all:'Impianto di allarme antintrusione',vcit:'Impianto videocitofonico',aut:'Automazione cancello e accessi',fv:'Impianto fotovoltaico',tv:'Impianto TV e antenna',ind:'Impianto elettrico industriale',sw:'Programmazione e messa in servizio'};
+var TTL_G='Rifacimento impianto appartamento', TTL_T={rif:'Rifacimento impianto elettrico',luce:'Impianto di illuminazione',wb:'Installazione wallbox per ricarica auto elettrica',rip:'Riparazione impianto elettrico',vid:'Impianto di videosorveglianza',all:'Impianto di allarme antintrusione',vcit:'Impianto videocitofonico',aut:'Automazione cancello e accessi',fv:'Impianto fotovoltaico',tv:'Impianto TV e antenna',ind:'Impianto elettrico industriale',sw:'Programmazione e messa in servizio'};
 function typeTitle(prev){ if(S.meta.title===TTL_G||S.meta.title===TTL_T[prev]||(prev&&S.meta.title===(MODELS[prev]||{}).name)){ S.meta.title=TTL_T[S.model]||TTL_G; if($('m-title')) $('m-title').value=S.meta.title; } }
 $('tabs').addEventListener('click',function(e){
   var b=e.target.closest('[data-m]'); if(!b) return;

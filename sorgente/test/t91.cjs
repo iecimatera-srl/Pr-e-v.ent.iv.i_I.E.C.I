@@ -78,7 +78,7 @@ ok(await S(()=>window.IECI_T.S().lines.length)===n0-1,'il cestino toglie la voce
 
 // 5. tipo di preventivo: una riga con icone, il tipo scelto si vede
 st=await S(()=>{ const t=document.getElementById('tabs'); return {n:t.querySelectorAll('.tab svg.ti').length,h:t.getBoundingClientRect().height,sc:t.scrollWidth>t.clientWidth}; });
-ok(st.n===13&&st.h<60&&st.sc,'13 tipi con icona su una riga sola che scorre');
+ok(st.n===14&&st.h<60&&st.sc,'14 tipi con icona su una riga sola che scorre');
 await S(()=>document.querySelector('#tabs [data-m="sw"]').click()); await p.waitForTimeout(300);
 st=await S(()=>{ const t=document.getElementById('tabs'), b=t.querySelector('[aria-pressed="true"]'), tr=t.getBoundingClientRect(), br=b.getBoundingClientRect(); return {m:window.IECI_T.S().model,in:br.left>=tr.left-1&&br.right<=tr.right+1}; });
 ok(st.m==='sw'&&st.in,'scelto l\'ultimo tipo, resta in vista nella fila');

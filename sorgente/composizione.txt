@@ -76,6 +76,7 @@ app/22-sincronizzazione-drive-github.js
 app/22b-foto-github.js
 app/22c-controllo-foto.js
 app/22d-salvataggio-continuo.js
+app/22e-impostazioni-unite.js
 app/23-fornitori-e-lettura-pdf.js
 app/24-salvataggi-e-recupero.js
 app/24b-libreria-prodotti.js

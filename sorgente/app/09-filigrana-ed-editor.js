@@ -154,7 +154,7 @@ function menuFix(){
   d.items.forEach(function(i){ if(!seen[i.p]){ var dg=d.groups.filter(function(x){ return x.id===i.g; })[0], ex=MENU.groups.filter(function(x){ return x.id===i.g; })[0]; MENU.items.push({p:i.p,g:ex?i.g:MENU.groups[0].id,on:true}); } });
 }
 function menuLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-menu')||'null'); if(o){ if((o.v||0)<2){ var nm=o.names&&typeof o.names==='object'?o.names:{}, md=o.mode==='tabs'?'tabs':'menu'; o=menuDefault(); o.names=nm; o.mode=md; } if(o.v===2){ var nm2=o.names&&typeof o.names==='object'?o.names:{}, md2=o.mode==='tabs'?'tabs':'menu'; if(menuUguale(o,menuV2())){ o=menuDefault(); o.names=nm2; o.mode=md2; } else o.v=3; } MENU=o; } }catch(e){} menuFix(); }
-function menuSave(){ try{ localStorage.setItem('ieci-menu',JSON.stringify(MENU)); }catch(e){} }
+function menuSave(){ try{ localStorage.setItem('ieci-menu',JSON.stringify(MENU)); }catch(e){} try{ settingsStamp(); }catch(e){} }
 function menuFlat(){ var o=[]; MENU.groups.forEach(function(g){ MENU.items.forEach(function(i){ if(i.g===g.id&&i.on) o.push(i.p); }); }); return o; }
 var panel='stile', mnOpen=false;
 function renderNav(){

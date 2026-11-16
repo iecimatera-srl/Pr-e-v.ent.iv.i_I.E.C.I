@@ -25,9 +25,9 @@ o=G.grezzo(); o.min='2026.11.16.5'; o.app='2099.1.1.1'; G.scrivi(o);
 await S(()=>window.IECI_T.ghSync(false)); await attesa(); await p.waitForTimeout(1700);
 st=await S(()=>({q:window.IECI_T.DB().quotes.some(x=>x.client==='Dal futuro'),t:document.getElementById('toast').innerText}));
 ok(st.q&&/versione più nuova dell'app/.test(st.t),'archivio leggibile ma scritto da una versione più nuova: unisce e avvisa di aggiornare');
-ok(G.grezzo().min==='2026.11.16.6','la versione minima non scende mai sotto quella necessaria');
+ok(G.grezzo().min==='2026.11.16.7','la versione minima non scende mai sotto quella necessaria');
 o=G.grezzo(); o.min='2026.11.16.4'; G.scrivi(o); await S(()=>window.IECI_T.ghSync(false)); await attesa();
-ok(G.grezzo().min==='2026.11.16.6','se un archivio dice una minima più bassa, si rialza alla minima giusta');
+ok(G.grezzo().min==='2026.11.16.7','se un archivio dice una minima più bassa, si rialza alla minima giusta');
 // copia di sicurezza del giorno: una sola al giorno e leggera
 st=await S(()=>new Promise(r=>{ const T=window.IECI_T; T.kvGet?r(null):r(null); }));
 const snaps=await S(()=>new Promise(r=>{ const q=indexedDB.open('preventivi-ieci',1); q.onsuccess=()=>{ const g=q.result.transaction('kv').objectStore('kv').get('snaps'); g.onsuccess=()=>r((g.result||[]).map(s=>({why:s.why,kb:Math.round(s.json.length/1024),light:/"leggera":1/.test(s.json)}))); }; }));

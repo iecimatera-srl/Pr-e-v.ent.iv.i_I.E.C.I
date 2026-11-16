@@ -1,14 +1,14 @@
 /* ---------- archivio: clienti, libreria prodotti, preventivi salvati ---------- */
 var pendDel=null, pendT=0;
 function dbSave(ns){
-  if(!dbReady) return; mirSoon(); if(typeof cestOsserva==='function') cestOsserva(); if(!ns){ DB.lastChange=Date.now(); gdPushSoon(); if(typeof ghPushSoon==='function') ghPushSoon(); } clearTimeout(dbT);
+  if(!dbReady) return; mirSoon(); if(typeof cestOsserva==='function'){ updOsserva(!ns); cestOsserva(); } if(!ns){ DB.lastChange=Date.now(); gdPushSoon(); if(typeof ghPushSoon==='function') ghPushSoon(); } clearTimeout(dbT);
   dbT=setTimeout(function(){
     if(IDB){ try{ var tx=IDB.transaction('kv','readwrite'); tx.objectStore('kv').put(DB,DBKEY); tx.onerror=tx.onabort=function(){ warnStore(); }; }catch(e){ warnStore(); } }
     else { try{ localStorage.setItem(DBKEY,JSON.stringify(DB)); }catch(e){ warnStore(); } }
   },300);
 }
 function dbLoad(cb){
-  function fin(d){ if(d&&typeof d==='object'){ DB.clients=d.clients||[]; DB.prods=d.prods||[]; DB.quotes=d.quotes||[]; DB.arts=d.arts||[]; DB.logos=d.logos||[]; DB.parole=d.parole||[]; DB.del=d.del||{}; DB.cest=d.cest||[]; DB.libNo=d.libNo||[]; DB.libMig=d.libMig||0; DB.su=d.su||0; DB.lastBackup=d.lastBackup||0; DB.lastChange=d.lastChange||0; } dbReady=true; if(cb) cb(); }
+  function fin(d){ if(d&&typeof d==='object'){ DB.clients=d.clients||[]; DB.prods=d.prods||[]; DB.quotes=d.quotes||[]; DB.arts=d.arts||[]; DB.logos=d.logos||[]; DB.parole=d.parole||[]; DB.del=d.del||{}; DB.cest=d.cest||[]; DB.sus=d.sus||{}; DB.sbase=d.sbase||{}; DB.libNo=d.libNo||[]; DB.libMig=d.libMig||0; DB.su=d.su||0; DB.lastBackup=d.lastBackup||0; DB.lastChange=d.lastChange||0; } dbReady=true; if(cb) cb(); }
   if(IDB){ try{ var q=IDB.transaction('kv').objectStore('kv').get(DBKEY); q.onsuccess=function(){ fin(q.result); }; q.onerror=function(){ fin(null); }; }catch(e){ fin(null); } }
   else { var r=null; try{ r=JSON.parse(localStorage.getItem(DBKEY)); }catch(e){} fin(r); }
 }
@@ -99,7 +99,7 @@ function saveQuote(silent){
   if(!silent) toast('Preventivo salvato nell\'archivio');
 }
 var QDV={};
-function syncQuoteSoon(){ clearTimeout(qT); qT=setTimeout(function(){ idle(function(){ if(dbReady){ if(S.qid) saveQuote(true); else if(String(S.client.name||'').trim()&&S.client.name!=='Mario Rossi'&&S.lines.length) saveQuote(true); settingsStamp(); } },3000); },2000); }
+function syncQuoteSoon(){ clearTimeout(qT); qT=setTimeout(function(){ idle(function(){ if(dbReady){ if(S.qid) saveQuote(true); else if(String(S.client.name||'').trim()&&S.client.name!=='Mario Rossi'&&S.lines.length&&QDV['']!==docVer) saveQuote(true); settingsStamp(); } },3000); },2000); }
 function openQuote(id,asCopy){
   var e=DB.quotes.filter(function(q){ return q.id===id; })[0]; if(!e) return;
   if(S.qid&&S.qid!==id&&dbReady) saveQuote(true);
@@ -174,7 +174,7 @@ function archClick(e){
   var t=e.target, b;
   if((b=t.closest('[data-qo]'))) return openQuote(b.getAttribute('data-qo'));
   if((b=t.closest('[data-qc]'))) return openQuote(b.getAttribute('data-qc'),true);
-  if((b=t.closest('[data-qx]'))){ var id=b.getAttribute('data-qx'); return delTwice('q'+id,function(){ DB.del[id]=Date.now(); DB.quotes=DB.quotes.filter(function(q){ return q.id!==id; }); if(S.qid===id){ S.qid=''; save(); } dbSave(); renderArchivio(); toast('Preventivo eliminato dall\'archivio'); },b); }
+  if((b=t.closest('[data-qx]'))){ var id=b.getAttribute('data-qx'); return delTwice('q'+id,function(){ DB.del[id]=Date.now(); DB.quotes=DB.quotes.filter(function(q){ return q.id!==id; }); if(S.qid===id){ S.qid=''; QDV['']=docVer; save(); } dbSave(); renderArchivio(); toast('Preventivo eliminato dall\'archivio'); },b); }
   if((b=t.closest('[data-cu]'))) return useClient(b.getAttribute('data-cu'));
   if((b=t.closest('[data-cx]'))){ var cid=b.getAttribute('data-cx'); return delTwice('c'+cid,function(){ rubElimina([cid]); },b); }
   if((b=t.closest('[data-cxs]'))) return rubElimina(Object.keys(RUB.sel));

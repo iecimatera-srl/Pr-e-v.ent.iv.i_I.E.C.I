@@ -8,7 +8,10 @@ function dbEmpty(){ return !(DB.quotes.length||DB.clients.length||DB.arts.length
 function stamp(t){ return new Date(t).toLocaleString('it-IT',{dateStyle:'short',timeStyle:'short'}); }
 function restoreObj(o){
   var r=document.querySelector('input[name="imp-mode"][value="replace"]'), old=document.querySelector('input[name="imp-mode"]:checked'); r.checked=true;
+  var prima={}; DB.quotes.forEach(function(q){ try{ prima[q.id]=qContenuto(q.data||{}); }catch(e){} });
   try{ importAll(o); } finally { if(old) old.checked=true; }
+  var t=Date.now(); DB.quotes.forEach(function(q){ var c=''; try{ c=qContenuto(q.data||{}); }catch(e){} if(prima[q.id]!==c) q.upd=t; });
+  DB.sus=DB.sus||{}; SEZ.forEach(function(k){ DB.sus[k]=t; }); lastSez=sezStampa(); dbSave();
 }
 /* copie prima dell'aggiornamento */
 function snapList(cb){ kvGet('snaps',function(a){ cb(Array.isArray(a)?a:[]); }); }

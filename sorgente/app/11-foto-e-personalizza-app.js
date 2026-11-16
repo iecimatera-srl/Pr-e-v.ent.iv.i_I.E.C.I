@@ -108,8 +108,9 @@ function cutAll(){
 }
 /* ---------- personalizza app ---------- */
 var APP={cut:'on',cutt:38,halo:'soft',autop:'on',webimg:'auto',pcomp:'auto',name:'',suf:'',lm:'quote',logo:'',bg:'keep',ls:86,view:'',theme:'auto',col:'',fz:1,dens:'n',sub:true,greet:''};
+var APP0=JSON.parse(JSON.stringify(APP));
 function apLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-app')||'null'); if(o) Object.keys(o).forEach(function(k){ if(k in APP) APP[k]=o[k]; }); }catch(e){} }
-function apStore(){ try{ var o={}; Object.keys(APP).forEach(function(k){ if(k!=='view') o[k]=APP[k]; }); localStorage.setItem('ieci-app',JSON.stringify(o)); }catch(e){ toast('Memoria piena: logo non salvato'); } }
+function apStore(){ try{ var o={}; Object.keys(APP).forEach(function(k){ if(k!=='view') o[k]=APP[k]; }); localStorage.setItem('ieci-app',JSON.stringify(o)); }catch(e){ toast('Memoria piena: logo non salvato'); } try{ settingsStamp(); }catch(e){} }
 function procLogo(url,mode,cb){
   if(!url||mode==='keep') return cb(url);
   if(mode==='out') return buildVariants(url,function(t){ cb(t||url); });

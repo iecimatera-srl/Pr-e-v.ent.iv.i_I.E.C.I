@@ -1,5 +1,5 @@
 /* ---------- Google Drive (cartella app nascosta, scope drive.appdata) ---------- */
-var GD={cid:'',on:false,auto:true,last:0}, gdTok='', gdExp=0, gdBusy=false, gdT=0, lastSet=null;
+var GD={cid:'',on:false,auto:true,last:0}, gdTok='', gdExp=0, gdBusy=false, gdT=0;
 function gdLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-gdrive')||'{}'); GD.cid=o.cid||''; GD.on=!!o.on; GD.auto=o.auto!==false; GD.last=o.last||0; }catch(e){} }
 function gdStore(){ try{ localStorage.setItem('ieci-gdrive',JSON.stringify(GD)); }catch(e){} }
 function gdStatus(t){ var el=$('gd-state'); if(el) el.textContent=t; }
@@ -51,23 +51,18 @@ function setHash(x){ return JSON.stringify([x.company,x.profile,x.style,x.trust,
 var FACT_H='';
 function facHash(x){ return JSON.stringify([x.company,x.profile,x.style,x.trust,x.cat,x.ccond&&Object.keys(x.ccond).length?x.ccond:{},x.mtpl,x.mdef]); }
 function isFactory(){ if(!FACT_H){ try{ FACT_H=facHash(normalize(fresh())); }catch(e){ return false; } } return facHash(S)===FACT_H; }
-function settingsStamp(){
-  var h=JSON.stringify([S.company,S.profile,S.style,S.trust,S.cat,S.cgroups,S.ccond||{},S.mtpl,S.mdef]);
-  if(lastSet!==null&&h!==lastSet){ DB.su=Date.now(); dbSave(); }
-  lastSet=h;
-}
 function buildPayload(){
-  return {tipo:'archivio-preventivi-ieci',v:2,su:DB.su||0,db:{clients:DB.clients,prods:DB.prods,quotes:DB.quotes,arts:DB.arts,logos:DB.logos||[],parole:DB.parole||[],del:DB.del||{},cest:DB.cest||[]},cat:S.cat,cgroups:S.cgroups,company:S.company,profile:S.profile,style:S.style,trust:S.trust,ccond:S.ccond||{},mtpl:S.mtpl,mdef:S.mdef,menu:MENU};
+  return {tipo:'archivio-preventivi-ieci',v:2,su:DB.su||0,db:{clients:DB.clients,prods:DB.prods,quotes:DB.quotes,arts:DB.arts,logos:DB.logos||[],parole:DB.parole||[],del:DB.del||{},cest:DB.cest||[]},sus:DB.sus||{},msgs:S.msgs,aspetto:apCopia(),cat:S.cat,cgroups:S.cgroups,company:S.company,profile:S.profile,style:S.style,trust:S.trust,ccond:S.ccond||{},mtpl:S.mtpl,mdef:S.mdef,menu:MENU};
 }
 /* loghi delle marche e parole imparate: uno per chiave, vince il più recente */
 function mergeByKey(name,arr,key,del){
   var L=DB[name]||(DB[name]=[]);
   (arr||[]).forEach(function(a){ if(!a) return; var k=key(a), ex=L.filter(function(x){ return key(x)===k; })[0]; if(!ex) L.push(a); else if((a.upd||0)>(ex.upd||0)) L[L.indexOf(ex)]=a; });
-  DB[name]=L.filter(function(x){ return !(del||{})[x.id]; }); if(name==='logos') DB.logos.sort(byName);
+  DB[name]=L.filter(function(x){ var t=(del||{})[x.id]; return !(t&&t>=(x.upd||0)); }); if(name==='logos') DB.logos.sort(byName);
 }
 /* MI: mentre si unisce l'archivio di GitHub conta cosa arriva (nuovi, aggiornati), i conflitti e soprattutto
    se qui c'è qualcosa che lassù manca (mie): solo allora serve riscrivere l'archivio su GitHub */
-var MI=null;
+var MI=null, BASEO=null;
 function gdMerge(o){
   if(!o||o.tipo!=='archivio-preventivi-ieci'||!o.db) return;
   var d=o.db, replaced=[], del=DB.del||(DB.del={}), mi=MI||{}, qm=(GH&&GH.qmod)||{};
@@ -76,22 +71,22 @@ function gdMerge(o){
   Object.keys(d.del||{}).forEach(function(k){ del[k]=Math.max(del[k]||0,d.del[k]); });
   // ciò che c'è qui e non lassù
   var rc={}, rp={}, rq={}, ra={};
-  (d.clients||[]).forEach(function(c){ rc[lc(c.name)]=1; }); (d.prods||[]).forEach(function(p){ rp[lc(p.name)+'|'+lc(p.code)]=p; }); (d.quotes||[]).forEach(function(q){ rq[q.id]=q; }); (d.arts||[]).forEach(function(a){ ra[a.id]=a; ra[artKey(a)]=a; });
-  DB.clients.forEach(function(c){ if(!rc[lc(c.name)]&&!del[c.id]) mi.mie++; });
-  DB.prods.forEach(function(p){ var r=rp[lc(p.name)+'|'+lc(p.code)]; if(del[p.id]) return; if(!r||(p.upd||0)>(r.upd||0)||(p.phu||0)>(r.phu||0)) mi.mie++; });
-  DB.quotes.forEach(function(q){ var r=rq[q.id]; if(del[q.id]) return; if(!r||(q.upd||0)>(r.upd||0)) mi.mie++; else if((q.upd||0)===(r.upd||0)&&phUnisciQuote(r,q)) mi.mie++; });
-  DB.arts.forEach(function(a){ var r=ra[a.id]||ra[artKey(a)]; if(del[a.id]) return; if(!r||(a.upd||0)>(r.upd||0)) mi.mie++; });
-  if((DB.su||0)>(o.su||0)) mi.mie++;
+  (d.clients||[]).forEach(function(c){ rc[lc(c.name)]=c; }); (d.prods||[]).forEach(function(p){ rp[lc(p.name)+'|'+lc(p.code)]=p; }); (d.quotes||[]).forEach(function(q){ rq[q.id]=q; }); (d.arts||[]).forEach(function(a){ ra[a.id]=a; ra[artKey(a)]=a; });
+  DB.clients.forEach(function(c){ var r=rc[lc(c.name)]; if(eliminato(c)) return; if(!r||(c.upd||0)>(r.upd||0)) mi.mie++; });
+  DB.prods.forEach(function(p){ var r=rp[lc(p.name)+'|'+lc(p.code)]; if(eliminato(p)) return; if(!r||(p.upd||0)>(r.upd||0)||(p.phu||0)>(r.phu||0)) mi.mie++; });
+  DB.quotes.forEach(function(q){ var r=rq[q.id]; if(eliminato(q)) return; if(!r||(q.upd||0)>(r.upd||0)) mi.mie++; else if((q.upd||0)===(r.upd||0)&&phUnisciQuote(r,q)) mi.mie++; });
+  DB.arts.forEach(function(a){ var r=ra[a.id]||ra[artKey(a)]; if(eliminato(a)) return; if(!r||(a.upd||0)>(r.upd||0)) mi.mie++; });
   if(cestUnisci(d.cest)) mi.mie++;
-  (d.clients||[]).forEach(function(c){ if(!DB.clients.some(function(x){ return lc(x.name)===lc(c.name); })) DB.clients.push(c); });
-  // libreria prodotti: le schede nuove si aggiungono; in quelle che ci sono già arrivano le foto più recenti e i dati che mancano
+  // clienti e libreria prodotti: i nuovi si aggiungono; in quelli che ci sono già arriva la versione più recente
+  // (un dato pieno non viene mai sostituito da uno vuoto) e le foto più recenti
+  (d.clients||[]).forEach(function(c){ var ex=DB.clients.filter(function(x){ return lc(x.name)===lc(c.name); })[0];
+    if(!ex){ DB.clients.push(c); return; } schedaUnisci(ex,c,{id:1,name:1}); });
   (d.prods||[]).forEach(function(p){ var ex=DB.prods.filter(function(x){ return lc(x.name)===lc(p.name)&&lc(x.code)===lc(p.code); })[0];
     if(!ex){ DB.prods.push(p); return; }
-    phPrendi(ex,p); ['brand','code','desc','specs','link','tags'].forEach(function(k){ if(!ex[k]&&p[k]) ex[k]=p[k]; });
-    if((p.upd||0)>(ex.upd||0)){ if(num(p.lp)>0){ ex.lp=p.lp; ex.lu=p.lu; } ex.upd=p.upd; } });
+    phPrendi(ex,p); schedaUnisci(ex,p,{id:1,photos:1,po:1,phu:1,phs:1,cr:1}); });
   (d.quotes||[]).forEach(function(q){
     var ex=DB.quotes.filter(function(x){ return x.id===q.id; })[0];
-    if(!ex){ if(!del[q.id]){ DB.quotes.push(q); mi.nuovi=(mi.nuovi||0)+1; } return; }
+    if(!ex){ if(!eliminato(q)){ DB.quotes.push(q); mi.nuovi=(mi.nuovi||0)+1; } return; }
     /* lo stesso preventivo cambiato qui (e non ancora su GitHub) e anche su un altro dispositivo: vince il più
        recente, l'altra versione NON si perde, resta nell'archivio come copia segnata. «bu» è la versione da cui
        sono partite le modifiche di qui: se lassù c'è ancora quella, nessun conflitto (non conta l'orologio) */
@@ -100,25 +95,20 @@ function gdMerge(o){
     else { if(due){ copiaConflitto(q); ex.bu=q.upd; mi.conf=(mi.conf||0)+1; } if(phUnisciQuote(ex,q)) replaced.push(ex.id); } // la versione di qui resta, ma con le foto più recenti dell'altra
   });
   (d.arts||[]).forEach(function(a){ var ex=DB.arts.filter(function(x){ return x.id===a.id||artKey(x)===artKey(a); })[0]; if(!ex) DB.arts.push(a); else if((a.upd||0)>(ex.upd||0)) DB.arts[DB.arts.indexOf(ex)]=a; });
-  DB.arts=DB.arts.filter(function(x){ return !del[x.id]; }).sort(byName);
+  DB.arts=DB.arts.filter(function(x){ return !eliminato(x); }).sort(byName);
   mergeByKey('logos',d.logos,function(x){ return iwK(x.name); },del); mergeByKey('parole',d.parole,function(x){ return x.m+'|'+x.k; },del);
-  DB.clients=DB.clients.filter(function(x){ return !del[x.id]; }).sort(byName);
-  DB.prods=DB.prods.filter(function(x){ return !del[x.id]; }).sort(byName);
-  DB.quotes=DB.quotes.filter(function(x){ return !del[x.id]; });
-  var reload=false, adopt=(o.su||0)>(DB.su||0);
-  /* un dispositivo nuovo (impostazioni mai toccate) prende SEMPRE quelle dell'archivio: non deve mai sovrascriverle con le sue di fabbrica */
-  if(!adopt&&!(DB.su>0)&&(o.company||o.profile||o.style||o.trust||o.cat||o.ccond||o.mtpl)&&isFactory()) adopt=true;
-  if(adopt){
-    if(!isFactory()) snapSave('Prima di unire le impostazioni dell\'altro dispositivo');
-    if(o.company) S.company=o.company; if(o.profile) S.profile=o.profile; if(o.style) S.style=o.style; if(o.trust) S.trust=o.trust; if(o.ccond) S.ccond=o.ccond; if(o.mtpl&&o.mtpl.length){ S.mtpl=o.mtpl; S.mdef=o.mdef||o.mtpl[0].id; } if(o.cat){ S.cat=o.cat; S.cgroups=o.cgroups||{}; ORDER.forEach(function(k){ cgSync(k); }); }
-    DB.su=o.su; reload=true;
-  }
+  DB.clients=DB.clients.filter(function(x){ return !eliminato(x); }).sort(byName);
+  DB.prods=DB.prods.filter(function(x){ return !eliminato(x); }).sort(byName);
+  DB.quotes=DB.quotes.filter(function(x){ return !eliminato(x); });
+  updOsserva(false);
+  // impostazioni: unite sezione per sezione, voce per voce (vedi 22e): nessuna sezione ne cancella un'altra
+  var reload=sezUnisci(o,mi,MI!==null);
   if(S.qid&&replaced.indexOf(S.qid)>-1){
     var e=DB.quotes.filter(function(x){ return x.id===S.qid; })[0];
     if(e){ var dd=JSON.parse(JSON.stringify(e.data)); dd.cat=S.cat; dd.cgroups=S.cgroups; dd.trust=S.trust; dd.profile=S.profile; dd.company=S.company; dd.msgs=S.msgs; dd.ccond=S.ccond; dd.mtpl=S.mtpl; dd.mdef=S.mdef; dd.qid=S.qid; S=normalize(dd); reload=true; }
   } else if(S.qid&&!DB.quotes.some(function(x){ return x.id===S.qid; })){ S.qid=''; }
   if(reload){ S=normalize(S); doSave(); renderAll(); }
-  lastSet=JSON.stringify([S.company,S.profile,S.style,S.trust,S.cat,S.cgroups,S.ccond||{},S.mtpl,S.mdef]);
+  lastSez=sezStampa();
 }
 function gdSync(interactive){
   if(gdBusy||!GD.on) return;
@@ -231,12 +221,13 @@ function ghSync(interactive,tent){
     if(!serve) return null;
     return ghfPayload(ro).then(function(o){
       o.disp=autoDispositivi(ro&&ro.disp);
-      var txt=JSON.stringify(o); GH.peso=txt.length; GH.nfoto=Object.keys(o.foto||{}).length;
+      BASEO=o; var txt=JSON.stringify(o); GH.peso=txt.length; GH.nfoto=Object.keys(o.foto||{}).length;
       return ghPut(remoto&&remoto.sha,txt).then(function(r){ return r.json().catch(function(){ return {}; }); }).then(function(j){ scritto=true; GH.sha=(j&&j.content&&j.content.sha)||''; GH.disp=o.disp; return txt; });
     });
   }).then(function(txt){
     if(!scritto&&remoto) GH.sha=remoto.sha||'';
     if(scritto) qmodPulisci(gen0);
+    sezBase(scritto?BASEO:(remoto&&remoto.o));
     GH.etag=''; GH.last=Date.now(); GH.dirty=GH.gen!==gen0; GH.errN=0; GH.prossimo=0; GH.rete=false; AUTO.letto=GH.last; ghStore(); dbSave(true);
     autoLog(scritto?'su':'giu',mi); renderCest();
     if(mi.conf) toast(mi.conf===1?'Un preventivo era stato cambiato su due dispositivi: ho tenuto tutte e due le versioni':'Alcuni preventivi erano stati cambiati su due dispositivi: ho tenuto tutte e due le versioni');
@@ -257,7 +248,7 @@ function ghSync(interactive,tent){
 function ghPrepara(){
   if(!dbReady||!S) return;
   var demo=false; try{ demo=Object.keys(libDemo()).length>0; }catch(e){}
-  if(S.qid) saveQuote(true); else if(S.lines.length&&!demo) saveQuote(true);
+  if(S.qid) saveQuote(true); else if(S.lines.length&&!demo&&QDV['']!==docVer) saveQuote(true);
 }
 $('gh-on').addEventListener('click',function(){
   var repo=ghClean($('gh-repo').value), tok=$('gh-token').value.trim();

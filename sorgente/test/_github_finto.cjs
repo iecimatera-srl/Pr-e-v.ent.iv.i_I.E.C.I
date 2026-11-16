@@ -13,14 +13,19 @@ async function finto(ctx,repo){
       if(ref&&m==='GET'){ const v=stato.storia.find(x=>x.sha===ref); if(!v) return r.fulfill({status:404,body:'{}'}); stato.get++; return r.fulfill({status:200,contentType:'application/octet-stream',body:Buffer.from(v.b64,'base64')}); }
       const f=stato.files[pth];
       if(m==='PUT'){ const b=JSON.parse(r.request().postData()); if(f&&b.sha!==f.sha) return r.fulfill({status:f&&!b.sha?422:409,body:'{}'}); stato.files[pth]={sha:'s'+(++stato.n),b64:b.content}; stato.put++; if(pth===FILE) stato.storia.push({sha:stato.files[pth].sha,b64:b.content}); return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({content:{sha:stato.files[pth].sha}})}); }
+      // cartella (es. «copie»): elenco dei file
+      if(!f&&m==='GET'&&Object.keys(stato.files).some(k=>k.startsWith(pth+'/'))) return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(Object.keys(stato.files).filter(k=>k.startsWith(pth+'/')).map(k=>({name:k.slice(pth.length+1),path:k,sha:stato.files[k].sha})))});
       if(!f||stato.rotte.has(pth)) return r.fulfill({status:404,body:'{}'});
+      // come GitHub: con If-None-Match uguale risponde 304 senza dati (non conta come richiesta)
+      const inm=r.request().headers()['if-none-match'];
+      if(!raw&&inm&&inm==='"'+f.sha+'"'){ stato.n304=(stato.n304||0)+1; return r.fulfill({status:304,headers:{'etag':'"'+f.sha+'"','access-control-expose-headers':'ETag'},body:''}); }
       stato.get++;
-      if(!raw) return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({sha:f.sha})});
+      if(!raw){ stato.meta=(stato.meta||0)+1; return r.fulfill({status:200,contentType:'application/json',headers:{'etag':'"'+f.sha+'"','access-control-expose-headers':'ETag'},body:JSON.stringify({sha:f.sha})}); }
       return r.fulfill({status:200,contentType:'application/octet-stream',body:Buffer.from(f.b64,'base64')});
     }
     return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({private:true})});
   });
-  await ctx.addInitScript((repo)=>{ try{ if(!localStorage.getItem('ieci-gh')) localStorage.setItem('ieci-gh',JSON.stringify({repo:repo,token:'github_pat_prova',on:true,auto:true,every:10})); }catch(e){} },repo||'iecimatera/preventivi-ieci-dati');
+  await ctx.addInitScript((repo)=>{ try{ if(!localStorage.getItem('ieci-gh')) localStorage.setItem('ieci-gh',JSON.stringify({repo:repo,token:'github_pat_prova',on:true})); }catch(e){} },repo||'iecimatera/preventivi-ieci-dati');
 }
 function grezzo(){ const f=stato.files[FILE]; return f?JSON.parse(Buffer.from(f.b64,'base64').toString('utf8')):null; }
 function archivio(){

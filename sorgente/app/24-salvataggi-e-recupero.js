@@ -22,7 +22,7 @@ function copiaDelGiorno(){ if(!IDB||!dbReady||dbEmpty()) return; snapList(functi
 function renderSnaps(){
   var el=$('sn-list'); if(!el) return;
   snapList(function(a){
-    el.innerHTML=a.map(function(s,i){ return '<div class="rowc"><div style="flex:1;min-width:0"><b>'+esc(stamp(s.t))+'</b><div class="hint">'+esc(s.why)+' · versione '+esc(s.ver)+' · '+Math.round(s.json.length/1024)+' KB</div></div><button class="btn sm ghost" data-snap="'+i+'" type="button">Ripristina</button></div>'; }).join('')||'<p class="hint">Le copie compaiono qui da sole, prima che una nuova versione tocchi i tuoi dati (ne tengo 3). Per ora non ce ne sono.</p>';
+    el.innerHTML=a.map(function(s,i){ return '<div class="rowc"><div style="flex:1;min-width:0"><b>'+esc(stamp(s.t))+'</b><div class="hint">'+esc(s.why)+' · versione '+esc(s.ver)+' · '+Math.round(s.json.length/1024)+' KB</div></div><button class="btn sm ghost" data-snap="'+i+'" type="button">Ripristina</button></div>'; }).join('')||'<p class="hint">Le copie compaiono qui da sole, una al giorno e prima che una nuova versione tocchi i tuoi dati (ne tengo 6). Per ora non ce ne sono.</p>';
   });
 }
 $('sn-list').addEventListener('click',function(e){

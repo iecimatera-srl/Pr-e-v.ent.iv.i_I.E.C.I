@@ -25,8 +25,20 @@
         <div class="lines" id="rc-list"></div>
         
         </div></details>
-        <details class="acc" id="acc-sync"><summary><span>Sincronizza telefono e computer</span></summary><div class="accb">
-        <h3>GitHub privato (consigliato)</h3>
+        <details class="acc" id="acc-sync" open><summary><span>Salvataggio automatico su GitHub <small class="acc-sub">telefono e computer sempre uguali, senza premere niente</small></span><em id="as-em"></em></summary><div class="accb">
+        <div class="as-box" id="as-box" hidden>
+          <div class="as-top" id="as-top" aria-live="polite"></div>
+          <ul class="as-come">
+            <li><b>Salva da solo.</b> Ogni modifica è subito al sicuro su questo dispositivo e arriva su GitHub entro pochi secondi. Se chiudi o cambi app, salva all'istante.</li>
+            <li><b>Telefono e computer insieme.</b> Mentre l'app è aperta, ogni minuto guarda se sull'altro dispositivo è cambiato qualcosa e lo porta qui.</li>
+            <li><b>Senza rete non perdi niente.</b> Le modifiche aspettano sul dispositivo e partono da sole appena torna la connessione.</li>
+            <li><b>Niente si cancella davvero.</b> Se lo stesso preventivo cambia su due dispositivi tengo entrambe le versioni. Quello che elimini resta 30 giorni nel cestino. Ogni giorno c'è una copia completa su GitHub e una qui.</li>
+          </ul>
+          <div class="as-sez"><b>Dispositivi che usano questo archivio</b><div id="as-disp" class="as-disp"></div>
+            <label class="f as-nm">Nome di questo dispositivo<input type="text" id="as-nome" maxlength="30" autocomplete="off" placeholder="Windows"></label></div>
+          <div class="as-sez"><b>Ultime attività</b><ul id="as-log" class="as-log"></ul></div>
+        </div>
+        <h3>GitHub privato</h3>
         <p class="hint">Gratis. Archivio, listino, dati ditta e stile restano uguali su telefono e computer. I dati stanno in un archivio <b>privato</b> del tuo account GitHub.</p>
         <details class="sv"><summary>Prima volta? Guida passo passo (circa 5 minuti)</summary>
           <ol class="hint" style="margin:8px 0;padding-left:18px;display:flex;flex-direction:column;gap:6px">
@@ -41,9 +53,7 @@
         <label class="f">Archivio (utente/nome)<input type="text" id="gh-repo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="iltuoutente/preventivi-ieci-dati"></label>
         <label class="f">Codice di accesso<input type="password" id="gh-token" autocomplete="off" placeholder="github_pat_…"></label>
         <div class="row tokr"><button class="btn ghost sm" type="button" data-tokshow="gh-token">Mostra codice</button><button class="btn ghost sm" type="button" data-tokcp="gh-token">Copia codice</button></div>
-        <div class="row"><button class="btn" id="gh-on" type="button">Collega e sincronizza</button><button class="btn ghost" id="gh-sync" type="button">Sincronizza ora</button><button class="btn ghost" id="gh-off" type="button">Scollega</button></div>
-        <label class="chk"><input type="checkbox" id="gh-auto">Sincronizza da solo (all'apertura e dopo le modifiche)</label>
-        <label class="f gh-every">Salvataggio automatico su GitHub<select id="gh-every"><option value="0">Spento</option><option value="5">Ogni 5 minuti</option><option value="10">Ogni 10 minuti</option><option value="15">Ogni 15 minuti</option><option value="30">Ogni 30 minuti</option><option value="60">Ogni ora</option></select><small class="hint">Salva anche il preventivo che stai scrivendo e, se non è cambiato niente, non salva nulla. Salva anche quando esci dall'app.</small></label>
+        <div class="row"><button class="btn" id="gh-on" type="button">Collega e sincronizza</button><button class="btn ghost" id="gh-sync" type="button">Controlla adesso</button><button class="btn ghost" id="gh-off" type="button">Scollega</button></div>
         <p class="res" id="gh-state"></p>
           <details class="sv"><summary>Alternativa avanzata: Google Drive</summary><div class="col" style="gap:10px;margin-top:10px">
         <p class="hint">Archivio, listino, dati ditta e stile vengono salvati in una cartella riservata all'app nel tuo Drive e uniti su tutti i dispositivi. L'app non vede gli altri tuoi file.</p>
@@ -62,6 +72,15 @@
         <label class="chk"><input type="checkbox" id="gd-auto">Sincronizza da solo dopo le modifiche (mentre l'accesso è attivo)</label>
         <p class="res" id="gd-state"></p>
           </div></details>
+        </div></details>
+        <details class="acc" id="acc-tempo"><summary><span>Torna indietro nel tempo <small class="acc-sub">i preventivi com'erano nei giorni passati</small></span></summary><div class="accb">
+          <p class="hint">Ogni giorno si crea da sola una copia completa: su GitHub (cartella «copie») e su questo dispositivo. Apri un giorno e rimetti solo il preventivo che ti serve: gli altri non si toccano e la versione di adesso va nel cestino, così non perdi niente.</p>
+          <div class="row"><button type="button" class="btn" id="tp-go">Mostra le copie dei giorni passati</button></div>
+          <p class="hint" id="tp-st" aria-live="polite"></p>
+          <div class="lines tp-list" id="tp-list"></div>
+        </div></details>
+        <details class="acc" id="acc-cest"><summary><span>Cestino <small class="acc-sub">quello che elimini resta qui 30 giorni, su tutti i dispositivi</small></span><em id="cs-n"></em></summary><div class="accb">
+          <div class="lines" id="cs-list"></div>
         </div></details>
         <details class="acc" id="acc-cf" open><summary><span>Controllo foto dei preventivi <small class="acc-sub">trova e recupera le foto mancanti</small></span><em id="cf-n"></em></summary><div class="accb">
           <p class="hint">Controlla tutti i preventivi salvati su questo dispositivo. Le foto mancanti si recuperano dai file su GitHub, dalla libreria prodotti e, se serve, dalle versioni precedenti dell'archivio che GitHub conserva. Tutto avviene tra questo dispositivo e il tuo archivio privato.</p>

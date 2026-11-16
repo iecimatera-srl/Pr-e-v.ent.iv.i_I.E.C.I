@@ -140,7 +140,7 @@ function importAll(o){
   var replace=document.querySelector('input[name="imp-mode"]:checked').value==='replace';
   var d=o.db, nC=0,nP=0,nQ=0;
   if(replace){
-    DB.clients=(d.clients||[]).slice(); DB.prods=(d.prods||[]).slice(); DB.quotes=(d.quotes||[]).slice(); DB.arts=(d.arts||[]).slice(); DB.logos=(d.logos||[]).slice(); DB.parole=(d.parole||[]).slice(); DB.del=d.del||{}; DB.su=o.su||0;
+    DB.clients=(d.clients||[]).slice(); DB.prods=(d.prods||[]).slice(); DB.quotes=(d.quotes||[]).slice(); DB.arts=(d.arts||[]).slice(); DB.logos=(d.logos||[]).slice(); DB.parole=(d.parole||[]).slice(); DB.del=d.del||{}; DB.cest=d.cest||DB.cest||[]; DB.su=o.su||0;
     nC=DB.clients.length; nP=DB.prods.length; nQ=DB.quotes.length;
   } else {
     (d.clients||[]).forEach(function(c){ if(!DB.clients.some(function(x){ return lc(x.name)===lc(c.name); })){ DB.clients.push(c); nC++; } });
@@ -168,7 +168,7 @@ function svAgo(t){ if(!t) return 'mai'; var d=Math.floor((Date.now()-t)/86400000
 function svDash(){
   var el=$('sv-dash'); if(!el) return;
   var lb=DB.lastBackup||0, ch=DB.lastChange||0, old=!lb||ch>lb&&Date.now()-lb>86400000*3, gh=!!(GH&&GH.on), gd=!!(GD&&GD.on);
-  var sy=gh?('GitHub attivo'+(GH.last?' · '+svAgo(GH.last):'')):gd?('Google Drive attivo'+(GD.last?' · '+svAgo(GD.last):'')):'Non attiva';
+  var sy=gh?('Automatica su GitHub'+(GH.last?' · '+svAgo(GH.last):'')):gd?('Google Drive attivo'+(GD.last?' · '+svAgo(GD.last):'')):'Non attiva';
   el.innerHTML='<div class="t"><small>Preventivi</small><b>'+DB.quotes.length+'</b></div><div class="t"><small>Clienti</small><b>'+DB.clients.length+'</b></div><div class="t"><small>Prodotti</small><b>'+DB.prods.length+'</b></div>'+
     '<div class="t '+(old?'warn':'ok')+'"><small>Ultima copia</small><b>'+svAgo(lb)+'</b></div>'+
     '<div class="t '+((gh||gd)?'ok':'')+'"><small>Sincronizzazione</small><b>'+esc(sy)+'</b></div>'+

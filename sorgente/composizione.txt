@@ -18,6 +18,7 @@ css/15-listino.css
 css/16-oggi.css
 css/17-rapido.css
 css/18-trascina.css
+css/19-salvataggio.css
 html/01-inizio.html
 html/01b-oggi.html
 html/02-archivio.html
@@ -74,6 +75,7 @@ app/21-archivio.js
 app/22-sincronizzazione-drive-github.js
 app/22b-foto-github.js
 app/22c-controllo-foto.js
+app/22d-salvataggio-continuo.js
 app/23-fornitori-e-lettura-pdf.js
 app/24-salvataggi-e-recupero.js
 app/24b-libreria-prodotti.js

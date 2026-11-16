@@ -42,34 +42,30 @@ ok(await S(()=>document.getElementById('gh-chip').dataset.st==='ok'),'riprovando
 st=await S(()=>{ const c=document.getElementById('gh-chip').getBoundingClientRect(), h=document.querySelector('header.top h1').getBoundingClientRect(); return {sov:!(c.right<=h.left||c.left>=h.right||c.bottom<=h.top||c.top>=h.bottom),w:Math.round(c.width)}; });
 ok(!st.sov&&st.w<=40,'sul telefono è solo un\'icona e non copre il nome');
 
-// 1b. salvataggio automatico ogni tot minuti
-await A.mostra(p,'#gh-every');
-st=await S(()=>({v:document.getElementById('gh-every').value,o:[...document.querySelectorAll('#gh-every option')].map(o=>o.value).join()}));
-ok(st.v==='10'&&st.o==='0,5,10,15,30,60','«Salvataggio automatico su GitHub»: di base ogni 10 minuti (spento, 5, 10, 15, 30, 60)');
-await p.selectOption('#gh-every','5'); await p.waitForTimeout(200);
-ok(await S(()=>window.IECI_T.GH().every===5&&JSON.parse(localStorage.getItem('ieci-gh')).every===5),'scelta ricordata: ogni 5 minuti');
-// niente cambiato: nessun salvataggio inutile
-let p1=puts; await S(()=>{ window.IECI_T.GH().last=Date.now()-6*60000; window.IECI_T.ghTick(false); }); await p.waitForTimeout(1500);
-ok(puts===p1,'passati 5 minuti senza modifiche: non salva nulla');
-// preventivo aperto modificato (senza premere Salva): dopo 5 minuti va in archivio e su GitHub da solo
+// 1b. salvataggio automatico continuo: niente da scegliere, niente da premere
+ok(await S(()=>!document.getElementById('gh-every')&&!document.getElementById('gh-auto')),'niente da scegliere: il salvataggio su GitHub è sempre automatico');
+await S(()=>{ window.IECI_AUTO={quiete:1500,max:4000,poll:3000,ritorno:0}; });
+await p.waitForTimeout(800);
+let p1=puts; await S(()=>window.IECI_T.auto.vai()); await p.waitForTimeout(1500);
+ok(puts===p1,'senza modifiche: non salva nulla');
+// preventivo aperto modificato, senza premere niente: pochi secondi dopo è su GitHub
 await S(()=>{ const s=window.IECI_T.S(); s.meta.title='Modifica non salvata a mano'; window.IECI_T.touch(); }); await p.waitForTimeout(300);
-ok(await S(()=>document.getElementById('gh-chip').dataset.st==='dirty'),'il comando in alto segnala la modifica ancora da salvare');
-await S(()=>{ window.IECI_T.GH().last=Date.now()-2*60000; window.IECI_T.ghTick(false); }); await p.waitForTimeout(800);
-ok(puts===p1,'prima dei 5 minuti (ultimo salvataggio 2 minuti fa) non salva');
-await S(()=>{ window.IECI_T.GH().last=Date.now()-6*60000; window.IECI_T.ghTick(false); }); await p.waitForFunction(()=>document.getElementById('gh-chip').dataset.st==='ok',null,{timeout:15000}).catch(()=>{});
-ok(puts===p1+1&&/Modifica non salvata a mano/.test(store||''),'dopo 5 minuti: preventivo aperto salvato e sincronizzato da solo');
+st=await S(()=>{ const c=document.getElementById('gh-chip'); return {st:c.dataset.st,tx:c.textContent+' '+c.title}; });
+ok(st.st==='dirty'&&/Salvo tra poco/.test(st.tx),'subito dopo la modifica il comando in alto dice «Salvo tra poco» (non serve premere)');
+await p.waitForFunction(()=>document.getElementById('gh-chip').dataset.st==='ok',null,{timeout:20000}).catch(()=>{});
+ok(puts>p1&&/Modifica non salvata a mano/.test(store||''),'qualche secondo dopo: preventivo aperto salvato su GitHub da solo ('+(puts-p1)+' salvataggi)');
 // preventivo nuovo, mai salvato: anche lui finisce in archivio e su GitHub
-await S(()=>{ const s=window.IECI_T.S(); s.qid=''; s.client={name:'Cliente Automatico',addr:'',tel:'',email:'',cf:''}; s.lines=[{d:'Punto luce semplice',u:'pt',q:3,p:45,s:0}]; window.IECI_T.touch(); window.IECI_T.GH().last=Date.now()-6*60000; window.IECI_T.ghTick(false); });
-await p.waitForFunction(()=>document.getElementById('gh-chip').dataset.st==='ok',null,{timeout:15000}).catch(()=>{});
-ok(/Cliente Automatico/.test(store||'')&&await S(()=>window.IECI_T.DB().quotes.some(q=>q.client==='Cliente Automatico')),'anche un preventivo nuovo mai salvato finisce in archivio e su GitHub');
-// uscendo dall'app con una modifica: salva subito
+await S(()=>{ const s=window.IECI_T.S(); s.qid=''; s.client={name:'Cliente Automatico',addr:'',tel:'',email:'',cf:''}; s.lines=[{d:'Punto luce semplice',u:'pt',q:3,p:45,s:0}]; window.IECI_T.touch(); });
+await p.waitForFunction(()=>window.IECI_T.DB().quotes.some(q=>q.client==='Cliente Automatico'),null,{timeout:15000}).catch(()=>{});
+await p.waitForTimeout(400); await p.waitForFunction(()=>document.getElementById('gh-chip').dataset.st==='ok',null,{timeout:20000}).catch(()=>{});
+ok(/Cliente Automatico/.test(store||'')&&await S(()=>window.IECI_T.DB().quotes.some(q=>q.client==='Cliente Automatico')),'anche un preventivo nuovo mai salvato finisce in archivio e su GitHub da solo');
+// uscendo dall'app con una modifica: salva subito, senza aspettare
+await S(()=>{ window.IECI_AUTO={quiete:60000,max:60000,poll:60000,ritorno:0}; });
 p1=puts; await S(()=>{ window.IECI_T.S().meta.title='Uscita dall app'; window.IECI_T.touch(); Object.defineProperty(document,'hidden',{configurable:true,get:()=>true}); document.dispatchEvent(new Event('visibilitychange')); });
 await p.waitForFunction(()=>document.getElementById('gh-chip').dataset.st==='ok',null,{timeout:15000}).catch(()=>{});
 await S(()=>{ delete document.hidden; });
 ok(puts===p1+1&&/Uscita dall app/.test(store||''),'passando a un\'altra app con modifiche: salva subito su GitHub');
-await p.selectOption('#gh-every','0'); p1=puts; await S(()=>{ window.IECI_T.S().meta.title='Spento'; window.IECI_T.touch(); window.IECI_T.GH().last=Date.now()-99*60000; window.IECI_T.ghTick(false); }); await p.waitForTimeout(1200);
-ok(puts===p1,'spento: non salva da solo');
-await p.selectOption('#gh-every','10');
+await S(()=>{ window.IECI_AUTO={}; });
 
 // 2. logo della marca: grandezza regolabile
 await S(l=>{ const s=window.IECI_T.S(); s.trust.bgroups=[{id:'bg0',t:'Marchi',items:[{name:'Hager',img:l}]}];

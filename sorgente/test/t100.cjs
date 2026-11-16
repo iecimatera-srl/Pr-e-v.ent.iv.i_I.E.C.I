@@ -20,7 +20,9 @@ ok(nf-extra===36,'36 foto diverse → 36 file nella cartella «foto/» (ognuna u
 ok(txt.length<300*1024&&!/data:image\/[a-z]+;base64,.{1500}/.test(txt),'il file dell\'archivio resta leggero ('+Math.round(txt.length/1024)+' KB invece di '+Math.round(pesoInLinea/1024)+' KB) e senza foto dentro');
 ok(new RegExp(nf+' foto come file a parte').test(msg),'il messaggio lo dice: «'+msg.slice(0,140)+'»');
 const p1=G.stato.put; await sinc(W);
-ok(G.stato.put===p1+1,'sincronizzando di nuovo senza cambiare nulla non ricarica nessuna foto (solo l\'archivio)');
+ok(G.stato.put===p1,'sincronizzando di nuovo senza cambiare nulla non scrive niente su GitHub (né foto né archivio)');
+const p1b=G.stato.put; await W.evaluate(()=>window.IECI_T.ghSync(true)); await W.waitForTimeout(150); await W.waitForFunction(()=>!window.IECI_T.ghBusy(),null,{timeout:60000});
+ok(G.stato.put===p1b+1,'anche premendo «Controlla adesso» riscrive solo l\'archivio, nessuna foto ricaricata');
 // telefono nuovo: scarica tutto, poi solo quello che manca
 const T=await disp('Android',{width:390,height:844});
 const g0=G.stato.get; await sinc(T);

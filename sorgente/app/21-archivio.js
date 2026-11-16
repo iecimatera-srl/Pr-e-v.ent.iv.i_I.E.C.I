@@ -1,14 +1,14 @@
 /* ---------- archivio: clienti, libreria prodotti, preventivi salvati ---------- */
 var pendDel=null, pendT=0;
 function dbSave(ns){
-  if(!dbReady) return; mirSoon(); if(!ns){ DB.lastChange=Date.now(); gdPushSoon(); if(typeof ghPushSoon==='function') ghPushSoon(); } clearTimeout(dbT);
+  if(!dbReady) return; mirSoon(); if(typeof cestOsserva==='function') cestOsserva(); if(!ns){ DB.lastChange=Date.now(); gdPushSoon(); if(typeof ghPushSoon==='function') ghPushSoon(); } clearTimeout(dbT);
   dbT=setTimeout(function(){
     if(IDB){ try{ var tx=IDB.transaction('kv','readwrite'); tx.objectStore('kv').put(DB,DBKEY); tx.onerror=tx.onabort=function(){ warnStore(); }; }catch(e){ warnStore(); } }
     else { try{ localStorage.setItem(DBKEY,JSON.stringify(DB)); }catch(e){ warnStore(); } }
   },300);
 }
 function dbLoad(cb){
-  function fin(d){ if(d&&typeof d==='object'){ DB.clients=d.clients||[]; DB.prods=d.prods||[]; DB.quotes=d.quotes||[]; DB.arts=d.arts||[]; DB.logos=d.logos||[]; DB.parole=d.parole||[]; DB.del=d.del||{}; DB.libNo=d.libNo||[]; DB.libMig=d.libMig||0; DB.su=d.su||0; DB.lastBackup=d.lastBackup||0; DB.lastChange=d.lastChange||0; } dbReady=true; if(cb) cb(); }
+  function fin(d){ if(d&&typeof d==='object'){ DB.clients=d.clients||[]; DB.prods=d.prods||[]; DB.quotes=d.quotes||[]; DB.arts=d.arts||[]; DB.logos=d.logos||[]; DB.parole=d.parole||[]; DB.del=d.del||{}; DB.cest=d.cest||[]; DB.libNo=d.libNo||[]; DB.libMig=d.libMig||0; DB.su=d.su||0; DB.lastBackup=d.lastBackup||0; DB.lastChange=d.lastChange||0; } dbReady=true; if(cb) cb(); }
   if(IDB){ try{ var q=IDB.transaction('kv').objectStore('kv').get(DBKEY); q.onsuccess=function(){ fin(q.result); }; q.onerror=function(){ fin(null); }; }catch(e){ fin(null); } }
   else { var r=null; try{ r=JSON.parse(localStorage.getItem(DBKEY)); }catch(e){} fin(r); }
 }
@@ -86,15 +86,15 @@ function saveQuote(silent){
     S.lines.forEach(function(l){ var d=String(l.d||'').trim(); if(d&&num(l.p)>0&&!cat.some(function(it){ return lc(it[0])===lc(d); })){ cat.push([d,l.u||'cad',num(l.p)]); n++; } });
     if(n) renderCat();
   }
-  var meta={id:S.qid,num:S.meta.num,st:S.meta.status||'bozza',name:quoteName(),title:docTitle(),client:S.client.name,tot:acceptedCalc().tot,upd:Date.now(),model:S.model};
+  var meta={id:S.qid,num:S.meta.num,st:S.meta.status||'bozza',name:quoteName(),title:docTitle(),client:S.client.name,tot:acceptedCalc().tot,upd:Date.now(),model:S.model,dvn:devNome()};
   var e=DB.quotes.filter(function(q){ return q.id===S.qid; })[0];
   if(e&&!isNew&&e.data&&silent&&QDV[S.qid]===docVer&&e.tot===meta.tot&&e.name===meta.name) return;
   if(e&&!isNew&&e.data&&QDV[S.qid]==null){ var d0=JSON.parse(JSON.stringify(S)); delete d0.cat; if(JSON.stringify(e.data)===JSON.stringify(d0)&&e.name===meta.name&&e.title===meta.title&&e.tot===meta.tot&&e.client===meta.client&&e.st===meta.st){ if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }
   // salvataggio automatico appena aperto un preventivo: se il contenuto è lo stesso dell'archivio non lo segno come «più recente»
   // (altrimenti un dispositivo con una copia vecchia la farebbe vincere sulla versione nuova di un altro dispositivo)
   if(e&&!isNew&&e.data&&silent&&QDV[S.qid]==null){ try{ var dn=JSON.parse(JSON.stringify(e.data)); dn.cat=S.cat; dn.cgroups=S.cgroups; if(qContenuto(normalize(dn))===qContenuto(S)&&e.st===meta.st){ QDV[S.qid]=docVer; return; } }catch(x){} }
-  if(!e){ e=meta; DB.quotes.push(e); } else { Object.keys(meta).forEach(function(k){ e[k]=meta[k]; }); }
-  var d=JSON.parse(JSON.stringify(S)); delete d.cat; e.data=d; QDV[S.qid]=docVer;
+  if(!e){ e=meta; DB.quotes.push(e); } else { if(!(GH.qmod||{})[e.id]) e.bu=e.upd||0; Object.keys(meta).forEach(function(k){ e[k]=meta[k]; }); }
+  var d=JSON.parse(JSON.stringify(S)); delete d.cat; e.data=d; QDV[S.qid]=docVer; qmodSegna(e.id);
   dbSave(); renderArchivio(); if(isNew) save();
   if(!silent) toast('Preventivo salvato nell\'archivio');
 }
@@ -148,7 +148,7 @@ function renderArchivio(){
   var an=$('acc-save-n'); if(an) an.textContent=DB.quotes.length?String(DB.quotes.length):'';
   $('q-list').innerHTML=Q.map(function(q){
     var cur=q.id===S.qid;
-    return '<div class="rowc"><div style="flex:1 1 200px;min-width:0"><b>'+esc(qName(q))+(cur?' <span class="hint">(aperto)</span>':'')+'</b> <button type="button" class="chip st-'+qSt(q)+'" data-qst="'+q.id+'" title="Tocca per cambiare stato">'+STL[qSt(q)]+'</button><div class="hint">n. '+esc(q.num)+' · '+esc(q.title)+' · '+esc(MODELS[q.model]?MODELS[q.model].short:'')+' · '+esc(dateIt(new Date(q.upd).toISOString().slice(0,10)))+' · '+eur(q.tot)+'</div></div>'+
+    return '<div class="rowc'+(q.conf?' qconf':'')+'"><div style="flex:1 1 200px;min-width:0"><b>'+esc(qName(q))+(cur?' <span class="hint">(aperto)</span>':'')+'</b> '+(q.conf?'<span class="qconf-b" title="Questo preventivo era stato cambiato su due dispositivi insieme: questa è l\'altra versione, tenuta da parte. Se non ti serve, eliminala.">Versione di '+esc(q.conf.dv||'un altro dispositivo')+' · '+esc(stamp(q.conf.t||q.upd))+'</span> ':'')+'<button type="button" class="chip st-'+qSt(q)+'" data-qst="'+q.id+'" title="Tocca per cambiare stato">'+STL[qSt(q)]+'</button><div class="hint">n. '+esc(q.num)+' · '+esc(q.title)+' · '+esc(MODELS[q.model]?MODELS[q.model].short:'')+' · '+esc(dateIt(new Date(q.upd).toISOString().slice(0,10)))+' · '+eur(q.tot)+'</div></div>'+
       '<button type="button" class="btn sm" data-qo="'+q.id+'">Apri</button><button type="button" class="btn ghost sm" data-qc="'+q.id+'">Duplica</button><button type="button" class="btn x" data-qx="'+q.id+'" aria-label="Elimina">×</button></div>';
   }).join('')||'<div class="empty">'+(DB.quotes.length?'Nessun risultato.':'Nessun preventivo salvato. Premi «Salva preventivo».')+'</div>';
   var C=DB.clients.filter(function(c){ return !fc||lc(c.name+' '+c.addr+' '+c.tel+' '+(c.email||'')+' '+(c.cf||'')).indexOf(fc)>-1; });

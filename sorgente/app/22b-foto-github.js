@@ -72,7 +72,7 @@ function ghfMancanti(){ try{ return ghfRif({db:{quotes:DB.quotes,prods:DB.prods,
 // il file dell'archivio da mettere su GitHub: leggero, con le foto come riferimenti
 // versione minima dell'app che sa leggere l'archivio con le foto come file a parte: un dispositivo più vecchio
 // (che rispetta questo controllo) non unisce e non scrive nulla, e chiede di aggiornare
-var GH_MIN='2026.11.16.5';
+var GH_MIN='2026.11.16.6';
 function verCmp(a,b){ a=String(a||'0').split('.'); b=String(b||'0').split('.'); for(var i=0;i<Math.max(a.length,b.length);i++){ var x=+a[i]||0, y=+b[i]||0; if(x!==y) return x<y?-1:1; } return 0; }
 function ghfPayload(remoto){
   var o=JSON.parse(JSON.stringify(buildPayload())), tr=ghfEstrai(o);

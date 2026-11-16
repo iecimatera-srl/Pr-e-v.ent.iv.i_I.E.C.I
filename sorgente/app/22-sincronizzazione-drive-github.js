@@ -57,7 +57,7 @@ function settingsStamp(){
   lastSet=h;
 }
 function buildPayload(){
-  return {tipo:'archivio-preventivi-ieci',v:2,su:DB.su||0,db:{clients:DB.clients,prods:DB.prods,quotes:DB.quotes,arts:DB.arts,logos:DB.logos||[],parole:DB.parole||[],del:DB.del||{}},cat:S.cat,cgroups:S.cgroups,company:S.company,profile:S.profile,style:S.style,trust:S.trust,ccond:S.ccond||{},mtpl:S.mtpl,mdef:S.mdef,menu:MENU};
+  return {tipo:'archivio-preventivi-ieci',v:2,su:DB.su||0,db:{clients:DB.clients,prods:DB.prods,quotes:DB.quotes,arts:DB.arts,logos:DB.logos||[],parole:DB.parole||[],del:DB.del||{},cest:DB.cest||[]},cat:S.cat,cgroups:S.cgroups,company:S.company,profile:S.profile,style:S.style,trust:S.trust,ccond:S.ccond||{},mtpl:S.mtpl,mdef:S.mdef,menu:MENU};
 }
 /* loghi delle marche e parole imparate: uno per chiave, vince il più recente */
 function mergeByKey(name,arr,key,del){
@@ -65,10 +65,24 @@ function mergeByKey(name,arr,key,del){
   (arr||[]).forEach(function(a){ if(!a) return; var k=key(a), ex=L.filter(function(x){ return key(x)===k; })[0]; if(!ex) L.push(a); else if((a.upd||0)>(ex.upd||0)) L[L.indexOf(ex)]=a; });
   DB[name]=L.filter(function(x){ return !(del||{})[x.id]; }); if(name==='logos') DB.logos.sort(byName);
 }
+/* MI: mentre si unisce l'archivio di GitHub conta cosa arriva (nuovi, aggiornati), i conflitti e soprattutto
+   se qui c'è qualcosa che lassù manca (mie): solo allora serve riscrivere l'archivio su GitHub */
+var MI=null;
 function gdMerge(o){
   if(!o||o.tipo!=='archivio-preventivi-ieci'||!o.db) return;
-  var d=o.db, replaced=[], del=DB.del||(DB.del={});
+  var d=o.db, replaced=[], del=DB.del||(DB.del={}), mi=MI||{}, qm=(GH&&GH.qmod)||{};
+  mi.mie=mi.mie||0;
+  Object.keys(del).forEach(function(k){ if(!(d.del||{})[k]||(d.del[k]<del[k])) mi.mie++; });
   Object.keys(d.del||{}).forEach(function(k){ del[k]=Math.max(del[k]||0,d.del[k]); });
+  // ciò che c'è qui e non lassù
+  var rc={}, rp={}, rq={}, ra={};
+  (d.clients||[]).forEach(function(c){ rc[lc(c.name)]=1; }); (d.prods||[]).forEach(function(p){ rp[lc(p.name)+'|'+lc(p.code)]=p; }); (d.quotes||[]).forEach(function(q){ rq[q.id]=q; }); (d.arts||[]).forEach(function(a){ ra[a.id]=a; ra[artKey(a)]=a; });
+  DB.clients.forEach(function(c){ if(!rc[lc(c.name)]&&!del[c.id]) mi.mie++; });
+  DB.prods.forEach(function(p){ var r=rp[lc(p.name)+'|'+lc(p.code)]; if(del[p.id]) return; if(!r||(p.upd||0)>(r.upd||0)||(p.phu||0)>(r.phu||0)) mi.mie++; });
+  DB.quotes.forEach(function(q){ var r=rq[q.id]; if(del[q.id]) return; if(!r||(q.upd||0)>(r.upd||0)) mi.mie++; else if((q.upd||0)===(r.upd||0)&&phUnisciQuote(r,q)) mi.mie++; });
+  DB.arts.forEach(function(a){ var r=ra[a.id]||ra[artKey(a)]; if(del[a.id]) return; if(!r||(a.upd||0)>(r.upd||0)) mi.mie++; });
+  if((DB.su||0)>(o.su||0)) mi.mie++;
+  if(cestUnisci(d.cest)) mi.mie++;
   (d.clients||[]).forEach(function(c){ if(!DB.clients.some(function(x){ return lc(x.name)===lc(c.name); })) DB.clients.push(c); });
   // libreria prodotti: le schede nuove si aggiungono; in quelle che ci sono già arrivano le foto più recenti e i dati che mancano
   (d.prods||[]).forEach(function(p){ var ex=DB.prods.filter(function(x){ return lc(x.name)===lc(p.name)&&lc(x.code)===lc(p.code); })[0];
@@ -77,9 +91,13 @@ function gdMerge(o){
     if((p.upd||0)>(ex.upd||0)){ if(num(p.lp)>0){ ex.lp=p.lp; ex.lu=p.lu; } ex.upd=p.upd; } });
   (d.quotes||[]).forEach(function(q){
     var ex=DB.quotes.filter(function(x){ return x.id===q.id; })[0];
-    if(!ex) DB.quotes.push(q);
-    else if(q.upd>ex.upd){ phUnisciQuote(q,ex); DB.quotes[DB.quotes.indexOf(ex)]=q; replaced.push(q.id); }
-    else if(phUnisciQuote(ex,q)) replaced.push(ex.id); // la versione di qui resta, ma con le foto più recenti dell'altra
+    if(!ex){ if(!del[q.id]){ DB.quotes.push(q); mi.nuovi=(mi.nuovi||0)+1; } return; }
+    /* lo stesso preventivo cambiato qui (e non ancora su GitHub) e anche su un altro dispositivo: vince il più
+       recente, l'altra versione NON si perde, resta nell'archivio come copia segnata. «bu» è la versione da cui
+       sono partite le modifiche di qui: se lassù c'è ancora quella, nessun conflitto (non conta l'orologio) */
+    var due=!!qm[ex.id]&&(q.upd||0)!==(ex.bu||0)&&(q.upd||0)!==(ex.upd||0)&&qDiverso(ex,q);
+    if(q.upd>ex.upd){ if(due){ copiaConflitto(ex); mi.conf=(mi.conf||0)+1; mi.mie++; } delete qm[ex.id]; if(phUnisciQuote(q,ex)) mi.mie++; DB.quotes[DB.quotes.indexOf(ex)]=q; replaced.push(q.id); mi.agg=(mi.agg||0)+1; }
+    else { if(due){ copiaConflitto(q); ex.bu=q.upd; mi.conf=(mi.conf||0)+1; } if(phUnisciQuote(ex,q)) replaced.push(ex.id); } // la versione di qui resta, ma con le foto più recenti dell'altra
   });
   (d.arts||[]).forEach(function(a){ var ex=DB.arts.filter(function(x){ return x.id===a.id||artKey(x)===artKey(a); })[0]; if(!ex) DB.arts.push(a); else if((a.upd||0)>(ex.upd||0)) DB.arts[DB.arts.indexOf(ex)]=a; });
   DB.arts=DB.arts.filter(function(x){ return !del[x.id]; }).sort(byName);
@@ -124,29 +142,32 @@ function gdPushSoon(){
   clearTimeout(gdT); gdT=setTimeout(function(){ gdSync(false); },20000);
 }
 /* ---------- GitHub (archivio privato, file JSON) ---------- */
-var GH={repo:'',token:'',on:false,auto:true,last:0,err:'',dirty:false,every:10}, ghBusy=false, ghT=0, GHFILE='archivio-preventivi-ieci.json';
-function ghLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-gh')||'{}'); GH.repo=o.repo||''; GH.token=o.token||''; GH.on=!!o.on; GH.auto=o.auto!==false; GH.last=o.last||0; GH.every=o.every!=null?Math.max(0,+o.every||0):10; GH.dirty=!!o.dirty; }catch(e){} }
+var GH={repo:'',token:'',on:false,auto:true,last:0,err:'',dirty:false,sha:'',etag:'',errN:0,prossimo:0,rete:false,dev:'',nome:'',copiaGh:'',disp:{},gen:0}, ghBusy=false, ghT=0, GHFILE='archivio-preventivi-ieci.json';
+function ghLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-gh')||'{}'); GH.repo=o.repo||''; GH.token=o.token||''; GH.on=!!o.on; GH.auto=true; GH.last=o.last||0; GH.dirty=!!o.dirty; GH.sha=o.sha||''; GH.errN=o.errN||0; GH.prossimo=o.prossimo||0; GH.dev=o.dev||''; GH.nome=o.nome||''; GH.copiaGh=o.copiaGh||''; GH.disp=o.disp||{}; GH.err=o.err||''; GH.rete=!!o.rete; }catch(e){}
+  if(!GH.dev){ GH.dev='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); ghStore(); } }
 function ghStore(){ try{ localStorage.setItem('ieci-gh',JSON.stringify(GH)); }catch(e){} }
 function ghStatus(t){ var el=$('gh-state'); if(el) el.textContent=t; ghChip(); }
 // comando sempre in alto nella prima schermata: stato della sincronizzazione e un tocco per salvare e sincronizzare
 function ghOpenDirty(){ return !!(S&&S.qid&&QDV[S.qid]!=null&&QDV[S.qid]!==docVer); }
 function ghChip(){
   if(!GH) return; var b=$('gh-chip'), t=$('gh-chip-t'); if(!b||!t) return;
-  var auto=GH.every>0?' Salvataggio automatico ogni '+GH.every+' minuti.':'';
+  var auto=' Il salvataggio è automatico: non serve premere niente.';
   var st, tx, tip, ora=GH.last?new Date(GH.last).toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'}):'';
   if(!GH.on){ st='off'; tx='Collega GitHub'; tip='GitHub non collegato: tocca per collegarlo e tenere uguali telefono e computer'; }
-  else if(ghBusy){ st='run'; tx='Sincronizzo…'; tip='Salvataggio su GitHub in corso'; }
+  else if(ghBusy){ st='run'; tx='Salvo…'; tip='Salvataggio su GitHub in corso'; }
+  else if(GH.err&&GH.rete){ st='net'; tx='Offline'; tip='Nessuna connessione: le modifiche sono al sicuro su questo dispositivo e vanno su GitHub da sole appena torna la rete. Tocca per riprovare.'; }
   else if(GH.err){ st='err'; tx='Riprova'; tip='Sincronizzazione non riuscita: '+GH.err+' Tocca per riprovare.'; }
-  else if(GH.dirty||ghOpenDirty()){ st='dirty'; tx='Da salvare'; tip='Ci sono modifiche non ancora su GitHub: tocca per salvare e sincronizzare.'+auto; }
-  else { st='ok'; tx=ora?'Sincronizzato '+ora:'Sincronizzato'; tip='Tutto salvato su GitHub'+(GH.last?' ('+new Date(GH.last).toLocaleString('it-IT')+')':'')+'. Tocca per salvare e sincronizzare ora.'+auto; }
+  else if(GH.dirty||ghOpenDirty()){ st='dirty'; tx='Salvo tra poco'; tip='Modifiche al sicuro su questo dispositivo: vanno su GitHub da sole tra pochi secondi. Tocca per salvarle subito.'; }
+  else { st='ok'; tx=ora?'Salvato '+ora:'Salvato'; tip='Tutto salvato su GitHub'+(GH.last?' ('+new Date(GH.last).toLocaleString('it-IT')+')':'')+'. Tocca per controllare subito.'+auto; }
   b.setAttribute('data-st',st); t.textContent=tx; b.title=tip; b.setAttribute('aria-label',tip);
+  if(typeof autoRender==='function') autoRender();
 }
 function ghClean(v){ return String(v||'').trim().replace(/^https?:\/\/github\.com\//i,'').replace(/\.git$/i,'').replace(/^\/+|\/+$/g,''); }
 function renderGh(){
   if(!$('gh-repo')) return;
-  $('gh-repo').value=GH.repo; $('gh-token').value=GH.token; $('gh-auto').checked=GH.auto; $('gh-every').value=String(GH.every);
+  $('gh-repo').value=GH.repo; $('gh-token').value=GH.token;
   $('gh-sync').disabled=!GH.on; $('gh-off').disabled=!GH.on;
-  $('gh-on').textContent=GH.on?'Salva e sincronizza':'Collega e sincronizza';
+  $('gh-on').textContent=GH.on?'Ricollega':'Collega e sincronizza';
   if(!$('gh-state').textContent) ghStatus(GH.on?('Collegato a '+GH.repo+(GH.last?'. Ultima sincronizzazione: '+new Date(GH.last).toLocaleString('it-IT'):'')+'.'):'Non collegato.');
 }
 function ghApi(path,opt,raw,noRepo){
@@ -175,45 +196,69 @@ function ghFetchFile(){
     return ghApi('/contents/'+GHFILE,{},true).then(function(r){ return r.json(); }).then(function(o){ return {sha:m.sha,o:o}; });
   },function(e){ if(e.status===404) return null; throw e; });
 }
-function ghPut(sha,text){
-  var body={message:'Sincronizzazione '+new Date().toISOString(),content:b64utf8(text)}; if(sha) body.sha=sha;
-  return ghApi('/contents/'+GHFILE,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+function ghPut(sha,text,path,msg){
+  var body={message:msg||('Salvataggio da '+devNome()+' · '+new Date().toLocaleString('it-IT')),content:b64utf8(text)}; if(sha) body.sha=sha;
+  return ghApi('/contents/'+(path||GHFILE),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 }
-function ghSync(interactive,retry){
-  if(ghBusy||!GH.on||!GH.token||!GH.repo) return;
+/* Sincronizzazione: scarica l'archivio di GitHub, lo unisce a quello di qui e, SOLO se qui c'è qualcosa che lassù
+   manca, lo riscrive. Le modifiche fatte mentre la sincronizzazione è in corso non vanno perse (contatore GH.gen):
+   restano «da salvare» e partono subito dopo. Se nel frattempo un altro dispositivo ha scritto (409), si riparte da capo. */
+function ghSync(interactive,tent){
+  tent=tent||0;
+  if(!GH.on||!GH.token||!GH.repo) return;
+  if(ghBusy){ AUTO.ancora=true; if(interactive) AUTO.forza=true; return; }
   ghBusy=true; GH.err=''; ghStatus('Sincronizzazione in corso…');
   copiaDelGiorno();
-  if(S.qid&&dbReady) saveQuote(true);
-  clearTimeout(ghT);
-  var again=false;
-  var remoto=null;
+  if(dbReady) ghPrepara();
+  clearTimeout(AUTO.t); AUTO.t=0; AUTO.primo=0;
+  var forza=!!interactive||!!AUTO.forza; AUTO.forza=false;
+  var again=false, remoto=null, gen0=GH.gen, eraSporco=GH.dirty, mi={nuovi:0,agg:0,conf:0,via:0}, scritto=false;
   ghFetchFile().then(function(res){
     remoto=res;
     // archivio scritto da una versione dell'app più nuova di questa, in un formato che questa non sa gestire: mi fermo
     if(res&&res.o&&res.o.min&&verCmp(res.o.min,APP_VER)>0){ var ev=new Error('vecchia'); ev.vecchia=res.o.min; throw ev; }
     if(res&&res.o&&res.o.app&&verCmp(res.o.app,APP_VER)>0&&!GH.avvNuova){ GH.avvNuova=1; setTimeout(function(){ toast('Su un altro dispositivo c\'è una versione più nuova dell\'app ('+res.o.app+'): aggiorna anche questo'); },1500); }
+    if(res&&res.o&&res.o.disp) GH.disp=res.o.disp;
+    if(res&&res.o&&res.o.foto) AUTO.foto=res.o.foto;
     // prima riparo le foto rimaste qui come riferimento (da una versione vecchia), poi scarico quelle che mancano e unisco
-    return ghfRipara(res&&res.o&&res.o.foto).then(function(){ return res&&res.o?ghfScarica(res.o).then(function(){ gdMerge(res.o); }):null; });
+    return ghfRipara(res&&res.o&&res.o.foto).then(function(){ return res&&res.o?ghfScarica(res.o).then(function(){ MI=mi; try{ gdMerge(res.o); } finally { MI=null; } }):null; });
   }).then(function(){
     settingsStamp(); renderArchivio();
-    return ghfPayload(remoto&&remoto.o);
-  }).then(function(o){
-    var txt=JSON.stringify(o); GH.peso=txt.length; GH.nfoto=Object.keys(o.foto||{}).length;
-    return ghPut(remoto&&remoto.sha,txt);
-  }).then(function(){
-    GH.last=Date.now(); GH.dirty=false; ghStore(); dbSave(true); clearTimeout(ghT);
-    ghStatus('Sincronizzato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'. Archivio, listino, dati ditta e stile sono aggiornati su GitHub'+(GH.peso?' (archivio '+(GH.peso>1048576?itNum(GH.peso/1048576,0,1)+' MB':Math.max(1,Math.round(GH.peso/1024))+' KB')+(GH.nfoto?', '+GH.nfoto+' foto come file a parte':'')+')':'')+'.'+(GHFOTO.errScarico?' Attenzione: '+GHFOTO.errScarico+' foto non scaricate, riprovo alla prossima sincronizzazione.':''));
+    gen0=GH.gen;
+    var ro=remoto&&remoto.o;
+    // si scrive solo se serve: modifiche di qui, archivio assente o in un formato più vecchio, o richiesta a mano
+    var serve=forza||eraSporco||GH.dirty||mi.mie>0||!ro||ro.v!==3||!ro.min||verCmp(ro.min,GH_MIN)<0||!(ro.disp&&ro.disp[GH.dev]);
+    if(!serve) return null;
+    return ghfPayload(ro).then(function(o){
+      o.disp=autoDispositivi(ro&&ro.disp);
+      var txt=JSON.stringify(o); GH.peso=txt.length; GH.nfoto=Object.keys(o.foto||{}).length;
+      return ghPut(remoto&&remoto.sha,txt).then(function(r){ return r.json().catch(function(){ return {}; }); }).then(function(j){ scritto=true; GH.sha=(j&&j.content&&j.content.sha)||''; GH.disp=o.disp; return txt; });
+    });
+  }).then(function(txt){
+    if(!scritto&&remoto) GH.sha=remoto.sha||'';
+    if(scritto) qmodPulisci(gen0);
+    GH.etag=''; GH.last=Date.now(); GH.dirty=GH.gen!==gen0; GH.errN=0; GH.prossimo=0; GH.rete=false; AUTO.letto=GH.last; ghStore(); dbSave(true);
+    autoLog(scritto?'su':'giu',mi); renderCest();
+    if(mi.conf) toast(mi.conf===1?'Un preventivo era stato cambiato su due dispositivi: ho tenuto tutte e due le versioni':'Alcuni preventivi erano stati cambiati su due dispositivi: ho tenuto tutte e due le versioni');
+    else if(mi.nuovi+mi.agg&&!interactive) toast('Arrivati dall\'altro dispositivo: '+(mi.nuovi+mi.agg)+(mi.nuovi+mi.agg===1?' preventivo':' preventivi'));
+    ghStatus((scritto?'Salvato su GitHub alle ':'Controllato alle ')+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+(scritto?'. Archivio, listino, dati ditta e stile sono aggiornati'+(GH.peso?' (archivio '+(GH.peso>1048576?itNum(GH.peso/1048576,0,1)+' MB':Math.max(1,Math.round(GH.peso/1024))+' KB')+(GH.nfoto?', '+GH.nfoto+' foto come file a parte':'')+')':'')+'.':': tutto uguale a GitHub.')+(GHFOTO.errScarico?' Attenzione: '+GHFOTO.errScarico+' foto non scaricate, riprovo alla prossima sincronizzazione.':''));
+    if(txt) autoCopiaGh(txt);
   }).catch(function(e){
-    if((e.status===409||e.status===422)&&!retry){ again=true; return; }
-    GH.err=ghErr(e); ghStatus(GH.err);
-  }).then(function(){ ghBusy=false; ghChip(); if(again) ghSync(interactive,true); });
+    if((e.status===409||e.status===422)&&tent<4){ again=true; return; }
+    GH.err=ghErr(e); GH.rete=autoRete(e); GH.errN=(GH.errN||0)+1; GH.prossimo=Date.now()+Math.min(600000,15000*Math.pow(2,GH.errN-1));
+    if(eraSporco) GH.dirty=true; ghStore(); ghStatus(GH.err); autoLog(GH.rete?'rete':'err',{msg:GH.err});
+  }).then(function(){
+    ghBusy=false; ghChip();
+    if(again){ setTimeout(function(){ ghSync(interactive,tent+1); },300+Math.round(Math.random()*1200)); return; }
+    if(AUTO.ancora||GH.dirty){ AUTO.ancora=false; autoProgramma(); }
+  });
 }
-function ghPushSoon(){
-  if(GH.on&&!GH.dirty){ GH.dirty=true; ghChip(); }
-  if(!GH.on||!GH.auto||!GH.token) return;
-  clearTimeout(ghT); ghT=setTimeout(function(){ ghSync(false); },15000);
+// prima di sincronizzare: il preventivo aperto va nell'archivio (se è cambiato)
+function ghPrepara(){
+  if(!dbReady||!S) return;
+  var demo=false; try{ demo=Object.keys(libDemo()).length>0; }catch(e){}
+  if(S.qid) saveQuote(true); else if(S.lines.length&&!demo) saveQuote(true);
 }
-$('gh-auto').addEventListener('change',function(e){ GH.auto=e.target.checked; ghStore(); });
 $('gh-on').addEventListener('click',function(){
   var repo=ghClean($('gh-repo').value), tok=$('gh-token').value.trim();
   if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){ ghStatus('Scrivi il nome dell\'archivio come utente/nome, ad esempio mario/preventivi-ieci-dati.'); return; }
@@ -221,37 +266,18 @@ $('gh-on').addEventListener('click',function(){
   GH.repo=repo; GH.token=tok; ghStatus('Controllo l\'archivio…');
   ghApi('').then(function(r){ return r.json(); }).then(function(j){
     if(j&&j.private===false){ ghStatus('Questo archivio è PUBBLICO: i tuoi clienti e prezzi sarebbero visibili a tutti. Su GitHub: Settings → Danger Zone → «Change visibility» → Private, poi riprova.'); return; }
-    GH.on=true; ghStore(); renderGh(); ghSync(true);
+    GH.on=true; GH.sha=''; GH.err=''; GH.errN=0; GH.prossimo=0; ghStore(); renderGh(); ghSync(true);
   }).catch(function(e){ ghStatus(ghErr(e)); });
 });
 $('gh-sync').addEventListener('click',function(){ ghSync(true); });
 $('gh-off').addEventListener('click',function(){ GH.on=false; GH.token=''; ghStore(); ghStatus('Scollegato. I dati restano su questo dispositivo e su GitHub.'); renderGh(); });
-document.addEventListener('visibilitychange',function(){ if(!document.hidden&&GH.on&&GH.auto&&Date.now()-GH.last>60000) ghSync(false); });
-// salvataggio automatico su GitHub ogni tot minuti (scelto in «Salva e sincronizza»): prima il preventivo aperto va
-// nell'archivio se è cambiato, poi si sincronizza; se non è cambiato niente non si salva nulla. Anche quando esci dall'app.
-function ghPrepara(){
-  if(!dbReady||!S) return;
-  var demo=false; try{ demo=Object.keys(libDemo()).length>0; }catch(e){}
-  if(S.qid) saveQuote(true); else if(S.lines.length&&!demo) saveQuote(true);
-}
-function ghTick(forza){
-  var P=window.PINPAD;
-  if(!GH.on||!GH.token||!(GH.every>0)||ghBusy||(P&&P.locked)) return false;
-  if(!forza&&Date.now()-GH.last<GH.every*60000) return false;
-  ghPrepara();
-  if(!GH.dirty) { ghChip(); return false; }
-  ghSync(false); return true;
-}
-setInterval(function(){ ghTick(false); },30000);
-document.addEventListener('visibilitychange',function(){ if(document.hidden&&GH.on&&GH.every>0&&(GH.dirty||ghOpenDirty())) ghTick(true); });
-$('gh-every').addEventListener('change',function(e){ GH.every=Math.max(0,+e.target.value||0); ghStore(); ghChip(); toast(GH.every?'Salvataggio automatico su GitHub ogni '+GH.every+' minuti':'Salvataggio automatico su GitHub spento'); });
 ghLoad();
 $('gh-chip').addEventListener('click',function(){
-  if(GH.on&&GH.token){ if(S.qid&&dbReady) saveQuote(true); ghSync(true); return; }
+  if(GH.on&&GH.token){ GH.prossimo=0; ghSync(true); return; }
   showPanel('salva'); var r=$('gh-repo'); if(r){ var d=r.closest('details'); if(d) d.open=true; setTimeout(function(){ r.scrollIntoView({block:'center'}); try{ r.focus({preventScroll:true}); }catch(e){} },120); }
 });
 ghChip();
-(function(){ var n=0, iv=setInterval(function(){ n++; if(dbReady){ clearInterval(iv); setTimeout(copiaDelGiorno,4000); if(GH.on&&(GH.auto||ghfMancanti())) ghSync(false); } else if(n>40) clearInterval(iv); },500); })();
+(function(){ var n=0, iv=setInterval(function(){ n++; if(dbReady){ clearInterval(iv); setTimeout(copiaDelGiorno,4000); if(GH.on) ghSync(false); } else if(n>40) clearInterval(iv); },500); })();
 $('gd-cid').addEventListener('input',function(e){ GD.cid=e.target.value.trim(); gdStore(); });
 $('gd-auto').addEventListener('change',function(e){ GD.auto=e.target.checked; gdStore(); });
 $('gd-on').addEventListener('click',function(){
@@ -267,4 +293,4 @@ document.addEventListener('visibilitychange',function(){ if(!document.hidden&&GD
 gdLoad();
 
 
-(function(T){ if(!T) return; T.ghTick=ghTick; T.GH=function(){ return GH; }; T.ghSync=ghSync; T.ghBusy=function(){ return ghBusy; }; T.saveQuote=saveQuote; T.openQuote=openQuote; })(window.IECI_T);
+(function(T){ if(!T) return; T.ghTick=function(){ autoVai(); return true; }; T.GH=function(){ return GH; }; T.ghSync=ghSync; T.dbSave=dbSave; T.ghBusy=function(){ return ghBusy; }; T.saveQuote=saveQuote; T.openQuote=openQuote; })(window.IECI_T);

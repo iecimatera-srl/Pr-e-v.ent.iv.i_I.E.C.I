@@ -72,6 +72,7 @@ app/19-binder-livelli-pianta-stime.js
 app/20-fiducia-firme-invio.js
 app/21-archivio.js
 app/22-sincronizzazione-drive-github.js
+app/22b-foto-github.js
 app/23-fornitori-e-lettura-pdf.js
 app/24-salvataggi-e-recupero.js
 app/24b-libreria-prodotti.js

@@ -160,6 +160,7 @@ function ghApi(path,opt,raw,noRepo){
 }
 function b64utf8(str){ var u=new TextEncoder().encode(str), bin='', i, n=0x8000; for(i=0;i<u.length;i+=n) bin+=String.fromCharCode.apply(null,u.subarray(i,i+n)); return btoa(bin); }
 function ghErr(e){
+  if(e&&e.foto) return 'Non sono riuscito a scaricare '+e.foto+(e.foto===1?' foto':' foto')+' da GitHub (connessione debole?). Non ho cambiato niente qui: riprovo alla prossima sincronizzazione.';
   var c=e&&e.status;
   if(c===401) return 'Codice di accesso non valido o scaduto: creane uno nuovo su GitHub e incollalo qui.';
   if(c===403) return 'Accesso negato: il codice deve avere il permesso «Contents: Read and write» su questo archivio (o hai fatto troppe richieste: riprova tra poco).';
@@ -183,13 +184,20 @@ function ghSync(interactive,retry){
   if(S.qid&&dbReady) saveQuote(true);
   clearTimeout(ghT);
   var again=false;
+  var remoto=null;
   ghFetchFile().then(function(res){
-    if(res&&res.o) gdMerge(res.o);
+    remoto=res;
+    // le foto arrivano come file a parte: prima scarico quelle che mancano, poi unisco
+    return res&&res.o?ghfScarica(res.o).then(function(){ gdMerge(res.o); }):null;
+  }).then(function(){
     settingsStamp(); renderArchivio();
-    return ghPut(res&&res.sha,JSON.stringify(buildPayload()));
+    return ghfPayload(remoto&&remoto.o);
+  }).then(function(o){
+    var txt=JSON.stringify(o); GH.peso=txt.length; GH.nfoto=Object.keys(o.foto||{}).length;
+    return ghPut(remoto&&remoto.sha,txt);
   }).then(function(){
     GH.last=Date.now(); GH.dirty=false; ghStore(); dbSave(true); clearTimeout(ghT);
-    ghStatus('Sincronizzato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'. Archivio, listino, dati ditta e stile sono aggiornati su GitHub.');
+    ghStatus('Sincronizzato alle '+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+'. Archivio, listino, dati ditta e stile sono aggiornati su GitHub'+(GH.peso?' (archivio '+(GH.peso>1048576?itNum(GH.peso/1048576,0,1)+' MB':Math.max(1,Math.round(GH.peso/1024))+' KB')+(GH.nfoto?', '+GH.nfoto+' foto come file a parte':'')+')':'')+'.'+(GHFOTO.errScarico?' Attenzione: '+GHFOTO.errScarico+' foto non scaricate, riprovo alla prossima sincronizzazione.':''));
   }).catch(function(e){
     if((e.status===409||e.status===422)&&!retry){ again=true; return; }
     GH.err=ghErr(e); ghStatus(GH.err);

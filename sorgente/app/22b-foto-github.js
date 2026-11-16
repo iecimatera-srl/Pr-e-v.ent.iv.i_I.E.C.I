@@ -30,7 +30,7 @@ function ghfMetti(o,dati){ (function giro(x){ if(Array.isArray(x)){ for(var i=0;
 function ghfLocali(){ var m={}; try{ var o={db:{quotes:DB.quotes,prods:DB.prods,arts:DB.arts,logos:DB.logos},s:S}; (function giro(x,d){ if(d>14) return; if(Array.isArray(x)){ x.forEach(function(v){ if(typeof v==='string'){ if(v.length>GHFOTO.soglia&&v.indexOf('data:image/')===0) m[ghfCodice(v)]=v; } else if(v&&typeof v==='object') giro(v,d+1); }); return; } for(var k in x){ var w=x[k]; if(typeof w==='string'){ if(w.length>GHFOTO.soglia&&w.indexOf('data:image/')===0) m[ghfCodice(w)]=w; } else if(w&&typeof w==='object') giro(w,d+1); } })(o,0); }catch(e){} return m; }
 function ghfB64(buf){ var u=new Uint8Array(buf), s='', i, n=0x8000; for(i=0;i<u.length;i+=n) s+=String.fromCharCode.apply(null,u.subarray(i,i+n)); return btoa(s); }
 // scarica le foto mancanti (4 alla volta) e le rimette nell'archivio arrivato da GitHub
-function ghfScarica(o){
+function ghfScarica(o,parziale){
   var cod=ghfRif(o); if(!cod.length) return Promise.resolve();
   var loc=ghfLocali(), dati={}, manca=[], mi=o.foto||{};
   cod.forEach(function(c){ if(loc[c]) dati[c]=loc[c]; else manca.push(c); });
@@ -45,8 +45,8 @@ function ghfScarica(o){
   return Promise.all([lavora(),lavora(),lavora(),lavora()]).then(function(){
     GHFOTO.errScarico=errori;
     // se anche una sola foto non arriva non unisco: i dati di qui restano intatti e riprovo alla prossima sincronizzazione
-    if(errori){ var e=new Error('foto'); e.foto=errori; throw e; }
-    ghfMetti(o,dati);
+    if(errori&&!parziale){ var e=new Error('foto'); e.foto=errori; throw e; }
+    ghfMetti(o,dati); return manca.length-errori;
   });
 }
 // carica su GitHub le foto che non ci sono ancora (una alla volta: ogni file è un salvataggio nell'archivio)
@@ -60,6 +60,15 @@ function ghfCarica(trovate,giaSu){
   var p=Promise.resolve(); nuove.forEach(function(c){ p=p.then(function(){ return una(c); }); });
   return p.then(function(){ return ok; });
 }
+// foto rimaste qui come riferimento «ghf:» (le ha scritte una versione vecchia dell'app che non sapeva scaricarle):
+// le scarico da GitHub e le rimetto al loro posto, nei preventivi salvati, nella libreria e nel preventivo aperto
+function ghfRipara(mappa){
+  var o={db:{quotes:DB.quotes,prods:DB.prods,arts:DB.arts,logos:DB.logos,clients:DB.clients},s:S,foto:mappa||{}};
+  if(!ghfRif(o).length) return Promise.resolve(0);
+  ghStatus('Recupero le foto che mancano su questo dispositivo…');
+  return ghfScarica(o,true).then(function(n){ if(n>0){ dbSave(true); doSave(); renderAll(); toast(n===1?'Recuperata 1 foto da GitHub':'Recuperate '+n+' foto da GitHub'); } return n; });
+}
+function ghfMancanti(){ try{ return ghfRif({db:{quotes:DB.quotes,prods:DB.prods,arts:DB.arts,logos:DB.logos},s:S}).length; }catch(e){ return 0; } }
 // il file dell'archivio da mettere su GitHub: leggero, con le foto come riferimenti
 function ghfPayload(remoto){
   var o=JSON.parse(JSON.stringify(buildPayload())), tr=ghfEstrai(o);

@@ -36,8 +36,10 @@ function imgBlob(u){
 // leggerebbe carattere per carattere megabyte di testo: sul telefono passa da più di un secondo a pochi millesimi.
 var DI_T=/^data:image\/(?:png|jpe?g|webp|gif);base64,$/;
 // immagine come indirizzo blob (corto) se è un data URL lungo: l'HTML resta leggero da leggere per il browser
-function imgB(u){ return typeof u==='string'&&u.length>400&&u.indexOf('data:image/')===0?imgBlob(u):u; }
+var GHF_ATTESA='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300"><rect width="400" height="300" fill="#eef1f5"/><g fill="none" stroke="#9aa6b5" stroke-width="10" stroke-linecap="round"><path d="M200 95v95M160 150l40 40 40-40"/><path d="M130 215h140"/></g><text x="200" y="262" font-family="sans-serif" font-size="22" fill="#6b7787" text-anchor="middle">foto in arrivo da GitHub</text></svg>');
+function imgB(u){ if(typeof u==='string'&&u.indexOf('ghf:')===0) return GHF_ATTESA; return typeof u==='string'&&u.length>400&&u.indexOf('data:image/')===0?imgBlob(u):u; }
 function docImgs(h){
+  if(h.indexOf('="ghf:')>-1) h=h.replace(/="ghf:[0-9a-z]+"/g,'="'+GHF_ATTESA+'"'); // foto non ancora arrivate da GitHub
   var i=h.indexOf('data:image/'); if(i<0) return h;
   var out=[], last=0, n=h.length;
   while(i>-1){

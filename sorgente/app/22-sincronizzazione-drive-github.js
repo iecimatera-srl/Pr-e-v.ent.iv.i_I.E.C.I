@@ -187,8 +187,8 @@ function ghSync(interactive,retry){
   var remoto=null;
   ghFetchFile().then(function(res){
     remoto=res;
-    // le foto arrivano come file a parte: prima scarico quelle che mancano, poi unisco
-    return res&&res.o?ghfScarica(res.o).then(function(){ gdMerge(res.o); }):null;
+    // prima riparo le foto rimaste qui come riferimento (da una versione vecchia), poi scarico quelle che mancano e unisco
+    return ghfRipara(res&&res.o&&res.o.foto).then(function(){ return res&&res.o?ghfScarica(res.o).then(function(){ gdMerge(res.o); }):null; });
   }).then(function(){
     settingsStamp(); renderArchivio();
     return ghfPayload(remoto&&remoto.o);
@@ -246,7 +246,7 @@ $('gh-chip').addEventListener('click',function(){
   showPanel('salva'); var r=$('gh-repo'); if(r){ var d=r.closest('details'); if(d) d.open=true; setTimeout(function(){ r.scrollIntoView({block:'center'}); try{ r.focus({preventScroll:true}); }catch(e){} },120); }
 });
 ghChip();
-(function(){ var n=0, iv=setInterval(function(){ n++; if(dbReady){ clearInterval(iv); if(GH.on&&GH.auto) ghSync(false); } else if(n>40) clearInterval(iv); },500); })();
+(function(){ var n=0, iv=setInterval(function(){ n++; if(dbReady){ clearInterval(iv); if(GH.on&&(GH.auto||ghfMancanti())) ghSync(false); } else if(n>40) clearInterval(iv); },500); })();
 $('gd-cid').addEventListener('input',function(e){ GD.cid=e.target.value.trim(); gdStore(); });
 $('gd-auto').addEventListener('change',function(e){ GD.auto=e.target.checked; gdStore(); });
 $('gd-on').addEventListener('click',function(){

@@ -160,6 +160,7 @@ function ghApi(path,opt,raw,noRepo){
 }
 function b64utf8(str){ var u=new TextEncoder().encode(str), bin='', i, n=0x8000; for(i=0;i<u.length;i+=n) bin+=String.fromCharCode.apply(null,u.subarray(i,i+n)); return btoa(bin); }
 function ghErr(e){
+  if(e&&e.vecchia) return 'Questo dispositivo ha una versione vecchia dell\'app ('+APP_VER+'): l\'archivio su GitHub è stato scritto da una versione più nuova. Per sicurezza non ho unito né scritto nulla. Aggiorna l\'app (serve almeno la '+e.vecchia+') e sincronizza di nuovo.';
   if(e&&e.foto) return 'Non sono riuscito a scaricare '+e.foto+(e.foto===1?' foto':' foto')+' da GitHub (connessione debole?). Non ho cambiato niente qui: riprovo alla prossima sincronizzazione.';
   var c=e&&e.status;
   if(c===401) return 'Codice di accesso non valido o scaduto: creane uno nuovo su GitHub e incollalo qui.';
@@ -181,12 +182,16 @@ function ghPut(sha,text){
 function ghSync(interactive,retry){
   if(ghBusy||!GH.on||!GH.token||!GH.repo) return;
   ghBusy=true; GH.err=''; ghStatus('Sincronizzazione in corso…');
+  copiaDelGiorno();
   if(S.qid&&dbReady) saveQuote(true);
   clearTimeout(ghT);
   var again=false;
   var remoto=null;
   ghFetchFile().then(function(res){
     remoto=res;
+    // archivio scritto da una versione dell'app più nuova di questa, in un formato che questa non sa gestire: mi fermo
+    if(res&&res.o&&res.o.min&&verCmp(res.o.min,APP_VER)>0){ var ev=new Error('vecchia'); ev.vecchia=res.o.min; throw ev; }
+    if(res&&res.o&&res.o.app&&verCmp(res.o.app,APP_VER)>0&&!GH.avvNuova){ GH.avvNuova=1; setTimeout(function(){ toast('Su un altro dispositivo c\'è una versione più nuova dell\'app ('+res.o.app+'): aggiorna anche questo'); },1500); }
     // prima riparo le foto rimaste qui come riferimento (da una versione vecchia), poi scarico quelle che mancano e unisco
     return ghfRipara(res&&res.o&&res.o.foto).then(function(){ return res&&res.o?ghfScarica(res.o).then(function(){ gdMerge(res.o); }):null; });
   }).then(function(){
@@ -246,7 +251,7 @@ $('gh-chip').addEventListener('click',function(){
   showPanel('salva'); var r=$('gh-repo'); if(r){ var d=r.closest('details'); if(d) d.open=true; setTimeout(function(){ r.scrollIntoView({block:'center'}); try{ r.focus({preventScroll:true}); }catch(e){} },120); }
 });
 ghChip();
-(function(){ var n=0, iv=setInterval(function(){ n++; if(dbReady){ clearInterval(iv); if(GH.on&&(GH.auto||ghfMancanti())) ghSync(false); } else if(n>40) clearInterval(iv); },500); })();
+(function(){ var n=0, iv=setInterval(function(){ n++; if(dbReady){ clearInterval(iv); setTimeout(copiaDelGiorno,4000); if(GH.on&&(GH.auto||ghfMancanti())) ghSync(false); } else if(n>40) clearInterval(iv); },500); })();
 $('gd-cid').addEventListener('input',function(e){ GD.cid=e.target.value.trim(); gdStore(); });
 $('gd-auto').addEventListener('change',function(e){ GD.auto=e.target.checked; gdStore(); });
 $('gd-on').addEventListener('click',function(){

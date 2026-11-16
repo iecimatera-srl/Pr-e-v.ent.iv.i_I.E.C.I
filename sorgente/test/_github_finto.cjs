@@ -1,14 +1,18 @@
 // GitHub finto per le prove: un archivio privato con il file dell'archivio e la cartella delle foto.
 // archivio() restituisce il file dell'archivio con le foto già rimesse al loro posto (come lo vede l'app).
-const stato={files:{},n:0,put:0,get:0,rotte:new Set()};
+const stato={files:{},n:0,put:0,get:0,rotte:new Set(),storia:[]};
 const FILE='archivio-preventivi-ieci.json';
 function percorso(u){ const m=u.match(/\/contents\/(.+?)(\?|$)/); return m?decodeURIComponent(m[1]):''; }
 async function finto(ctx,repo){
   await ctx.route('https://api.github.com/**',async r=>{
     const u=r.request().url(), m=r.request().method(), raw=/raw/.test(r.request().headers()['accept']||''), pth=percorso(u);
+    // versioni precedenti dell'archivio (come la cronologia dei salvataggi di GitHub)
+    if(/\/commits\?/.test(u)) return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(stato.storia.slice().reverse().map(v=>({sha:v.sha})))});
     if(pth){
+      const ref=(u.match(/[?&]ref=([^&]+)/)||[])[1];
+      if(ref&&m==='GET'){ const v=stato.storia.find(x=>x.sha===ref); if(!v) return r.fulfill({status:404,body:'{}'}); stato.get++; return r.fulfill({status:200,contentType:'application/octet-stream',body:Buffer.from(v.b64,'base64')}); }
       const f=stato.files[pth];
-      if(m==='PUT'){ const b=JSON.parse(r.request().postData()); if(f&&b.sha!==f.sha) return r.fulfill({status:f&&!b.sha?422:409,body:'{}'}); stato.files[pth]={sha:'s'+(++stato.n),b64:b.content}; stato.put++; return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({content:{sha:stato.files[pth].sha}})}); }
+      if(m==='PUT'){ const b=JSON.parse(r.request().postData()); if(f&&b.sha!==f.sha) return r.fulfill({status:f&&!b.sha?422:409,body:'{}'}); stato.files[pth]={sha:'s'+(++stato.n),b64:b.content}; stato.put++; if(pth===FILE) stato.storia.push({sha:stato.files[pth].sha,b64:b.content}); return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({content:{sha:stato.files[pth].sha}})}); }
       if(!f||stato.rotte.has(pth)) return r.fulfill({status:404,body:'{}'});
       stato.get++;
       if(!raw) return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({sha:f.sha})});
@@ -25,5 +29,5 @@ function archivio(){
   return o;
 }
 // riscrive il file dell'archivio (le foto in linea, come faceva una versione vecchia)
-function scrivi(o){ stato.files[FILE]={sha:'s'+(++stato.n),b64:Buffer.from(JSON.stringify(o)).toString('base64')}; }
+function scrivi(o){ stato.files[FILE]={sha:'s'+(++stato.n),b64:Buffer.from(JSON.stringify(o)).toString('base64')}; stato.storia.push({sha:stato.files[FILE].sha,b64:stato.files[FILE].b64}); }
 module.exports={stato,finto,grezzo,archivio,scrivi,FILE};

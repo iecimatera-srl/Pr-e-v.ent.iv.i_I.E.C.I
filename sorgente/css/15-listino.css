@@ -68,3 +68,15 @@
 /* listino e ricerca affiancati anche sul telefono */
 [data-panel="listini"] .lstop{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:8px;align-items:end}
 [data-panel="listini"] .lstop .f{margin:0}
+/* Controllo foto dei preventivi */
+.cf-list{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+.cf-r{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--tensione) 50%,var(--line));background:color-mix(in srgb,var(--tensione) 7%,var(--surface))}
+.cf-r.ok{border-color:var(--line);background:var(--surface)}
+.cf-t{display:flex;flex-direction:column;min-width:0}
+.cf-t small{color:var(--muted);font-size:.78rem}
+.cf-t .cf-nm{color:#8A5A00}
+.cf-s{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:none;font-size:.8rem;color:var(--muted)}
+.cf-b{font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.cf-b.ok{background:color-mix(in srgb,#1F9D61 16%,var(--surface));color:#14784A}
+.cf-b.w{background:color-mix(in srgb,var(--brand) 14%,var(--surface));color:var(--brand)}
+.cf-b.n{background:color-mix(in srgb,var(--tensione) 30%,var(--surface));color:#6B4E00}

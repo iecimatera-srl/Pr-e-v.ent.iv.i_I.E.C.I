@@ -63,6 +63,12 @@
         <p class="res" id="gd-state"></p>
           </div></details>
         </div></details>
+        <details class="acc" id="acc-cf" open><summary><span>Controllo foto dei preventivi <small class="acc-sub">trova e recupera le foto mancanti</small></span><em id="cf-n"></em></summary><div class="accb">
+          <p class="hint">Controlla tutti i preventivi salvati su questo dispositivo. Le foto mancanti si recuperano dai file su GitHub, dalla libreria prodotti e, se serve, dalle versioni precedenti dell'archivio che GitHub conserva. Tutto avviene tra questo dispositivo e il tuo archivio privato.</p>
+          <div class="row"><button type="button" class="btn" id="cf-go">Controlla tutti i preventivi</button><button type="button" class="btn ok" id="cf-fix" hidden>Recupera le foto mancanti</button></div>
+          <p class="hint" id="cf-st" aria-live="polite"></p>
+          <div class="cf-list" id="cf-list"></div>
+        </div></details>
         <details class="acc" id="acc-pub"><summary><span>Pubblica una versione nuova su GitHub</span></summary><div class="accb">
         <p class="hint">Niente più «Upload files»: scegli lo zip <b>IECI-preventivi-Android-PWA.zip</b>, il programma lo apre, lo carica sul tuo GitHub in un solo passaggio e tutti i dispositivi si aggiornano da soli. Funziona anche dal telefono. È gratis.</p>
         <div class="grid2"><label class="f">Repository (utente/nome)<input type="text" id="pb-repo" placeholder="tuonome/preventivi" autocomplete="off" autocapitalize="off"></label><label class="f">Ramo<input type="text" id="pb-br" placeholder="main" autocomplete="off" autocapitalize="off"></label></div>

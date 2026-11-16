@@ -35,7 +35,7 @@ ck('base_tree e parent',treeBody&&treeBody.base_tree==='t0'&&commitBody&&commitB
 ck('ref aggiornato',refBody&&refBody.sha==='abcdef123456');
 ck('un blob per file',calls.filter(c=>c.includes('/git/blobs')).length===paths.length);
 // contenuto blob = index.html corretto? (controlla dimensione base64 via ultima chiamata non possibile) -> verifica persistenza campi
-await p.reload();await p.waitForTimeout(1200);
+await p.reload();await p.waitForTimeout(1200);await p.waitForFunction(()=>document.getElementById('pb-repo')&&document.getElementById('pb-repo').value==='me/prev',null,{timeout:15000}).catch(()=>{});
 ck('config ricordata',await p.evaluate(()=>document.getElementById('pb-repo').value==='me/prev'&&document.getElementById('pb-tok').value==='github_pat_TEST'));
 await p.click('#mn-btn');await p.click('.mit[data-p=salva]');await p.evaluate(()=>document.getElementById('acc-pub').open=true);await p.click('#pb-clr');
 ck('dimentica token',await p.evaluate(()=>document.getElementById('pb-tok').value===''&&!JSON.parse(localStorage.getItem('ieci-pub')).tok));

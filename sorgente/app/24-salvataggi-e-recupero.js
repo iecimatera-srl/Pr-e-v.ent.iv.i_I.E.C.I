@@ -14,9 +14,11 @@ function restoreObj(o){
 function snapList(cb){ kvGet('snaps',function(a){ cb(Array.isArray(a)?a:[]); }); }
 function snapSave(why,cb){
   if(!IDB){ if(cb) cb(); return; }
-  var pv=lsGet('ieci-ver')||'?', js=JSON.stringify(buildPayload());
+  var pv=lsGet('ieci-ver')||'?', js=snapLeggera();
   snapList(function(a){ a.unshift({t:Date.now(),ver:pv,why:why,json:js}); kvPut('snaps',a.slice(0,6),function(){ renderSnaps(); if(cb) cb(); }); });
 }
+// una copia di sicurezza al giorno (si tengono le ultime 6), prima della prima sincronizzazione o all'apertura
+function copiaDelGiorno(){ if(!IDB||!dbReady||dbEmpty()) return; snapList(function(a){ if(a.length&&Date.now()-a[0].t<20*3600*1000) return; snapSave('Copia automatica del giorno'); }); }
 function renderSnaps(){
   var el=$('sn-list'); if(!el) return;
   snapList(function(a){

@@ -70,9 +70,17 @@ function ghfRipara(mappa){
 }
 function ghfMancanti(){ try{ return ghfRif({db:{quotes:DB.quotes,prods:DB.prods,arts:DB.arts,logos:DB.logos},s:S}).length; }catch(e){ return 0; } }
 // il file dell'archivio da mettere su GitHub: leggero, con le foto come riferimenti
+// versione minima dell'app che sa leggere l'archivio con le foto come file a parte: un dispositivo più vecchio
+// (che rispetta questo controllo) non unisce e non scrive nulla, e chiede di aggiornare
+var GH_MIN='2026.11.16.5';
+function verCmp(a,b){ a=String(a||'0').split('.'); b=String(b||'0').split('.'); for(var i=0;i<Math.max(a.length,b.length);i++){ var x=+a[i]||0, y=+b[i]||0; if(x!==y) return x<y?-1:1; } return 0; }
 function ghfPayload(remoto){
   var o=JSON.parse(JSON.stringify(buildPayload())), tr=ghfEstrai(o);
   var giaSu=(remoto&&remoto.foto)||{};
-  return ghfCarica(tr,giaSu).then(function(ok){ o.foto=ok; o.v=3; return o; });
+  // la versione minima non scende mai: se un altro dispositivo l'ha alzata, resta alzata
+  var min=remoto&&remoto.min&&verCmp(remoto.min,GH_MIN)>0?remoto.min:GH_MIN;
+  return ghfCarica(tr,giaSu).then(function(ok){ o.foto=ok; o.v=3; o.app=APP_VER; o.min=min; return o; });
 }
+// copia di sicurezza leggera: con GitHub collegato le foto restano come riferimenti (i file su GitHub non si cancellano mai)
+function snapLeggera(){ var o=JSON.parse(JSON.stringify(buildPayload())); if(GH.on&&GH.token){ ghfEstrai(o); o.leggera=1; } return JSON.stringify(o); }
 (function(T){ if(!T) return; T.ghfCodice=ghfCodice; T.ghfEstrai=ghfEstrai; T.GHFOTO=GHFOTO; })(window.IECI_T);

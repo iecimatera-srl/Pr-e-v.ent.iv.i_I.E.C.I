@@ -57,7 +57,27 @@ function nextNum(){
 function quoteName(){ return (String(S.client.name||'').trim()||'Senza cliente')+' · '+dateIt(S.meta.date); }
 function qName(q){ return q.name||((q.client||'Senza cliente')+' · '+dateIt((q.data&&q.data.meta&&q.data.meta.date)||'')); }
 function fileBase(){ return ('Preventivo '+(String(S.client.name||'').trim()||'Senza cliente')+' '+dateIt(S.meta.date).replace(/\//g,'-')).replace(/[\\\/:*?"<>|]+/g,'-'); }
+/* ---- foto e sincronizzazione tra dispositivi ----
+   Ogni scheda prodotto ricorda quando sono cambiate le sue foto (phu). Unendo due versioni dello stesso preventivo
+   (o della libreria) vincono le foto cambiate più di recente: una versione vecchia senza foto non le cancella più. */
+function phSig(p){ return (p&&p.photos||[]).map(function(h){ h=String(h||''); return h.length+':'+h.slice(-24); }).join('|'); }
+function phStamp(prods){ (prods||[]).forEach(function(p){ if(!p) return; var sg=phSig(p); if(p.phs!==sg){ if(p.phs!==undefined||sg) p.phu=Date.now(); p.phs=sg; } }); }
+// copia in «a» le foto di «b» se quelle di b sono più recenti (o se a non ne ha e nessuna delle due ha la data)
+function phPrendi(a,b){
+  if(!a||!b) return false; var au=a.phu||0, bu=b.phu||0, an=(a.photos||[]).length, bn=(b.photos||[]).length;
+  if(!(bu>au||(bu===au&&!an&&bn))) return false; if(phSig(a)===phSig(b)&&au===bu) return false;
+  a.photos=(b.photos||[]).slice(); a.po=(b.po||[]).slice(); if(b.cr) a.cr=JSON.parse(JSON.stringify(b.cr)); else delete a.cr; a.phu=bu; a.phs=phSig(a); return true;
+}
+// prodotti di due versioni dello stesso preventivo: le foto più recenti vanno nella versione che resta
+function phUnisciQuote(vince,perde){
+  var A=vince&&vince.data&&vince.data.products, B=perde&&perde.data&&perde.data.products, ch=false; if(!A||!B||!B.length) return false;
+  A.forEach(function(p){ var q=B.filter(function(x){ return x.id===p.id; })[0]||B.filter(function(x){ return lcn(x.name)&&lcn(x.name)===lcn(p.name); })[0]; if(q&&phPrendi(p,q)) ch=true; });
+  return ch;
+}
+// confronto «del contenuto» di un preventivo, senza le cose del dispositivo (ditta, profilo, messaggi…) che l'apertura rimette
+function qContenuto(x){ var o=JSON.parse(JSON.stringify(x)); ['cat','cgroups','company','profile','trust','msgs','ccond','mtpl','mdef','qid'].forEach(function(k){ delete o[k]; }); (o.products||[]).forEach(function(p){ delete p.phs; delete p.phu; }); return JSON.stringify(o); }
 function saveQuote(silent){
+  phStamp(S.products);
   var isNew=!S.qid; if(isNew) S.qid=uid();
   if(!silent){
     saveClient(true);
@@ -70,6 +90,9 @@ function saveQuote(silent){
   var e=DB.quotes.filter(function(q){ return q.id===S.qid; })[0];
   if(e&&!isNew&&e.data&&silent&&QDV[S.qid]===docVer&&e.tot===meta.tot&&e.name===meta.name) return;
   if(e&&!isNew&&e.data&&QDV[S.qid]==null){ var d0=JSON.parse(JSON.stringify(S)); delete d0.cat; if(JSON.stringify(e.data)===JSON.stringify(d0)&&e.name===meta.name&&e.title===meta.title&&e.tot===meta.tot&&e.client===meta.client&&e.st===meta.st){ if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }
+  // salvataggio automatico appena aperto un preventivo: se il contenuto è lo stesso dell'archivio non lo segno come «più recente»
+  // (altrimenti un dispositivo con una copia vecchia la farebbe vincere sulla versione nuova di un altro dispositivo)
+  if(e&&!isNew&&e.data&&silent&&QDV[S.qid]==null){ try{ var dn=JSON.parse(JSON.stringify(e.data)); dn.cat=S.cat; dn.cgroups=S.cgroups; if(qContenuto(normalize(dn))===qContenuto(S)&&e.st===meta.st){ QDV[S.qid]=docVer; return; } }catch(x){} }
   if(!e){ e=meta; DB.quotes.push(e); } else { Object.keys(meta).forEach(function(k){ e[k]=meta[k]; }); }
   var d=JSON.parse(JSON.stringify(S)); delete d.cat; e.data=d; QDV[S.qid]=docVer;
   dbSave(); renderArchivio(); if(isNew) save();

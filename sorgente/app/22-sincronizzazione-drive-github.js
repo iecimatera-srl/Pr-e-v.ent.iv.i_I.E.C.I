@@ -70,10 +70,16 @@ function gdMerge(o){
   var d=o.db, replaced=[], del=DB.del||(DB.del={});
   Object.keys(d.del||{}).forEach(function(k){ del[k]=Math.max(del[k]||0,d.del[k]); });
   (d.clients||[]).forEach(function(c){ if(!DB.clients.some(function(x){ return lc(x.name)===lc(c.name); })) DB.clients.push(c); });
-  (d.prods||[]).forEach(function(p){ if(!DB.prods.some(function(x){ return lc(x.name)===lc(p.name)&&lc(x.code)===lc(p.code); })) DB.prods.push(p); });
+  // libreria prodotti: le schede nuove si aggiungono; in quelle che ci sono già arrivano le foto più recenti e i dati che mancano
+  (d.prods||[]).forEach(function(p){ var ex=DB.prods.filter(function(x){ return lc(x.name)===lc(p.name)&&lc(x.code)===lc(p.code); })[0];
+    if(!ex){ DB.prods.push(p); return; }
+    phPrendi(ex,p); ['brand','code','desc','specs','link','tags'].forEach(function(k){ if(!ex[k]&&p[k]) ex[k]=p[k]; });
+    if((p.upd||0)>(ex.upd||0)){ if(num(p.lp)>0){ ex.lp=p.lp; ex.lu=p.lu; } ex.upd=p.upd; } });
   (d.quotes||[]).forEach(function(q){
     var ex=DB.quotes.filter(function(x){ return x.id===q.id; })[0];
-    if(!ex) DB.quotes.push(q); else if(q.upd>ex.upd){ DB.quotes[DB.quotes.indexOf(ex)]=q; replaced.push(q.id); }
+    if(!ex) DB.quotes.push(q);
+    else if(q.upd>ex.upd){ phUnisciQuote(q,ex); DB.quotes[DB.quotes.indexOf(ex)]=q; replaced.push(q.id); }
+    else if(phUnisciQuote(ex,q)) replaced.push(ex.id); // la versione di qui resta, ma con le foto più recenti dell'altra
   });
   (d.arts||[]).forEach(function(a){ var ex=DB.arts.filter(function(x){ return x.id===a.id||artKey(x)===artKey(a); })[0]; if(!ex) DB.arts.push(a); else if((a.upd||0)>(ex.upd||0)) DB.arts[DB.arts.indexOf(ex)]=a; });
   DB.arts=DB.arts.filter(function(x){ return !del[x.id]; }).sort(byName);
@@ -248,4 +254,4 @@ document.addEventListener('visibilitychange',function(){ if(!document.hidden&&GD
 gdLoad();
 
 
-(function(T){ if(!T) return; T.ghTick=ghTick; T.GH=function(){ return GH; }; })(window.IECI_T);
+(function(T){ if(!T) return; T.ghTick=ghTick; T.GH=function(){ return GH; }; T.ghSync=ghSync; T.ghBusy=function(){ return ghBusy; }; T.saveQuote=saveQuote; T.openQuote=openQuote; })(window.IECI_T);

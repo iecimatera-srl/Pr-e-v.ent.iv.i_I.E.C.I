@@ -76,7 +76,7 @@ function renderDoc(){
     var wk0=wmPrep(), k0=0, tutte=[]; DOCC.raw=[]; DOCC.wk=wk0;
     var passo=function(){ if(gen!==DOCC.gen) return; var t0=performance.now();
       while(k0<order.length){ var ky=order[k0++], h0=ky.indexOf('c:')===0?secCustom(ky.slice(2)):fn[ky](); if(h0){ var ps=docSplit(h0);
-          for(var j=0;j<ps.length;j++){ var e0=docEl(ps[j],wk0); if(!e0){ DOCC.gen++; d.innerHTML=''; DOCC.raw=[]; DOCC.tutto=true; try{ renderDoc(); }finally{ DOCC.tutto=false; } return; } d.appendChild(e0); tutte.push(ps[j]); } }
+          for(var j=0;j<ps.length;j++){ var e0=docEl(ps[j],wk0); if(!e0){ DOCC.gen++; d.innerHTML=''; DOCC.raw=[]; DOCC.tutto=true; try{ renderDoc(); }finally{ DOCC.tutto=false; } return; } d.appendChild(e0); impagina(e0); tutte.push(ps[j]); } }
         if(performance.now()-t0>8) break; }
       DOCC.raw=tutte.slice(); fit();
       if(k0<order.length){ if(document.hidden) setTimeout(passo,30); else requestAnimationFrame(passo); }
@@ -85,17 +85,18 @@ function renderDoc(){
   }
   var html=order.map(function(k){return k.indexOf('c:')===0?secCustom(k.slice(2)):fn[k]();}).join(''), wk=wmPrep();
   if(!html){ d.innerHTML='<div style="background:#fff;padding:40px;text-align:center;color:#5d646c">Nessuna sezione selezionata. Riattivale dalla scheda Contenuto.</div>'; DOCC.raw=[]; fit(); return; }
-  var parts=docSplit(html), old=DOCC.raw, full=old.length!==d.children.length||DOCC.wk!==wk, i, el, kids=d.children;
+  var parts=docSplit(html), old=DOCC.raw, kids=docPrim(d), full=old.length!==kids.length||DOCC.wk!==wk, i, el;
   if(!full){
     for(i=0;i<parts.length;i++){
       if(old[i]===parts[i]&&kids[i]) continue;
       el=docEl(parts[i],wk); if(!el){ full=true; break; }
-      if(kids[i]) d.replaceChild(el,kids[i]); else d.appendChild(el);
+      if(kids[i]){ docTogliCont(kids[i]); d.replaceChild(el,kids[i]); } else d.appendChild(el);
+      impagina(el);
     }
-    while(!full&&d.children.length>parts.length) d.removeChild(d.lastElementChild);
+    while(!full&&docPrim(d).length>parts.length){ var ul=docPrim(d).pop(); docTogliCont(ul); d.removeChild(ul); }
   }
-  if(full){ d.innerHTML=docImgs(parts.map(function(c){ return c.indexOf('<section class="page">')===0?'<section class="page">'+wk+c.slice(22):c; }).join('')); }
-  DOCC.raw=d.children.length===parts.length?parts:[]; DOCC.wk=wk;
+  if(full){ d.innerHTML=docImgs(parts.map(function(c){ return c.indexOf('<section class="page">')===0?'<section class="page">'+wk+c.slice(22):c; }).join('')); docPrim(d).forEach(impagina); }
+  DOCC.raw=docPrim(d).length===parts.length?parts:[]; DOCC.wk=wk;
   fit();
 }
 // l'anteprima si aggiorna al massimo una volta per fotogramma e, mentre scrivi, quando fai una pausa

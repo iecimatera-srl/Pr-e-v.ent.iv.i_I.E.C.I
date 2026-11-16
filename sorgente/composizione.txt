@@ -57,6 +57,7 @@ app/06-colori-e-immagini.js
 app/07-fascicolo.js
 app/08-fascicolo-sezioni.js
 app/09-filigrana-ed-editor.js
+app/09b-impagina.js
 app/10-pdf-e-condivisione.js
 app/11-foto-e-personalizza-app.js
 app/12-videocitofono-e-confronto-marche.js

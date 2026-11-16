@@ -41,7 +41,8 @@ function buildPdf0(withAtt,prog){
         var pg=pages[i];
         return window.htmlToImage.toJpeg(pg,opts(2)).catch(function(){ return window.htmlToImage.toJpeg(pg,opts(1.4)); }).then(function(u){
           var bytes=b64bytes(u); return out.embedJpg(bytes).then(function(img){
-            var w=595.28, h=w*img.height/img.width, page=out.addPage([w,h]); page.drawImage(img,{x:0,y:0,width:w,height:h});
+            // ogni pagina del PDF è un A4 esatto (595,28 × 841,89 punti)
+            var W=595.28, H=841.89, w=W, h=w*img.height/img.width; if(h>H){ w=w*H/h; h=H; } var page=out.addPage([W,H]); page.drawImage(img,{x:(W-w)/2,y:H-h,width:w,height:h});
           });
         }).then(function(){ i++; return new Promise(function(r){ setTimeout(r,0); }).then(next); });
       }

@@ -32,7 +32,7 @@ const upd0=await W.S(i=>window.IECI_T.DB().quotes.find(x=>x.id===i).upd,id);
 const prima=await W.S(i=>JSON.stringify(window.IECI_T.DB().quotes.find(x=>x.id===i).data),id);
 await W.S(()=>{ window.IECI_T.touch(); window.IECI_T.renderAll&&window.IECI_T.renderAll(); }); await W.p.waitForTimeout(6800);
 ok(await W.S(i=>!window.IECI_T.auto.qmod()[i]&&window.IECI_T.DB().quotes.find(x=>x.id===i).upd===0||!window.IECI_T.auto.qmod()[i],id),'aperto e ritoccato dall\'app (senza modifiche tue): il preventivo NON risulta modificato');
-{ const dopo=await W.S(i=>JSON.stringify(window.IECI_T.DB().quotes.find(x=>x.id===i).data),id); if(dopo!==prima){ let k=0; while(k<prima.length&&prima[k]===dopo[k]) k++; console.log('DIFF: …'+prima.slice(Math.max(0,k-120),k+120)+'\n  ≠ …'+dopo.slice(Math.max(0,k-120),k+120)); } }
+{ const dopo=await W.S(i=>JSON.stringify(window.IECI_T.DB().quotes.find(x=>x.id===i).data),id); if(dopo!==prima){ const A1=JSON.parse(prima), B1=JSON.parse(dopo); console.log('CHIAVI DIVERSE:',Object.keys(Object.assign({},A1,B1)).filter(k=>JSON.stringify(A1[k])!==JSON.stringify(B1[k])).map(k=>k+(typeof A1[k]==='object'&&A1[k]&&B1[k]?'['+Object.keys(Object.assign({},A1[k],B1[k])).filter(z=>JSON.stringify(A1[k][z])!==JSON.stringify(B1[k][z])).join(',')+']':'')).join(' ')); let k=0; while(k<prima.length&&prima[k]===dopo[k]) k++; console.log('DIFF: …'+prima.slice(Math.max(0,k-120),k+120)+'\n  ≠ …'+dopo.slice(Math.max(0,k-120),k+120)); } }
 ok(await W.S(([i,u])=>window.IECI_T.DB().quotes.find(x=>x.id===i).upd===u,[id,upd0]),'…e non diventa «più recente» di quello degli altri dispositivi');
 // 2. intanto su Android lo cambi davvero
 await D.S(i=>{ window.IECI_T.openQuote(i); },id); await D.p.waitForTimeout(400);

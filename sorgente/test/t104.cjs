@@ -99,6 +99,9 @@ await fermo(W); await fermo(D);
 
 // 8. torna indietro nel tempo: dalla copia del giorno rimetto la versione di stamattina
 const n0=await W.S(()=>window.IECI_T.DB().quotes.length);
+// la copia del giorno «di stamattina», con il preventivo com'era all'inizio (indipendente dai tempi della prova)
+{ const o=G.grezzo(); const q=o.db.quotes.find(x=>x.id===idQ); q.title='Bagno Rossi'; q.upd=1; if(q.data&&q.data.meta) q.data.meta.title='Bagno Rossi';
+  G.stato.files['copie/'+oggi+'.json']={sha:'s'+(++G.stato.n),b64:Buffer.from(JSON.stringify(o)).toString('base64')}; }
 await W.S(()=>window.IECI_T.auto.tempoFonti());
 r=await aspetta(W,()=>/GitHub/.test(document.getElementById('tp-list').textContent),null,10000);
 ok(r,'«Torna indietro nel tempo»: compare la copia del giorno di GitHub');

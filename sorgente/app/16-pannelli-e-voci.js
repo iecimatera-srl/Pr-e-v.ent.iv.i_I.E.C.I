@@ -169,7 +169,7 @@ function renderProducts0(){
 }
 function syncFields(){
   var st=S.style;
-  $('m-title').value=S.meta.title; if($('m-type')) $('m-type').value=S.model; $('c-name').value=S.company.name; $('c-piva').value=S.company.piva;
+  $('m-title').value=S.meta.title; if($('p-title')&&document.activeElement!==$('p-title')) $('p-title').value=S.meta.title; if($('m-type')) $('m-type').value=S.model; $('c-name').value=S.company.name; $('c-piva').value=S.company.piva;
   $('c-addr').value=S.company.addr; $('c-tel').value=S.company.tel; $('k-name').value=S.client.name; $('k-addr').value=S.client.addr;
   $('m-num').value=S.meta.num; $('m-date').value=S.meta.date; $('m-val').value=S.meta.val;
   $('m-iva').value=String(S.meta.iva); $('m-disc').value=S.meta.disc; $('m-dep').value=S.meta.dep;
@@ -186,7 +186,7 @@ var lastEdit=0;
 function touch(){ docVer++; lastEdit=Date.now(); save(); schedule(); iwSoon(); libSoon(); pcSoon(); if(typeof GH!=='undefined'&&GH&&GH.on) ghChip(); }
 
 var TTL_G='Rifacimento impianto appartamento', TTL_T={rif:'Rifacimento impianto elettrico',luce:'Impianto di illuminazione',wb:'Installazione wallbox per ricarica auto elettrica',rip:'Riparazione impianto elettrico',vid:'Impianto di videosorveglianza',all:'Impianto di allarme antintrusione',vcit:'Impianto videocitofonico',aut:'Automazione cancello e accessi',fv:'Impianto fotovoltaico',tv:'Impianto TV e antenna',ind:'Impianto elettrico industriale',sw:'Programmazione e messa in servizio'};
-function typeTitle(prev){ if(S.meta.title===TTL_G||S.meta.title===TTL_T[prev]||(prev&&S.meta.title===(MODELS[prev]||{}).name)){ S.meta.title=TTL_T[S.model]||TTL_G; if($('m-title')) $('m-title').value=S.meta.title; } }
+function typeTitle(prev){ if(S.meta.title===TTL_G||S.meta.title===TTL_T[prev]||(prev&&S.meta.title===(MODELS[prev]||{}).name)){ S.meta.title=TTL_T[S.model]||TTL_G; if($('p-title')) $('p-title').value=S.meta.title; if($('m-title')) $('m-title').value=S.meta.title; } }
 $('tabs').addEventListener('click',function(e){
   var b=e.target.closest('[data-m]'); if(!b) return;
   var prev=S.model; S.model=b.getAttribute('data-m');
@@ -195,7 +195,8 @@ $('tabs').addEventListener('click',function(e){
   ensureRooms(); renderTabs(); renderRooms(); renderVc(); renderCat(); renderLines(); renderPlan(); if($('m-type')) $('m-type').value=S.model; touch();
 });
 function bind(id,fn){ $(id).addEventListener('input',function(e){ fn(e.target.value); touch(); }); }
-bind('m-title',function(v){S.meta.title=v;}); bind('c-name',function(v){S.company.name=v;}); bind('c-piva',function(v){S.company.piva=v;});
+bind('m-title',function(v){S.meta.title=v; var o=$('p-title'); if(o&&o.value!==v) o.value=v;});
+if($('p-title')) bind('p-title',function(v){S.meta.title=v; var o=$('m-title'); if(o&&o.value!==v) o.value=v;}); bind('c-name',function(v){S.company.name=v;}); bind('c-piva',function(v){S.company.piva=v;});
 bind('c-addr',function(v){S.company.addr=v;}); bind('c-tel',function(v){S.company.tel=v;}); bind('k-name',function(v){S.client.name=v;});
 bind('k-addr',function(v){S.client.addr=v;}); bind('m-num',function(v){S.meta.num=v;}); bind('m-date',function(v){S.meta.date=v;});
 bind('m-val',function(v){S.meta.val=num(v);}); bind('m-disc',function(v){S.meta.disc=Math.min(100,Math.max(0,num(v)));});

@@ -95,3 +95,7 @@ details.acc>summary em{font-variant-numeric:tabular-nums;white-space:nowrap}
   .lhead .lnum{width:24px;height:24px;font-size:.72rem;margin-top:10px}
 }
 #cat-name.acc-sub{display:block}
+/* titolo del preventivo, in alto nella scheda Preventivo */
+.qtit{margin:0 0 12px}
+.qtit textarea{font-weight:700}
+.qtit .hint{margin:2px 0 0;font-size:.76rem}

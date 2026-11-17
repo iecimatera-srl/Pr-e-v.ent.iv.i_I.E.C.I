@@ -79,6 +79,24 @@ ok(await S(()=>window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Pro
 // rinominare il modello: foto e marca restano
 await set('n:video:0','Monitor 10 Wi-Fi Nuovo nome');
 ok(await S(()=>{ const pr=window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Nuovo nome'); return pr&&pr.photos.length===1&&pr.brand==='Marcaprova'&&!window.IECI_T.S().products.some(x=>x.name==='Monitor 10 Wi-Fi Prova'); }),'rinominato il modello: foto e marca restano, nessuna scheda doppia');
+// dicitura accanto al prezzo (per i condomini: prezzo in più rispetto alla propria quota)
+ok(!!(await p.$('[data-vmf="dic:video:0"]')),'c\'è il campo «Dicitura accanto al prezzo»');
+await cl('[data-vm="dic:video:0:0"]');
+ok(await S(()=>window.IECI_T.S().cond.vm.video.o[0].dic==='in più rispetto alla propria quota'),'tocco su una frase pronta: la dicitura si mette da sola');
+box=await S(()=>document.querySelector('#doc .vmbox').innerText.replace(/\n+/g,' | '));
+ok(/\+ IVA \| in più rispetto alla propria quota/.test(box),'nel preventivo la dicitura compare subito sotto il prezzo ('+box.slice(box.indexOf('Monitor 10'),box.indexOf('Monitor 10')+110)+')');
+const fd=await S(()=>[...document.querySelectorAll('#doc .altb')].map(x=>x.innerText.replace(/\n/g,' ')).join(' | '));
+ok(/in più rispetto alla propria quota/.test(fd)||fd==='','anche nella scheda del modello nel fascicolo');
+await set('dic:video:0','da versare in aggiunta alla quota del condominio');
+box=await S(()=>document.querySelector('#doc .vmbox').innerText);
+ok(/da versare in aggiunta alla quota del condominio/.test(box),'dicitura scritta a mano: compare così com\'è');
+await cl('[data-vm="add:video:0"]');
+ok(await S(()=>window.IECI_T.S().cond.vm.video.o[1].dic==='da versare in aggiunta alla quota del condominio'),'un nuovo modello alternativo prende già la dicitura dell\'ultimo');
+await cl('[data-vm="del:video:1"]');
+await cl('[data-vm="dic:video:0:x"]');
+box=await S(()=>document.querySelector('#doc .vmbox').innerText);
+ok(!/da versare in aggiunta/.test(box)&&await S(()=>!window.IECI_T.S().cond.vm.video.o[0].dic),'«Nessuna dicitura»: si toglie');
+await cl('[data-vm="dic:video:0:1"]');
 // salvato e riaperto: tutto c'è
 await S(()=>{ const T=window.IECI_T; T.S().client={name:'Condominio Prova',addr:'',tel:'',email:'',cf:''}; T.touch(); T.saveQuote(true); });
 const id=await S(()=>window.IECI_T.S().qid);

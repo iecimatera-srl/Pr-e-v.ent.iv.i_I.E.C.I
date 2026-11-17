@@ -280,3 +280,7 @@ header.top{position:relative}
 .vmpm,.vmbg{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .vmpm .tab,.vmbg .tab{font-size:.8rem;padding:5px 10px}
 .vmpm-a{color:var(--muted);font-size:.78rem;font-variant-numeric:tabular-nums}
+/* dicitura accanto al prezzo del modello alternativo */
+.vmbox .vmq .vmdc{display:block;font-weight:600;font-size:11px;line-height:1.3;opacity:.78;margin-top:2px;white-space:normal}
+.vmdic{display:grid;gap:6px}.vmdic-c{display:flex;flex-wrap:wrap;gap:6px}
+.vmdic-c .pchip{white-space:normal;text-align:left}

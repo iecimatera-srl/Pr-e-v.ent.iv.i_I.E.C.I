@@ -13,8 +13,8 @@ function prodIsBase(p){
 }
 function prodBadge(p,alt){
   if(!vcOn()) return '';
-  if(alt){ var w=vmWord(alt.k), inc=vmIncl(alt.dl);
-    return '<div class="altb"><span class="altt">Modello alternativo · a richiesta</span><span class="altp">'+(alt.dl>0?'Surplus per questo '+w+' <b>+ '+eur(inc)+'</b>':alt.dl<0?'Riduzione per questo '+w+' <b>− '+eur(-inc)+'</b>':'<b>Stesso prezzo</b> del modello incluso')+(alt.dl?' <small>IVA inclusa, per ogni '+w+'</small>':'')+'</span></div>'+(!String(p.desc||'').trim()&&alt.o.t?'<div class="altn">'+esc(alt.o.t)+'</div>':''); }
+  if(alt){ var w=vmWord(alt.k);
+    return '<div class="altb"><span class="altt">Modello alternativo · a richiesta</span><span class="altp">'+(alt.dl>0?'Surplus per questo '+w+' <b>'+vmAmt(alt.dl)+'</b>':alt.dl<0?'Riduzione per questo '+w+' <b>'+vmAmt(alt.dl)+'</b>':'<b>Stesso prezzo</b> del modello incluso')+(alt.dl?' <small>'+(vmIvaInc()?'IVA inclusa, ':'')+'per ogni '+w+'</small>':'')+'</span></div>'+(!String(p.desc||'').trim()&&alt.o.t?'<div class="altn">'+esc(alt.o.t)+'</div>':''); }
   if(prodIsBase(p)) return '<div class="incb">✓ Modello incluso nel prezzo</div>';
   return '';
 }

@@ -35,9 +35,37 @@ function vmBase(j,t){
 }
 function vmIncl(d){ return r2(d*(econOn()?1:(1-num(S.meta.disc)/100))*(1+num(S.meta.iva)/100)); }
 function vmBrand(name){ var p=null,nm=String(name||'').trim().toLowerCase(); S.products.forEach(function(x){ if(!p&&String(x.name||'').trim().toLowerCase()===nm) p=x; }); return p&&p.brand?p.brand:''; }
+/* differenza dei modelli nel preventivo: IVA inclusa (come prima) oppure IVA esclusa, «+ IVA» */
+function vmIvaInc(){ return !(S.cond.vm&&S.cond.vm.iva==='esc'); }
+function vmShow(dl){ return vmIvaInc()?vmIncl(dl):r2(dl*(econOn()?1:(1-num(S.meta.disc)/100))); }
+function vmIvaLbl(){ return vmIvaInc()?'IVA inclusa':'IVA esclusa'; }
+function vmAmt(dl){ var v=vmShow(dl); return (v>0?'+ ':v<0?'− ':'')+eur(Math.abs(v))+(vmIvaInc()?'':' + IVA'); }
+/* ogni modello (base e alternativi) ha la sua scheda prodotto: lì stanno foto e marca, così compaiono
+   nella tabella dei modelli, nella scheda del fascicolo e nella sezione Prodotti */
+function vmPOf(name){ var n=lcn(name); if(!n) return null; return S.products.filter(function(p){ return lcn(p.name)===n; })[0]||null; }
+function vmPEnsure(k,name){
+  name=String(name||'').trim(); if(!name) return null; var p=vmPOf(name); if(p) return p;
+  vmProd(k,name); p=vmPOf(name);
+  if(!p){ p={id:uid(),name:name,brand:'',code:'',desc:'',specs:'',link:'',tags:'',photos:[],sol:vcMode()==='both'?k:''}; if(vcMode()==='brands') p.sys=k; S.products.push(p); }
+  return p;
+}
+function vmNomeDi(k,i){ var d=vmData(k); if(i==='b'){ var bl=vmBaseLine(k); return bl?String(bl.d||'').trim():vmBn(d,k); } var o=d.o[+i]; return o&&vmHas(o)?vmDn(o):''; }
+function vmPDi(k,i,crea){ var d=vmData(k); if(i==='b'){ var bl=vmBaseLine(k), pb=bl?prodOfLine(bl):null; if(pb) return pb; } var nm=vmNomeDi(k,i); return crea?vmPEnsure(k,nm):vmPOf(nm); }
+function vmImg(u){ VMI.push(u); return '@@VMI'+(VMI.length-1)+':'+u.length+u.slice(-16).replace(/[@<>"]/g,'')+'@@'; }
+var VMI=[];
+function vmMedia(k,i){
+  var nm=vmNomeDi(k,i), p=vmPDi(k,i,false), ph=(p&&p.photos)||[], br=p?String(p.brand||'').trim():'', lg=br?brandLogo(br):'', id=k+':'+i;
+  if(!nm) return '<div class="vmm vmm-0">Scrivi il nome del modello: poi puoi aggiungere foto, marca e logo.</div>';
+  return '<div class="vmm"><div class="vmm-lg"><div class="vmm-lgp">'+(lg?'<img src="'+vmImg(lg)+'" alt="'+esc(br)+'">':'<span>'+(br?esc(br.slice(0,2).toUpperCase()):'Logo')+'</span>')+'</div>'+
+    '<div class="vmm-lgt"><label class="f">Marca<input type="text" data-vmf="br:'+id+'" value="'+esc(br)+'" placeholder="es. BTicino, Comelit, Urmet" autocomplete="off"></label>'+
+    '<div class="vmm-b"><label class="btn ghost sm">'+(lg?'Cambia logo':'Carica logo')+'<input type="file" accept="image/*" data-vmlg="'+id+'" hidden></label>'+(navigator.onLine!==false?'<button type="button" class="btn ghost sm" data-vm="lgw:'+id+'">Cerca il logo sul web</button>':'')+'</div></div></div>'+
+    '<div class="vmm-ph">'+ph.map(function(u,j){ return '<span class="vmm-t"><img src="'+vmImg(u)+'" alt="Foto '+(j+1)+'"><button type="button" data-vm="phx:'+id+':'+j+'" aria-label="Togli questa foto">×</button></span>'; }).join('')+
+      (ph.length<MAXPH?'<label class="vmm-add" title="Aggiungi foto del modello"><input type="file" accept="image/*" multiple data-vmph="'+id+'" hidden><b>+</b><small>Foto</small></label>':'')+
+      (navigator.onLine!==false?'<button type="button" class="btn ghost sm" data-vm="phw:'+id+'">Cerca foto sul web</button>':'')+'</div></div>';
+}
 function vmDiffTxt(inc){ return inc>0?'+ '+eur(inc):(inc<0?'− '+eur(-inc):'Stesso prezzo'); }
 function vmWord(k){ return vmKindOf(k)==='cit'?'citofono':'monitor'; }
-function vmSurTxt(k,dl){ var w=vmWord(k), inc=vmIncl(dl); if(!dl) return 'Stesso prezzo del modello base'; return (dl>0?'Surplus per questo ':'Riduzione per questo ')+w+': '+(dl>0?'+ ':'− ')+eur(Math.abs(inc))+' IVA inclusa'; }
+function vmSurTxt(k,dl){ var w=vmWord(k); if(!dl) return 'Stesso prezzo del modello base'; return (dl>0?'Surplus per questo ':'Riduzione per questo ')+w+': '+vmAmt(dl)+(vmIvaInc()?' IVA inclusa':''); }
 function vmBox(onlyK){
   if(!vcOn()||S.cond.show===false||(S.cond.vm&&S.cond.vm.show===false)) return '';
   var out='';
@@ -45,17 +73,19 @@ function vmBox(onlyK){
     if(onlyK&&k!==onlyK) return;
     var d=vmData(k), os=d.o.filter(vmHas); if(!os.length) return;
     var w=vmWord(k), h='';
-    var row=function(name,note,cat,right,sub){ var br=vmBrand(cat||name); return '<div class="vmr vm2"><div><b>'+esc(name)+'</b>'+(note?'<small>'+esc(note)+'</small>':'')+(br?'<small>Marca: '+esc(br)+'</small>':'')+(sub?'<small class="vmx">'+sub+'</small>':'')+'</div><div class="vmq">'+right+'</div></div>'; };
-    h+='<div class="vmr vm2 vmhd"><div>Modello</div><div class="vmq">Surplus per '+w+', IVA inclusa</div></div>';
-    h+=row(vmBn(d,k),d.bt||VM_NOTE[d.b]||'',d.b||vmBn(d,k),'Incluso nel prezzo','');
-    os.forEach(function(o){ var dl=vmDelta(k,o), inc=vmIncl(dl); h+=row(vmDn(o),o.t||VM_NOTE[o.d]||'',o.d||vmDn(o),dl?(dl>0?'+ ':'− ')+eur(Math.abs(inc)):'—',vmSurTxt(k,dl)); });
+    var row=function(name,note,p,right,sub){ var br=p?String(p.brand||'').trim():'', lg=br?brandLogo(br):'', ph=p&&p.photos&&p.photos[0];
+      return '<div class="vmr vm2"><div class="vmn">'+(ph?'<img class="vmth" src="'+ph+'" alt="">':'')+'<div>'+(lg?'<img class="vmlg" src="'+lg+'" alt="'+esc(br)+'">':'')+'<b>'+esc(name)+'</b>'+(note?'<small>'+esc(note)+'</small>':'')+(br&&!lg?'<small>Marca: '+esc(br)+'</small>':'')+(sub?'<small class="vmx">'+sub+'</small>':'')+'</div></div><div class="vmq">'+right+'</div></div>'; };
+    h+='<div class="vmr vm2 vmhd"><div>Modello</div><div class="vmq">Surplus per '+w+', '+vmIvaLbl()+'</div></div>';
+    var bl=vmBaseLine(k); h+=row(vmBn(d,k),d.bt||VM_NOTE[d.b]||'',(bl&&prodOfLine(bl))||vmPOf(d.b||vmBn(d,k)),'Incluso nel prezzo','');
+    os.forEach(function(o,i){ var dl=vmDelta(k,o); h+=row(vmDn(o),o.t||VM_NOTE[o.d]||'',vmPOf(vmDn(o))||vmPOf(o.d),dl?vmAmt(dl):'—',vmSurTxt(k,dl)); });
     var title=(vcMode()==='both'?vcSolName(k)+' · ':'')+'Modelli alternativi del '+(w==='monitor'?'monitor':'citofono')+', a richiesta';
-    out+='<div class="vcbox vmbox"><div class="vh">'+esc(title)+'</div>'+h+'<div class="vs">I modelli alternativi non sono compresi nel totale del preventivo. Chi sceglie un modello diverso da quello incluso aggiunge il surplus indicato (o detrae la riduzione), per ogni '+w+'.</div></div>';
+    out+='<div class="vcbox vmbox"><div class="vh">'+esc(title)+'</div>'+h+'<div class="vs">I modelli alternativi non sono compresi nel totale del preventivo. Chi sceglie un modello diverso da quello incluso aggiunge il surplus indicato (o detrae la riduzione), per ogni '+w+(vmIvaInc()?'':', più IVA')+'.</div></div>';
   });
   return out;
 }
+var VMI0=[];
 function renderVm(){
-  var el=$('vc-vm'); if(!el) return; 
+  var el=$('vc-vm'); if(!el) return; VMI=[]; VMI0=VMI;
   if(!vcOn()){ el.innerHTML=''; el.removeAttribute('data-k'); return; }
   var sg=function(v){ return v>0?'+ ':(v<0?'− ':''); };
   var h='<div class="vmp"><b>Modelli del posto interno</b><small>Crei tu i modelli da proporre, con nome, prezzo e caratteristiche. Il totale resta quello del modello base; per gli altri modelli il preventivo indica a parte il surplus.</small>';
@@ -69,6 +99,7 @@ function renderVm(){
       '<div class="grid2"><label class="f">Prezzo per posto interno (€, IVA esclusa)<input type="number" step="any" min="0" inputmode="decimal" data-vmf="bp:'+k+':0" value="'+esc(vmSet(d.bp)?d.bp:(bl?num(bl.p):''))+'" placeholder="'+(bpPh!=null?fmt.format(bpPh):'es. 180')+'"></label>'+
       '<label class="f">Caratteristiche<input type="text" data-vmf="bt:'+k+':0" value="'+esc(d.bt||'')+'" placeholder="'+esc(VM_NOTE[d.b]||'es. schermo 7", vivavoce')+'"></label></div>'+
       '<div class="hint">'+(bl?'Nome e prezzo del modello base sono quelli della riga «'+esc(bl.d)+'» del preventivo: se li cambi qui, cambia anche la riga.':'Scrivi il prezzo del modello base, così l\'app calcola le differenze. Con «Aggiungi le voci tipiche» il modello base diventa una riga del preventivo.')+'</div>'+
+      vmMedia(k,'b')+
       '<details class="vmadv"'+(d.b?' open':'')+'><summary>Prendi dal listino (facoltativo)</summary><label class="f">Modello del listino'+optSel(d.b,'data-vmf="b:'+k+':0"')+'</label></details></div>';
     d.o.forEach(function(o,i){
       var dl=vmDelta(k,o), q=Math.max(0,parseInt(o.q,10)||0), ok=vmOk(k,o), op=vmOP(o), lp=o.d?vmPrice(o.d):null, auto=(op!=null&&bp!=null)?r2(op-bp):null;
@@ -77,22 +108,33 @@ function renderVm(){
         '<div class="grid2"><label class="f">Prezzo per posto interno (€, IVA esclusa)<input type="number" step="any" min="0" inputmode="decimal" data-vmf="p:'+k+':'+i+'" value="'+esc(vmSet(o.p)?o.p:'')+'" placeholder="'+(lp!=null?fmt.format(lp):'es. 260')+'"></label>'+
         '</div>'+
         '<label class="f">Caratteristiche da mostrare al cliente<input type="text" data-vmf="t:'+k+':'+i+'" value="'+esc(o.t||'')+'" placeholder="'+esc(VM_NOTE[o.d]||'es. schermo 10" touch, Wi-Fi e app')+'"></label>'+
+        vmMedia(k,i)+
         '<details class="vmadv"'+(o.d||vmSet(o.s)?' open':'')+'><summary>Altre opzioni: listino o differenza a mano</summary>'+
           '<label class="f">Prendi dal listino (facoltativo)'+optSel(o.d,'data-vmf="d:'+k+':'+i+'"')+'</label>'+
           '<label class="f">Differenza scritta a mano (€, IVA esclusa)<input type="number" step="any" inputmode="decimal" data-vmf="s:'+k+':'+i+'" value="'+esc(vmSet(o.s)?o.s:'')+'" placeholder="'+(auto!=null?'auto: '+sg(auto)+fmt.format(Math.abs(auto)):'es. +80 oppure -40')+'"></label></details>'+
-        '<div class="hint">'+(!vmHas(o)?'Scrivi il nome del modello.':!ok?'Scrivi il prezzo di questo modello'+(bp==null?' e del modello base':'')+', oppure la differenza a mano.':(dl>0?'Surplus per questo '+vmWord(k):dl<0?'Riduzione per questo '+vmWord(k):'Stesso prezzo del base')+(dl?': <b>'+sg(dl)+eur(Math.abs(dl))+'</b> + IVA ('+sg(dl)+eur(Math.abs(vmIncl(dl)))+' IVA inclusa). Non entra nel totale del preventivo.':''))+'</div></div>';
+        '<div class="hint">'+(!vmHas(o)?'Scrivi il nome del modello.':!ok?'Scrivi il prezzo di questo modello'+(bp==null?' e del modello base':'')+', oppure la differenza a mano.':(dl>0?'Surplus per questo '+vmWord(k):dl<0?'Riduzione per questo '+vmWord(k):'Stesso prezzo del base')+(dl?': <b>'+sg(dl)+eur(Math.abs(dl))+'</b> + IVA ('+sg(dl)+eur(Math.abs(vmIncl(dl)))+' IVA inclusa). Nel preventivo: <b>'+vmAmt(dl)+(vmIvaInc()?' IVA inclusa':'')+'</b>. Non entra nel totale.':''))+'</div></div>';
     });
     h+='<div class="row"><button type="button" class="btn ghost" data-vm="add:'+k+':0">+ Aggiungi un modello alternativo</button></div>'+
       (d.o.length?'<div class="hint">Nel preventivo i modelli alternativi compaiono in una voce a parte con il loro surplus: il totale resta quello del modello base.</div>':'')+'</div>';
   });
+  var inc=vmIvaInc();
+  h+='<div class="vmiva"><span><b>Differenza di prezzo nel preventivo</b><small>'+(inc?'Il cliente vede il surplus già con l\'IVA.':'Il cliente vede il surplus senza IVA, con la scritta «+ IVA».')+'</small></span><div class="tabs vmiva-t" role="group" aria-label="IVA della differenza"><button type="button" class="tab" data-vm="iva:inc:0" aria-pressed="'+inc+'">IVA inclusa</button><button type="button" class="tab" data-vm="iva:esc:0" aria-pressed="'+!inc+'">IVA esclusa (+ IVA)</button></div></div>';
   h+='<label class="chk"><input type="checkbox" id="vm-show"'+(S.cond.vm&&S.cond.vm.show===false?'':' checked')+'>Mostra la scelta dei modelli nel preventivo</label></div>';
-  if(el.getAttribute('data-k')!==h){ morph(el,docImgs(h)); el.setAttribute('data-k',h); }
+  var key=h; VMI=[];
+  if(el.getAttribute('data-k')!==key){ var IM=VMI0; morph(el,docImgs(h.replace(/@@VMI(\d+):[^@]*@@/g,function(m,n){ return IM[+n]||''; }))); el.setAttribute('data-k',key); }
 }
 (function(){
   var w=$('vc-vm'); if(!w) return;
   function after(){ vmClamp(); vmSync(); renderLines(); renderTiers(); renderEcon(); renderProducts(); renderVc(); touch(); }
   w.addEventListener('click',function(e){
-    var t=e.target.closest('[data-vm]'); if(!t) return; var a=t.getAttribute('data-vm').split(':'), act=a[0], k=a[1], i=+a[2], d=vmData(k);
+    var t=e.target.closest('[data-vm]'); if(!t) return; var a=t.getAttribute('data-vm').split(':'), act=a[0], k=a[1], i=+a[2];
+    if(act==='iva'){ if(!S.cond.vm||typeof S.cond.vm!=='object') S.cond.vm={show:true}; S.cond.vm.iva=k==='esc'?'esc':'inc'; renderVm(); renderProducts(); touch(); toast(k==='esc'?'Differenze dei modelli senza IVA, con «+ IVA»':'Differenze dei modelli con l\'IVA inclusa'); return; }
+    if(act==='phx'||act==='phw'||act==='lgw'){ var pp=vmPDi(k,a[2],true); if(!pp) return;
+      if(act==='phx'){ var j=+a[3]; (pp.photos||[]).splice(j,1); if(pp.po) pp.po.splice(j,1); renderVm(); renderProducts(); touch(); return; }
+      if(act==='phw'){ iwProd(S.products.indexOf(pp)); return; }
+      if(!String(pp.brand||'').trim()){ toast('Scrivi prima la marca del modello'); var inp=w.querySelector('[data-vmf="br:'+k+':'+a[2]+'"]'); if(inp) inp.focus(); return; }
+      iwBrandLogo(pp.brand,function(){ renderVm(); }); return; }
+    var d=vmData(k);
     if(act==='add'){
       d.o.push({id:uid(),d:'',n:'',p:'',q:0,s:'',t:''});
     } else if(act==='del'){ d.o.splice(i,1); }
@@ -106,9 +148,15 @@ function renderVm(){
     after();
   });
   w.addEventListener('change',function(e){
-    var t=e.target;
+    var t=e.target, fa;
+    if((fa=t.getAttribute('data-vmph'))){ var fs=t.files; var q=fa.split(':'), p1=vmPDi(q[0],q[1],true); if(!p1||!fs||!fs.length) return; if(!p1.photos) p1.photos=[]; if(!p1.po) p1.po=[];
+      addPhotos(p1.photos,MAXPH,fs,function(){ t.value=''; renderVm(); renderProducts(); touch(); toast('Foto aggiunte al modello «'+p1.name+'»'); },p1.po,p1.bg); return; }
+    if((fa=t.getAttribute('data-vmlg'))){ var f2=t.files&&t.files[0]; t.value=''; var q2=fa.split(':'), p2=vmPDi(q2[0],q2[1],true); if(!p2||!f2) return;
+      var br2=iwBase(p2.brand||''); if(!String(br2||'').trim()){ toast('Scrivi prima la marca del modello: il logo vale per quella marca'); return; }
+      iwLogoData(f2,function(dl){ if(!dl){ toast('Immagine non valida'); return; } iwSaveLogo(br2,dl,'',''); iwRefresh(); renderVm(); toast('Logo «'+br2+'» salvato: vale per tutti i preventivi'); }); return; }
     if(t.id==='vm-show'){ if(!S.cond.vm) S.cond.vm={}; S.cond.vm.show=t.checked; touch(); return; }
     var f=t.getAttribute('data-vmf'); if(!f) return; var a=f.split(':'), fld=a[0], k=a[1], i=+a[2], d=vmData(k);
+    if(fld==='br'){ var p3=vmPDi(k,a[2],true); if(!p3) return; p3.brand=t.value.trim(); try{ brDatalist(); iwSoon(); }catch(x){} renderVm(); renderProducts(); touch(); return; }
     if(fld==='b'){ d.b=t.value; if(d.b) vmProd(k,d.b); }
     else if(fld==='bp'){ var bl=vmBaseLine(k); if(bl&&t.value.trim()!==''){ bl.vbk=k; bl.p=num(t.value); d.bp=''; } else d.bp=t.value.trim()===''?'':num(t.value); }
     else if(fld==='bn'){ d.bn=t.value.trim(); var bl2=vmBaseLine(k); if(bl2&&d.bn){ bl2.vbk=k; bl2.d=d.bn; vmProd(k,d.bn); } }
@@ -118,7 +166,8 @@ function renderVm(){
       else if(fld==='s') o.s=t.value.trim()===''?'':num(t.value);
       else if(fld==='q') o.q=Math.max(0,parseInt(t.value,10)||0);
       else if(fld==='t') o.t=t.value.trim();
-      else if(fld==='n'){ o.n=t.value.trim(); if(o.n&&!o.d) vmProd(k,o.n); }
+      else if(fld==='n'){ var vec=vmHas(o)?vmDn(o):'', pv=vec?vmPOf(vec):null; o.n=t.value.trim(); var nuovo=vmDn(o);
+        if(pv&&o.n&&lcn(vec)!==lcn(nuovo)&&!vmPOf(nuovo)&&!S.lines.some(function(l){ return lcn(l.d)===lcn(vec); })) pv.name=nuovo; else if(o.n&&!o.d) vmProd(k,o.n); }
       else if(fld==='p') o.p=t.value.trim()===''?'':num(t.value); }
     after();
   });

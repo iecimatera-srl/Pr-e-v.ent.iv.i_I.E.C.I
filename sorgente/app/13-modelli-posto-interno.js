@@ -1,4 +1,4 @@
-/* ===== Modelli del posto interno: variante con differenza di prezzo ===== */
+/* ===== Modelli alternativi del posto interno: proposti a richiesta, ognuno con il suo prezzo (fuori dal totale) ===== */
 var VM_NOTE={'Monitor interno a colori 4,3" (economico)':'Schermo 4,3": essenziale, con chiamata, video e apriporta','Monitor interno a colori 7"':'Schermo 7" a colori, viva voce e apriporta','Monitor interno a colori 7" con memoria immagini':'Schermo 7" con memoria delle immagini dei visitatori','Monitor interno Wi-Fi con app':'Wi-Fi: si risponde anche dallo smartphone, ovunque','Monitor interno 10" touch Wi-Fi con app':'Schermo 10" touch, Wi-Fi e app, design di alta gamma','Posto interno citofono con cornetta':'Citofono con cornetta, semplice e affidabile','Posto interno citofono vivavoce':'Citofono vivavoce, senza cornetta','Posto interno citofono vivavoce a sfioramento':'Vivavoce con tasti a sfioramento, design moderno'};
 var VM_PRE={video:['Monitor interno a colori 4,3" (economico)','Monitor interno Wi-Fi con app','Monitor interno 10" touch Wi-Fi con app'],cit:['Posto interno citofono vivavoce','Posto interno citofono vivavoce a sfioramento']};
 var VM_BASE={video:'Monitor interno a colori 7"',cit:'Posto interno citofono con cornetta'};
@@ -41,6 +41,9 @@ function vmBrand(name){ var p=null,nm=String(name||'').trim().toLowerCase(); S.p
 function vmIvaInc(){ return !(S.cond.vm&&S.cond.vm.iva==='esc'); }
 function vmShow(dl){ return vmIvaInc()?vmIncl(dl):r2(dl*(econOn()?1:(1-num(S.meta.disc)/100))); }
 function vmIvaLbl(){ return vmIvaInc()?'IVA inclusa':'IVA esclusa'; }
+/* il prezzo del modello alternativo, come lo scrivi (con o senza IVA), riportato a IVA esclusa */
+function vmPrezzo(o){ if(vmSet(o.p)) return vmNetto(o.p,o.pm); if(o.d){ var lp=vmPrice(o.d); if(lp!=null) return lp; } if(vmSet(o.s)) return vmNetto(o.s,o.pm); return null; }
+function vmAmtP(net){ return eur(vmIvaInc()?r2(net*vmIvaF()):r2(net))+(vmIvaInc()?'':' + IVA'); }
 function vmAmt(dl){ var v=vmShow(dl); return (v>0?'+ ':v<0?'− ':'')+eur(Math.abs(v))+(vmIvaInc()?'':' + IVA'); }
 /* ogni modello (base e alternativi) ha la sua scheda prodotto: lì stanno foto e marca, così compaiono
    nella tabella dei modelli, nella scheda del fascicolo e nella sezione Prodotti */
@@ -80,11 +83,10 @@ function vmBox(onlyK){
     var w=vmWord(k), h='';
     var row=function(name,note,p,right,sub){ var br=p?String(p.brand||'').trim():'', lg=br?brandLogo(br):'', ph=p&&p.photos&&p.photos[0];
       return '<div class="vmr vm2"><div class="vmn">'+(ph?'<img class="vmth" src="'+ph+'" alt="">':'')+'<div>'+(lg?'<img class="vmlg" src="'+lg+'" alt="'+esc(br)+'">':'')+'<b>'+esc(name)+'</b>'+(note?'<small>'+esc(note)+'</small>':'')+(br&&!lg?'<small>Marca: '+esc(br)+'</small>':'')+(sub?'<small class="vmx">'+sub+'</small>':'')+'</div></div><div class="vmq">'+right+'</div></div>'; };
-    h+='<div class="vmr vm2 vmhd"><div>Modello</div><div class="vmq">Surplus per '+w+', '+vmIvaLbl()+'</div></div>';
-    var bl=vmBaseLine(k); h+=row(vmBn(d,k),d.bt||VM_NOTE[d.b]||'',(bl&&prodOfLine(bl))||vmPOf(d.b||vmBn(d,k)),'Incluso nel prezzo','');
-    os.forEach(function(o,i){ var dl=vmDelta(k,o); h+=row(vmDn(o),o.t||VM_NOTE[o.d]||'',vmPOf(vmDn(o))||vmPOf(o.d),dl?vmAmt(dl):'—',vmSurTxt(k,dl)); });
+    h+='<div class="vmr vm2 vmhd"><div>Modello</div><div class="vmq">Prezzo per '+w+', '+vmIvaLbl()+'</div></div>';
+    os.forEach(function(o){ var pr=vmPrezzo(o); h+=row(vmDn(o),o.t||VM_NOTE[o.d]||'',vmPOf(vmDn(o))||vmPOf(o.d),pr!=null?vmAmtP(pr):'Su richiesta',''); });
     var title=(vcMode()==='both'?vcSolName(k)+' · ':'')+'Modelli alternativi del '+(w==='monitor'?'monitor':'citofono')+', a richiesta';
-    out+='<div class="vcbox vmbox"><div class="vh">'+esc(title)+'</div>'+h+'<div class="vs">I modelli alternativi non sono compresi nel totale del preventivo. Chi sceglie un modello diverso da quello incluso aggiunge il surplus indicato (o detrae la riduzione), per ogni '+w+(vmIvaInc()?'':', più IVA')+'.</div></div>';
+    out+='<div class="vcbox vmbox"><div class="vh">'+esc(title)+'</div>'+h+'<div class="vs">I modelli alternativi sono a richiesta e non sono compresi nel totale del preventivo. Il prezzo indicato è per ogni '+w+(vmIvaInc()?', IVA inclusa':', più IVA')+'.</div></div>';
   });
   return out;
 }
@@ -93,38 +95,29 @@ function renderVm(){
   var el=$('vc-vm'); if(!el) return; VMI=[]; VMI0=VMI;
   if(!vcOn()){ el.innerHTML=''; el.removeAttribute('data-k'); return; }
   var sg=function(v){ return v>0?'+ ':(v<0?'− ':''); };
-  var h='<div class="vmp"><b>Modelli del posto interno</b><small>Crei tu i modelli da proporre, con nome, prezzo e caratteristiche. Il totale resta quello del modello base; per gli altri modelli il preventivo indica a parte il surplus.</small>';
+  var h='<div class="vmp"><b>Modelli alternativi del posto interno</b><small>Aggiungi i modelli da proporre a richiesta, con nome, prezzo, foto e caratteristiche. Non entrano nel totale: il preventivo li mostra a parte, ognuno con il suo prezzo.</small>';
   vmKinds().forEach(function(k){
     var d=vmData(k), cands=vmCands(k), n=vcN(), left=Math.max(0,n-vmCount(k)), bl=vmBaseLine(k), bp=vmBP(k);
     var optSel=function(cur,attr){ var l=cands.slice(); if(cur&&l.indexOf(cur)<0) l.push(cur); return '<select '+attr+'><option value=""'+(cur?'':' selected')+'>Nessuno: lo scrivo io</option>'+l.map(function(c){ var p=vmPrice(c); return '<option value="'+esc(c)+'"'+(c===cur?' selected':'')+'>'+esc(c)+(p!=null?' · '+eur(p):'')+'</option>'; }).join('')+'</select>'; };
     var bpPh=d.b&&vmPrice(d.b)!=null?vmPrice(d.b):(bl?num(bl.p):null);
-    h+='<div class="vms"><div class="vmt">'+(vcMode()==='brands'?esc(sysName(sysById(k)||{},sysIdx(k))):(k==='cit'?'Citofono':'Videocitofono')+(vcMode()==='both'?' · soluzione '+(k==='cit'?'«Solo citofono»':'«Videocitofono»'):''))+'</div>'+
-      '<div class="vmo vmb"><div class="vmo-h"><b>Modello base, incluso nel prezzo</b></div>'+
-      '<label class="f">Nome del modello<input type="text" data-vmf="bn:'+k+':0" value="'+esc(d.bn||(bl&&bl.vbk===k?bl.d:''))+'" placeholder="'+esc(d.b||(bl?bl.d:'es. Monitor 7" vivavoce'))+'"></label>'+
-      (function(){ var m=d.bpm==='inc'?'inc':'', F=m?vmIvaF():1, v=vmSet(d.bp)?d.bp:(bl?r2(num(bl.p)*F):'');
-        return '<div class="grid2"><div class="vmpr"><label class="f">Prezzo per posto interno (€, '+(m?'IVA inclusa':'IVA esclusa')+')<input type="number" step="any" min="0" inputmode="decimal" data-vmf="bp:'+k+':0" value="'+esc(v)+'" placeholder="'+(bpPh!=null?fmt.format(r2(bpPh*F)):'es. 180')+'"></label>'+vmPmSel(k,'b',m)+vmPmAltro(v,m)+'</div>'; })()+
-      '<label class="f">Caratteristiche<input type="text" data-vmf="bt:'+k+':0" value="'+esc(d.bt||'')+'" placeholder="'+esc(VM_NOTE[d.b]||'es. schermo 7", vivavoce')+'"></label></div>'+
-      '<div class="hint">'+(bl?'Nome e prezzo del modello base sono quelli della riga «'+esc(bl.d)+'» del preventivo: se li cambi qui, cambia anche la riga.':'Scrivi il prezzo del modello base, così l\'app calcola le differenze. Con «Aggiungi le voci tipiche» il modello base diventa una riga del preventivo.')+'</div>'+
-      vmMedia(k,'b')+
-      '<details class="vmadv"'+(d.b?' open':'')+'><summary>Prendi dal listino (facoltativo)</summary><label class="f">Modello del listino'+optSel(d.b,'data-vmf="b:'+k+':0"')+'</label></details></div>';
+    h+='<div class="vms"><div class="vmt">'+(vcMode()==='brands'?esc(sysName(sysById(k)||{},sysIdx(k))):(k==='cit'?'Citofono':'Videocitofono')+(vcMode()==='both'?' · soluzione '+(k==='cit'?'«Solo citofono»':'«Videocitofono»'):''))+'</div>';
     d.o.forEach(function(o,i){
-      var dl=vmDelta(k,o), q=Math.max(0,parseInt(o.q,10)||0), ok=vmOk(k,o), op=vmOP(o), lp=o.d?vmPrice(o.d):null, auto=(op!=null&&bp!=null)?r2(op-bp):null;
+      var pr=vmPrezzo(o), lp=o.d?vmPrice(o.d):null;
       h+='<div class="vmo"><div class="vmo-h"><b>Modello alternativo '+(i+1)+'</b><button type="button" class="btn ghost sm" data-vm="del:'+k+':'+i+'" aria-label="Elimina questo modello">Elimina</button></div>'+
         '<label class="f">Nome del modello<input type="text" data-vmf="n:'+k+':'+i+'" value="'+esc(o.n||'')+'" placeholder="'+esc(o.d||'es. Monitor 10" Wi-Fi')+'"></label>'+
         (function(){ var m=o.pm==='inc'?'inc':'', F=m?vmIvaF():1;
           return '<div class="vmpr"><label class="f">Prezzo per posto interno (€, '+(m?'IVA inclusa':'IVA esclusa')+')<input type="number" step="any" min="0" inputmode="decimal" data-vmf="p:'+k+':'+i+'" value="'+esc(vmSet(o.p)?o.p:'')+'" placeholder="'+(lp!=null?fmt.format(r2(lp*F)):'es. 260')+'"></label>'+vmPmSel(k,i,m)+vmPmAltro(vmSet(o.p)?o.p:'',m)+'</div>'; })()+
         '<label class="f">Caratteristiche da mostrare al cliente<input type="text" data-vmf="t:'+k+':'+i+'" value="'+esc(o.t||'')+'" placeholder="'+esc(VM_NOTE[o.d]||'es. schermo 10" touch, Wi-Fi e app')+'"></label>'+
         vmMedia(k,i)+
-        '<details class="vmadv"'+(o.d||vmSet(o.s)?' open':'')+'><summary>Altre opzioni: listino o differenza a mano</summary>'+
-          '<label class="f">Prendi dal listino (facoltativo)'+optSel(o.d,'data-vmf="d:'+k+':'+i+'"')+'</label>'+
-          '<label class="f">Differenza scritta a mano (€, '+(o.pm==='inc'?'IVA inclusa':'IVA esclusa')+')<input type="number" step="any" inputmode="decimal" data-vmf="s:'+k+':'+i+'" value="'+esc(vmSet(o.s)?o.s:'')+'" placeholder="'+(auto!=null?'auto: '+sg(auto)+fmt.format(Math.abs(auto)):'es. +80 oppure -40')+'"></label></details>'+
-        '<div class="hint">'+(!vmHas(o)?'Scrivi il nome del modello.':!ok?'Scrivi il prezzo di questo modello'+(bp==null?' e del modello base':'')+', oppure la differenza a mano.':(dl>0?'Surplus per questo '+vmWord(k):dl<0?'Riduzione per questo '+vmWord(k):'Stesso prezzo del base')+(dl?': <b>'+sg(dl)+eur(Math.abs(dl))+'</b> + IVA ('+sg(dl)+eur(Math.abs(vmIncl(dl)))+' IVA inclusa). Nel preventivo: <b>'+vmAmt(dl)+(vmIvaInc()?' IVA inclusa':'')+'</b>. Non entra nel totale.':''))+'</div></div>';
+        '<details class="vmadv"'+(o.d?' open':'')+'><summary>Prendi dal listino (facoltativo)</summary>'+
+          '<label class="f">Modello del listino'+optSel(o.d,'data-vmf="d:'+k+':'+i+'"')+'</label></details>'+
+        '<div class="hint">'+(!vmHas(o)?'Scrivi il nome del modello.':pr==null?'Scrivi il prezzo del modello.':'Nel preventivo: <b>'+vmAmtP(pr)+(vmIvaInc()?' IVA inclusa':'')+'</b> per ogni '+vmWord(k)+'. Non entra nel totale.')+'</div></div>';
     });
     h+='<div class="row"><button type="button" class="btn ghost" data-vm="add:'+k+':0">+ Aggiungi un modello alternativo</button></div>'+
-      (d.o.length?'<div class="hint">Nel preventivo i modelli alternativi compaiono in una voce a parte con il loro surplus: il totale resta quello del modello base.</div>':'')+'</div>';
+      (d.o.length?'<div class="hint">Nel preventivo i modelli alternativi compaiono in una voce a parte, ognuno con il suo prezzo: il totale non cambia.</div>':'')+'</div>';
   });
   var inc=vmIvaInc();
-  h+='<div class="vmiva"><span><b>Differenza di prezzo nel preventivo</b><small>'+(inc?'Il cliente vede il surplus già con l\'IVA.':'Il cliente vede il surplus senza IVA, con la scritta «+ IVA».')+'</small></span><div class="tabs vmiva-t" role="group" aria-label="IVA della differenza"><button type="button" class="tab" data-vm="iva:inc:0" aria-pressed="'+inc+'">IVA inclusa</button><button type="button" class="tab" data-vm="iva:esc:0" aria-pressed="'+!inc+'">IVA esclusa (+ IVA)</button></div></div>';
+  h+='<div class="vmiva"><span><b>Prezzo dei modelli nel preventivo</b><small>'+(inc?'Il cliente vede il prezzo già con l\'IVA.':'Il cliente vede il prezzo senza IVA, con la scritta «+ IVA».')+'</small></span><div class="tabs vmiva-t" role="group" aria-label="IVA del prezzo dei modelli"><button type="button" class="tab" data-vm="iva:inc:0" aria-pressed="'+inc+'">IVA inclusa</button><button type="button" class="tab" data-vm="iva:esc:0" aria-pressed="'+!inc+'">IVA esclusa (+ IVA)</button></div></div>';
   h+='<label class="chk"><input type="checkbox" id="vm-show"'+(S.cond.vm&&S.cond.vm.show===false?'':' checked')+'>Mostra la scelta dei modelli nel preventivo</label></div>';
   var key=h; VMI=[];
   if(el.getAttribute('data-k')!==key){ var IM=VMI0; morph(el,docImgs(h.replace(/@@VMI(\d+):[^@]*@@/g,function(m,n){ return IM[+n]||''; }))); el.setAttribute('data-k',key); }
@@ -134,7 +127,7 @@ function renderVm(){
   function after(){ vmClamp(); vmSync(); renderLines(); renderTiers(); renderEcon(); renderProducts(); renderVc(); touch(); }
   w.addEventListener('click',function(e){
     var t=e.target.closest('[data-vm]'); if(!t) return; var a=t.getAttribute('data-vm').split(':'), act=a[0], k=a[1], i=+a[2];
-    if(act==='iva'){ if(!S.cond.vm||typeof S.cond.vm!=='object') S.cond.vm={show:true}; S.cond.vm.iva=k==='esc'?'esc':'inc'; renderVm(); renderProducts(); touch(); toast(k==='esc'?'Differenze dei modelli senza IVA, con «+ IVA»':'Differenze dei modelli con l\'IVA inclusa'); return; }
+    if(act==='iva'){ if(!S.cond.vm||typeof S.cond.vm!=='object') S.cond.vm={show:true}; S.cond.vm.iva=k==='esc'?'esc':'inc'; renderVm(); renderProducts(); touch(); toast(k==='esc'?'Prezzi dei modelli senza IVA, con «+ IVA»':'Prezzi dei modelli con l\'IVA inclusa'); return; }
     if(act==='pm'){ var md=a[3]==='inc'?'inc':'', dd=vmData(k), F=vmIvaF();
       if(a[2]==='b'){ if((dd.bpm==='inc'?'inc':'')===md) return; if(vmSet(dd.bp)) dd.bp=r2(md?num(dd.bp)*F:num(dd.bp)/F); dd.bpm=md; }
       else { var oo=dd.o[+a[2]]; if(!oo||(oo.pm==='inc'?'inc':'')===md) return; if(vmSet(oo.p)) oo.p=r2(md?num(oo.p)*F:num(oo.p)/F); if(vmSet(oo.s)) oo.s=r2(md?num(oo.s)*F:num(oo.s)/F); oo.pm=md; }

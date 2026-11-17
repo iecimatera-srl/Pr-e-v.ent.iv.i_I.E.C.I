@@ -3,7 +3,7 @@ var PG_GROUPED=false, PG_COL=['var(--pbrand,#2F65AE)','#0F766E','#B45309'];
 function prodAlt(p){
   if(!vcOn()||!p) return null; var r=null, n=lcn(p.name);
   vmKinds().forEach(function(k){ if(r) return; if(brOn()&&p.sys&&p.sys!==k) return;
-    vmData(k).o.forEach(function(o){ if(r||!vmHas(o)) return; if(lcn(vmDn(o))===n||(o.d&&lcn(o.d)===n)) r={k:k,o:o,dl:vmDelta(k,o)}; }); });
+    vmData(k).o.forEach(function(o){ if(r||!vmHas(o)) return; if(lcn(vmDn(o))===n||(o.d&&lcn(o.d)===n)) r={k:k,o:o,pr:vmPrezzo(o)}; }); });
   return r;
 }
 function prodIsBase(p){
@@ -14,8 +14,7 @@ function prodIsBase(p){
 function prodBadge(p,alt){
   if(!vcOn()) return '';
   if(alt){ var w=vmWord(alt.k);
-    return '<div class="altb"><span class="altt">Modello alternativo · a richiesta</span><span class="altp">'+(alt.dl>0?'Surplus per questo '+w+' <b>'+vmAmt(alt.dl)+'</b>':alt.dl<0?'Riduzione per questo '+w+' <b>'+vmAmt(alt.dl)+'</b>':'<b>Stesso prezzo</b> del modello incluso')+(alt.dl?' <small>'+(vmIvaInc()?'IVA inclusa, ':'')+'per ogni '+w+'</small>':'')+'</span></div>'+(!String(p.desc||'').trim()&&alt.o.t?'<div class="altn">'+esc(alt.o.t)+'</div>':''); }
-  if(prodIsBase(p)) return '<div class="incb">✓ Modello incluso nel prezzo</div>';
+    return '<div class="altb"><span class="altt">Modello alternativo · a richiesta</span><span class="altp">'+(alt.pr!=null?'Prezzo per questo '+w+' <b>'+vmAmtP(alt.pr)+'</b> <small>'+(vmIvaInc()?'IVA inclusa, ':'')+'per ogni '+w+', non compreso nel totale</small>':'<b>Prezzo su richiesta</b>')+'</span></div>'+(!String(p.desc||'').trim()&&alt.o.t?'<div class="altn">'+esc(alt.o.t)+'</div>':''); }
   return '';
 }
 function brandLogo(brand){
@@ -57,7 +56,7 @@ function secProdottiVc(list){
   PG_GROUPED=G.length>1||G[0].i!==-2;
   G.forEach(function(g){
     var main=g.items.filter(function(p){ return !prodAlt(p); }), alts=g.items.filter(function(p){ return !!prodAlt(p); });
-    var seq=main.map(function(p){ return {p:p}; }); if(alts.length){ var w=vmWord(prodAlt(alts[0]).k); seq.push({h:'<div class="alth"><b>Modelli alternativi del '+w+'</b><span>Acquistabili a richiesta con un surplus, non compresi nel totale</span></div>'}); alts.forEach(function(p){ seq.push({p:p}); }); }
+    var seq=main.map(function(p){ return {p:p}; }); if(alts.length){ var w=vmWord(prodAlt(alts[0]).k); seq.push({h:'<div class="alth"><b>Modelli alternativi del '+w+'</b><span>A richiesta, ognuno con il suo prezzo, non compresi nel totale</span></div>'}); alts.forEach(function(p){ seq.push({p:p}); }); }
     var chunks=[], cur=[], np=0;
     seq.forEach(function(e){ if(e.p&&per&&np>=per){ chunks.push(cur); cur=[]; np=0; } cur.push(e); if(e.p) np++; }); if(cur.length) chunks.push(cur);
     chunks.forEach(function(ch,ci){

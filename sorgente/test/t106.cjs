@@ -19,9 +19,9 @@ await A.mostra(p,'[data-m="vcit"]'); await p.click('[data-m="vcit"]'); await A.m
 await A.mostra(p,'[data-vm="add:video:0"]'); await p.click('[data-vm="add:video:0"]'); await p.waitForTimeout(300);
 ok(await S(()=>/Scrivi il nome del modello: poi puoi aggiungere foto/.test(document.getElementById('vc-vm').textContent)),'modello nuovo senza nome: invita a scrivere il nome prima delle foto');
 await set('n:video:0','Monitor 10 Wi-Fi Prova'); await set('p:video:0',260);
-await set('bp:video:0',200);
+ok(!(await p.$('[data-vmf="bp:video:0"]'))&&!(await p.$('[data-vmf="bn:video:0"]'))&&!/Modello base/i.test(await S(()=>document.getElementById('vc-vm').textContent)),'nella sezione dei modelli alternativi non c\'è più il modello base');
+ok(!(await p.$('[data-vmf="s:video:0"]')),'niente «differenza a mano»: si scrive solo il prezzo del modello');
 ok(!!(await p.$('[data-vmph="video:0"]'))&&!!(await p.$('[data-vmlg="video:0"]'))&&!!(await p.$('[data-vmf="br:video:0"]')),'modello alternativo: ci sono «+ Foto», «Carica logo» e la marca');
-ok(!!(await p.$('[data-vmph="video:b"]'))&&!!(await p.$('[data-vmf="br:video:b"]')),'anche il modello base ha foto, marca e logo');
 // foto del modello alternativo
 await p.setInputFiles('[data-vmph="video:0"]',[{name:'a.png',mimeType:'image/png',buffer:png([200,30,30])},{name:'b.png',mimeType:'image/png',buffer:png([30,30,200])}]);
 await p.waitForFunction(()=>{ const pr=window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Prova'); return pr&&pr.photos&&pr.photos.length===2; },null,{timeout:10000}).catch(()=>{});
@@ -34,51 +34,51 @@ await p.setInputFiles('[data-vmlg="video:0"]',[{name:'logo.png',mimeType:'image/
 await p.waitForFunction(()=>!!document.querySelector('#vc-vm .vmm-lgp img'),null,{timeout:10000}).catch(()=>{});
 ok(await S(()=>(window.IECI_T.DB().logos||[]).some(x=>x.name==='Marcaprova'&&/^data:image/.test(x.img))),'logo caricato: ricordato per la marca (vale per tutti i preventivi)');
 ok(await S(()=>!!document.querySelector('#vc-vm .vmm-lgp img')),'il logo si vede nel riquadro del modello');
-// foto del modello base
-await p.setInputFiles('[data-vmph="video:b"]',[{name:'c.png',mimeType:'image/png',buffer:png([30,160,30])}]);
-await p.waitForTimeout(1200);
 // nel preventivo
 await S(()=>{ window.IECI_T.renderDoc&&window.IECI_T.renderDoc(); }); await p.waitForTimeout(500);
 let box=await S(()=>{ const x=document.querySelector('#doc .vmbox'); return x?{t:x.innerText.replace(/\n+/g,' | '),th:x.querySelectorAll('img.vmth').length,lg:x.querySelectorAll('img.vmlg').length}:null; });
 console.log('     '+(box&&box.t).slice(0,260));
-ok(box&&box.th===2&&box.lg>=1,'preventivo: nella tabella dei modelli ci sono le foto (base e alternativo) e il logo della marca');
-ok(box&&/IVA inclusa/.test(box.t)&&/\+ 73,20/.test(box.t),'preventivo: differenza IVA inclusa (+ 73,20 €)');
+ok(box&&box.th===1&&box.lg>=1,'preventivo: nella tabella dei modelli ci sono la foto e il logo della marca');
+ok(box&&!/Modello base|Incluso nel prezzo/i.test(box.t),'preventivo: nessuna riga «modello base»');
+ok(box&&/IVA inclusa/i.test(box.t)&&/317,20/.test(box.t),'preventivo: il prezzo del modello compare (260 + IVA = 317,20 € IVA inclusa)');
 // IVA esclusa
 await A.mostra(p,'[data-vm="iva:esc:0"]'); await p.click('[data-vm="iva:esc:0"]'); await p.waitForTimeout(500);
 box=await S(()=>{ const x=document.querySelector('#doc .vmbox'); return x?x.innerText.replace(/\n+/g,' | '):''; });
 console.log('     '+box.slice(0,260));
-ok(/IVA esclusa/i.test(box)&&/\+ 60,00 € \+ IVA/.test(box)&&!/73,20/.test(box),'«IVA esclusa»: la differenza diventa + 60,00 € + IVA');
-ok(/più IVA/.test(box),'la nota spiega che il surplus è più IVA');
+ok(/IVA esclusa/i.test(box)&&/260,00 € \+ IVA/.test(box)&&!/317,20/.test(box),'«IVA esclusa»: il prezzo diventa 260,00 € + IVA');
+ok(/più IVA/.test(box),'la nota spiega che il prezzo è più IVA');
 ok(await S(()=>window.IECI_T.S().cond.vm.iva==='esc'),'la scelta resta salvata nel preventivo');
 const fasc=await S(()=>{ const a=[...document.querySelectorAll('#doc .altb')].map(x=>x.innerText).join(' | '); return a; });
-ok(/\+ 60,00 € \+ IVA/.test(fasc)||fasc==='','fascicolo: la scheda del modello alternativo usa la stessa scelta ('+fasc.slice(0,80)+')');
+ok(/260,00 € \+ IVA/.test(fasc)||fasc==='','fascicolo: la scheda del modello alternativo mostra lo stesso prezzo ('+fasc.slice(0,80)+')');
 await p.click('[data-vm="iva:inc:0"]'); await p.waitForTimeout(400);
 box=await S(()=>document.querySelector('#doc .vmbox').innerText);
-ok(/73,20/.test(box)&&/IVA inclusa/.test(box),'tornando a «IVA inclusa»: + 73,20 € IVA inclusa');
+ok(/317,20/.test(box)&&/IVA inclusa/i.test(box),'tornando a «IVA inclusa»: 317,20 € IVA inclusa');
 // prezzo scritto con l'IVA inclusa
 const cl=async sel=>{ await A.mostra(p,sel); await p.click(sel); await p.waitForTimeout(350); };
 await cl('[data-vm="pm:video:0:inc"]');
 ok(await S(()=>window.IECI_T.S().cond.vm.video.o[0].p===317.2&&window.IECI_T.S().cond.vm.video.o[0].pm==='inc'),'«IVA inclusa» sul prezzo: 260 + IVA diventa 317,20 (stesso prezzo, scritto con l\'IVA)');
 ok(await S(()=>/= 260,00 € \+ IVA/.test(document.getElementById('vc-vm').textContent)),'sotto il prezzo c\'è la conversione: = 260,00 € + IVA');
 box=await S(()=>document.querySelector('#doc .vmbox').innerText);
-ok(/\+ 73,20/.test(box),'la differenza nel preventivo non cambia (+ 73,20 € IVA inclusa)');
+ok(/317,20/.test(box),'il prezzo nel preventivo non cambia (317,20 € IVA inclusa)');
 await set('p:video:0',366);
 box=await S(()=>document.querySelector('#doc .vmbox').innerText);
-ok(/\+ 122,00/.test(box),'scritto 366 € IVA inclusa (= 300 + IVA): surplus + 122,00 € IVA inclusa');
-await cl('[data-vm="pm:video:b:inc"]');
-ok(await S(()=>document.querySelector('[data-vmf="bp:video:0"]').value==='244'),'anche il modello base: con «IVA inclusa» il prezzo 200 si vede come 244');
-await set('bp:video:0',268.4);
-ok(await S(()=>{ const l=window.IECI_T.S().lines.find(x=>x.vbk==='video'); return l&&Math.abs(l.p-220)<0.001; }),'scritto 268,40 IVA inclusa: la riga del preventivo diventa 220 € + IVA');
+ok(/366,00/.test(box),'scritto 366 € IVA inclusa: nel preventivo compare 366,00 € IVA inclusa');
+await cl('[data-vm="iva:esc:0"]');
 box=await S(()=>document.querySelector('#doc .vmbox').innerText);
-ok(/\+ 97,60/.test(box),'differenza ricalcolata: (300 − 220) = 80 + IVA = + 97,60 €');
+ok(/300,00 € \+ IVA/.test(box),'…e con «IVA esclusa» nel preventivo: 300,00 € + IVA');
+await cl('[data-vm="iva:inc:0"]');
 await cl('[data-vm="pm:video:0:esc"]');
-ok(await S(()=>window.IECI_T.S().cond.vm.video.o[0].p===300),'tornando a «IVA esclusa»: 366 diventa 300');
+ok(await S(()=>window.IECI_T.S().cond.vm.video.o[0].p===300),'tornando a scrivere senza IVA: 366 diventa 300');
 // sfondo delle foto
 await cl('[data-vm="bg:video:0:keep"]'); await p.waitForTimeout(500);
 ok(await S(()=>window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Prova').bg==='keep')&&await S(()=>document.querySelector('[data-vm="bg:video:0:keep"]').getAttribute('aria-pressed')==='true'),'«Con sfondo originale»: scelta salvata nella scheda del modello');
 await cl('[data-vm="bg:video:0:cut"]'); await p.waitForTimeout(1500);
 ok(await S(()=>window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Prova').bg==='cut'),'«Senza sfondo, con alone»: scelta salvata');
-ok(!!(await p.$('[data-vm="bg:video:b:keep"]')),'la scelta dello sfondo c\'è anche per il modello base');
+// il caso del monitor scritto a mano nel preventivo (la riga la metti tu): il prezzo dell'alternativo compare lo stesso
+await S(()=>{ const T=window.IECI_T,S=T.S(); S.lines=S.lines.filter(l=>!l.vbk&&!/monitor/i.test(l.d)); S.lines.unshift({d:'Monitor BTicino Classe 100X scritto a mano',u:'cad',q:10,p:150,s:0}); T.touch(); T.renderAll&&T.renderAll(); });
+await p.waitForTimeout(500);
+box=await S(()=>document.querySelector('#doc .vmbox').innerText);
+ok(/366,00/.test(box)&&!/—/.test(box),'riga del monitor scritta a mano: il prezzo del modello alternativo compare lo stesso');
 // togliere una foto
 await p.click('[data-vm="phx:video:0:0"]'); await p.waitForTimeout(300);
 ok(await S(()=>window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Prova').photos.length===1),'× sulla miniatura: la foto si toglie');

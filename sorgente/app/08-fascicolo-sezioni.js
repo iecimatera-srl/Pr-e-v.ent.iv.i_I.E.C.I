@@ -2,7 +2,7 @@
 var PG_GROUPED=false, PG_COL=['var(--pbrand,#2F65AE)','#0F766E','#B45309'];
 function prodAlt(p){
   if(!vcOn()||!p) return null; var r=null, n=lcn(p.name);
-  vmKinds().forEach(function(k){ if(r) return; if(brOn()&&p.sys&&p.sys!==k) return;
+  vmKinds().forEach(function(k){ if(r) return; if(brOn()&&p.sys&&p.sys!=='*'&&p.sys!==k) return;
     vmData(k).o.forEach(function(o){ if(r||!vmHas(o)) return; if(lcn(vmDn(o))===n||(o.d&&lcn(o.d)===n)) r={k:k,o:o,pr:vmPrezzo(o)}; }); });
   return r;
 }
@@ -25,8 +25,8 @@ function brandLogo(brand){
 function vcProdGroups(list){
   var G=[];
   if(brOn()){
-    sysList().forEach(function(x,i){ var T=totals(i); G.push({i:i,key:x.id,kicker:brW()+' '+String.fromCharCode(65+i)+(i===tierRec()?' · '+brRec():''),title:x.b||sysName(x,i),sub:sysName(x,i)+(vcOn()?' · '+sysKindName(x.k):''),brand:x.b,logo:sysLogo(x),T:T,q:T.tot>0&&vcOn()?vcQuota(T,i):0,items:list.filter(function(p){ return p.sys===x.id; })}); });
-    var com=list.filter(function(p){ return !p.sys||!sysById(p.sys); }); if(com.length) G.push({i:-1,key:'',kicker:vcOn()?'Per tutti gli impianti':'Per tutte le proposte',title:'Componenti comuni',sub:'Presenti in ciascuna delle proposte',items:com});
+    sysList().forEach(function(x,i){ var T=totals(i); G.push({i:i,key:x.id,kicker:brW()+' '+String.fromCharCode(65+i)+(i===tierRec()?' · '+brRec():''),title:x.b||sysName(x,i),sub:sysName(x,i)+(vcOn()?' · '+sysKindName(x.k):''),brand:x.b,logo:sysLogo(x),T:T,q:T.tot>0&&vcOn()?vcQuota(T,i):0,items:list.filter(function(p){ return sysDi(p,x.id); })}); });
+    var com=list.filter(function(p){ return !p.sys||(!sysOgni(p)&&!sysById(p.sys)); }); if(com.length) G.push({i:-1,key:'',kicker:vcOn()?'Per tutti gli impianti':'Per tutte le proposte',title:'Componenti comuni',sub:'Presenti in ciascuna delle proposte',items:com});
   } else if(vcBoth()){
     [['video',1],['cit',0]].forEach(function(a,n){ var T=totals(a[1]); G.push({i:n,key:a[0],kicker:'Soluzione '+(n+1)+(a[1]===tierRec()?' · consigliata':''),title:vcSolTitle(a[0]),logo:vcSolLogo(a[0]),sub:a[0]==='cit'?'Parli con chi suona, senza immagine':'Parli e vedi chi suona, con monitor a colori',T:T,q:T.tot>0?vcQuota(T,a[1]):0,items:list.filter(function(p){ return p.sol===a[0]; })}); });
     var c2=list.filter(function(p){ return p.sol!=='video'&&p.sol!=='cit'; }); if(c2.length) G.push({i:-1,key:'',kicker:'Per entrambe le soluzioni',title:'Componenti comuni',sub:'Presenti in tutte e due le soluzioni',items:c2});
@@ -115,7 +115,7 @@ function lineBrand(l){
   if(!S.show.pvBrand) return '';
   var nm=String(l.vmn||l.d||'').trim().toLowerCase(); if(!nm) return '';
   var p=null; if(l.pid) S.products.forEach(function(x){ if(x.id===l.pid) p=x; });
-  if(!p) S.products.forEach(function(x){ if(!p&&String(x.name||'').trim().toLowerCase()===nm&&(!l.sy||!x.sys||x.sys===l.sy)) p=x; });
+  if(!p) S.products.forEach(function(x){ if(!p&&String(x.name||'').trim().toLowerCase()===nm&&(!l.sy||!x.sys||x.sys===l.sy||x.sys==='*')) p=x; });
   var b=String(l.br||(p&&p.brand)||'').trim(), cd=p&&p.code?String(p.code):'';
   if(!b&&!cd) return '';
   var lg=b&&S.show.pvLogo!==false?brandLogo(b):'';

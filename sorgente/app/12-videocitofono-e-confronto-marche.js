@@ -20,7 +20,7 @@ function sysCur(){ sysEnsure(); return sysList()[brS().cur]; }
 function sysTiers(){ if(!brOn()) return; sysEnsure(); var l=sysList(); S.tiers.on=true; S.tiers.n=l.length; S.tiers.names=l.map(sysName); var r=parseInt(S.tiers.rec,10); if(!(r>=-1&&r<l.length)) S.tiers.rec=-1; var q=parseInt(S.tiers.sel,10); if(!(q>=-1&&q<l.length)) S.tiers.sel=-1; }
 function sysProd(name,unit,x){
   var nm=String(name||'').trim(); if(!nm||!x) return null;
-  var low=nm.toLowerCase(), f=null; S.products.forEach(function(p){ if(!f&&String(p.name||'').trim().toLowerCase()===low&&p.sys===x.id) f=p; });
+  var low=nm.toLowerCase(), f=null; S.products.forEach(function(p){ if(!f&&String(p.name||'').trim().toLowerCase()===low&&sysDi(p,x.id)) f=p; });
   if(f) return f;
   if(APP.autop==='off'||SERVICE_U.test(String(unit||'').trim())||SKIP_P.test(nm)) return null;
   f={id:uid(),name:nm,brand:x.b||'',code:'',desc:'',specs:'',link:'',tags:'',photos:[],sol:'',sys:x.id}; S.products.push(f); renderProducts(); return f;
@@ -50,8 +50,14 @@ function sysRemove(i){
   if(parseInt(S.tiers.rec,10)===i) S.tiers.rec=-1; else if(parseInt(S.tiers.rec,10)>i) S.tiers.rec=parseInt(S.tiers.rec,10)-1;
 }
 function vcFreeFields(){ return sysList().map(function(x,i){ return '<label class="f">Totale: '+esc(sysName(x,i))+' (€)<input type="number" step="any" min="0" inputmode="decimal" data-b="'+(vcOn()?'cond':'cmp')+'.sys.'+i+'.tot" placeholder="es. 4500"></label>'; }).join(''); }
-function prodSysLabel(p){ var x=p.sys&&sysById(p.sys); return '<div><span class="solb t">'+(x?esc(sysName(x,sysIdx(x.id))):(vcOn()?'Per tutti gli impianti':'Per tutte le proposte'))+'</span></div>'; }
-function prodSysSel(p,i){ return '<label class="f">Questo prodotto fa parte di<select data-pf="sys" data-pi="'+i+'"><option value=""'+(p.sys?'':' selected')+'>'+(vcOn()?'Tutti gli impianti':'Tutte le proposte')+'</option>'+sysList().map(function(x,j){ return '<option value="'+x.id+'"'+(p.sys===x.id?' selected':'')+'>'+esc(sysName(x,j))+'</option>'; }).join('')+'</select></label>'; }
+function sysOgni(p){ return !!p&&p.sys==='*'; }
+function sysDi(p,id){ return !!p&&(p.sys===id||p.sys==='*'); }
+function sysOgniNome(){ var L=sysList(); return L.length===2?(vcOn()?'Sia nell\'impianto A che nel B':'Sia nella proposta A che nella B'):(vcOn()?'In ogni impianto':'In ogni proposta'); }
+function prodSysLabel(p){ var x=p.sys&&sysById(p.sys); return '<div><span class="solb t">'+(x?esc(sysName(x,sysIdx(x.id))):sysOgni(p)?esc(sysOgniNome()):(vcOn()?'Per tutti gli impianti':'Per tutte le proposte'))+'</span></div>'; }
+function prodSysSel(p,i){ return '<label class="f">Questo prodotto fa parte di<select data-pf="sys" data-pi="'+i+'">'+
+  sysList().map(function(x,j){ return '<option value="'+x.id+'"'+(p.sys===x.id?' selected':'')+'>Solo '+esc(sysName(x,j))+'</option>'; }).join('')+
+  '<option value="*"'+(sysOgni(p)?' selected':'')+'>'+esc(sysOgniNome())+' (ripetuto sotto ognuno)</option>'+
+  '<option value=""'+(p.sys?'':' selected')+'>'+(vcOn()?'Componenti comuni (una volta sola, per tutti gli impianti)':'Componenti comuni (una volta sola, per tutte le proposte)')+'</option></select></label>'; }
 function brLead(){ var l=sysList(); return '<p class="lead">Questo preventivo mette a confronto '+l.length+' impianti: '+l.map(function(x,i){ return '<b>'+esc(sysName(x,i))+'</b>'+(x.b?' ('+esc(x.b)+')':''); }).join(', ')+'. Qui sotto trovi i prodotti di ciascuno.</p>'; }
 function sysKindName(k){ return k==='cit'?'Citofono':'Videocitofono'; }
 function brTag(l){ if(!brOn()) return; var sy=sysCur(); l.tm=[brS().cur]; l.sy=sy.id; l.br=sy.b||''; }
@@ -72,7 +78,7 @@ function brClose(keep){
   var gone=l.filter(function(x){ return x!==K; }).map(function(x){ return x.id; });
   S.lines=S.lines.filter(function(ln){ return gone.indexOf(ln.sy)<0; });
   S.lines.forEach(function(ln){ if(ln.sy===K.id){ delete ln.sy; } delete ln.tm; });
-  S.products=S.products.filter(function(p){ return gone.indexOf(p.sys)<0; }); S.products.forEach(function(p){ if(p.sys===K.id) delete p.sys; });
+  S.products=S.products.filter(function(p){ return gone.indexOf(p.sys)<0; }); S.products.forEach(function(p){ if(p.sys===K.id||p.sys==='*') delete p.sys; });
   var o=brS(); o.on=false; o.sys=[]; o.cur=0; S.tiers.on=false; S.tiers.sel=-1; S.tiers.rec=-1;
 }
 function renderBrPanel(){

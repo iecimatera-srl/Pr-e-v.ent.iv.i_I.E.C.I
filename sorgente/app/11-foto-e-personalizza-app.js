@@ -83,15 +83,15 @@ function readProdImg(file,max,cb,mode){
     cutHalo(u,function(r,ok){ if(ok) return cb(r,u); cutHalo(u,function(r2,ok2){ if(!ok2) toast('Sfondo complesso: foto lasciata com\'è. Usa «Senza sfondo» nel prodotto o una foto su sfondo uniforme'); cb(ok2?r2:u,u); },Math.min(95,cutTol()+25)); });
   });
 }
-function setBg(i,mode){
+function setBg(i,mode,dopo){
   var p=S.products[i]; if(!p) return; p.bg=mode;
-  if(!(p.photos||[]).length){ renderProducts(); touch(); toast(mode==='keep'?'Le prossime foto restano con lo sfondo originale':'Le prossime foto saranno senza sfondo'); return; }
+  if(!(p.photos||[]).length){ renderProducts(); touch(); if(dopo) dopo(); toast(mode==='keep'?'Le prossime foto restano con lo sfondo originale':'Le prossime foto saranno senza sfondo'); return; }
   if(!p.po) p.po=[]; while(p.po.length<p.photos.length) p.po.push('');
   var jobs=[]; p.photos.forEach(function(u,j){ if(u.indexOf('data:image/svg')!==0) jobs.push(j); });
   var okn=0, miss=0; if(mode==='cut') toast('Tolgo lo sfondo…');
   (function next(){
     var j=jobs.shift();
-    if(j==null){ openP[p.id]=true; renderProducts(); touch();
+    if(j==null){ openP[p.id]=true; renderProducts(); touch(); if(dopo) dopo();
       toast(mode==='keep'?(okn?'Sfondo originale ripristinato su '+okn+' foto':'Originale non disponibile per queste foto')+(miss&&okn?' ('+miss+' senza originale)':''):(okn?'Sfondo tolto a '+okn+' foto':'Sfondo complesso: nessuna foto modificata. Prova con una foto su sfondo più uniforme')); return; }
     if(mode==='keep'){ if(p.po[j]){ p.photos[j]=p.po[j]; okn++; } else miss++; return next(); }
     var src=p.po[j]||p.photos[j]; if(!p.po[j]) p.po[j]=p.photos[j];

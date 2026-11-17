@@ -55,6 +55,30 @@ ok(/\+ 60,00 € \+ IVA/.test(fasc)||fasc==='','fascicolo: la scheda del modello
 await p.click('[data-vm="iva:inc:0"]'); await p.waitForTimeout(400);
 box=await S(()=>document.querySelector('#doc .vmbox').innerText);
 ok(/73,20/.test(box)&&/IVA inclusa/.test(box),'tornando a «IVA inclusa»: + 73,20 € IVA inclusa');
+// prezzo scritto con l'IVA inclusa
+const cl=async sel=>{ await A.mostra(p,sel); await p.click(sel); await p.waitForTimeout(350); };
+await cl('[data-vm="pm:video:0:inc"]');
+ok(await S(()=>window.IECI_T.S().cond.vm.video.o[0].p===317.2&&window.IECI_T.S().cond.vm.video.o[0].pm==='inc'),'«IVA inclusa» sul prezzo: 260 + IVA diventa 317,20 (stesso prezzo, scritto con l\'IVA)');
+ok(await S(()=>/= 260,00 € \+ IVA/.test(document.getElementById('vc-vm').textContent)),'sotto il prezzo c\'è la conversione: = 260,00 € + IVA');
+box=await S(()=>document.querySelector('#doc .vmbox').innerText);
+ok(/\+ 73,20/.test(box),'la differenza nel preventivo non cambia (+ 73,20 € IVA inclusa)');
+await set('p:video:0',366);
+box=await S(()=>document.querySelector('#doc .vmbox').innerText);
+ok(/\+ 122,00/.test(box),'scritto 366 € IVA inclusa (= 300 + IVA): surplus + 122,00 € IVA inclusa');
+await cl('[data-vm="pm:video:b:inc"]');
+ok(await S(()=>document.querySelector('[data-vmf="bp:video:0"]').value==='244'),'anche il modello base: con «IVA inclusa» il prezzo 200 si vede come 244');
+await set('bp:video:0',268.4);
+ok(await S(()=>{ const l=window.IECI_T.S().lines.find(x=>x.vbk==='video'); return l&&Math.abs(l.p-220)<0.001; }),'scritto 268,40 IVA inclusa: la riga del preventivo diventa 220 € + IVA');
+box=await S(()=>document.querySelector('#doc .vmbox').innerText);
+ok(/\+ 97,60/.test(box),'differenza ricalcolata: (300 − 220) = 80 + IVA = + 97,60 €');
+await cl('[data-vm="pm:video:0:esc"]');
+ok(await S(()=>window.IECI_T.S().cond.vm.video.o[0].p===300),'tornando a «IVA esclusa»: 366 diventa 300');
+// sfondo delle foto
+await cl('[data-vm="bg:video:0:keep"]'); await p.waitForTimeout(500);
+ok(await S(()=>window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Prova').bg==='keep')&&await S(()=>document.querySelector('[data-vm="bg:video:0:keep"]').getAttribute('aria-pressed')==='true'),'«Con sfondo originale»: scelta salvata nella scheda del modello');
+await cl('[data-vm="bg:video:0:cut"]'); await p.waitForTimeout(1500);
+ok(await S(()=>window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Prova').bg==='cut'),'«Senza sfondo, con alone»: scelta salvata');
+ok(!!(await p.$('[data-vm="bg:video:b:keep"]')),'la scelta dello sfondo c\'è anche per il modello base');
 // togliere una foto
 await p.click('[data-vm="phx:video:0:0"]'); await p.waitForTimeout(300);
 ok(await S(()=>window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Prova').photos.length===1),'× sulla miniatura: la foto si toglie');

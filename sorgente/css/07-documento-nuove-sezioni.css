@@ -276,3 +276,7 @@ header.top{position:relative}
 .vmbox .vmth{width:46px;height:46px;flex:none;object-fit:contain;background:#fff;border-radius:6px;border:1px solid color-mix(in srgb,currentColor 14%,transparent)}
 .vmbox .vmlg{display:block;max-height:16px;max-width:80px;object-fit:contain;margin:0 0 3px}
 .vmbox .vm2:not(.vmhd){align-items:center}
+.vmpr{display:grid;gap:6px;align-content:start}
+.vmpm,.vmbg{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.vmpm .tab,.vmbg .tab{font-size:.8rem;padding:5px 10px}
+.vmpm-a{color:var(--muted);font-size:.78rem;font-variant-numeric:tabular-nums}

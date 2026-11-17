@@ -229,7 +229,7 @@ function ghSync(interactive,tent){
     if(scritto) qmodPulisci(gen0);
     sezBase(scritto?BASEO:(remoto&&remoto.o));
     GH.etag=''; GH.last=Date.now(); GH.dirty=GH.gen!==gen0; GH.errN=0; GH.prossimo=0; GH.rete=false; AUTO.letto=GH.last; ghStore(); dbSave(true);
-    autoLog(scritto?'su':'giu',mi); renderCest();
+    autoLog(scritto?'su':'giu',mi); renderCest(); if(copiePulisci()) autoProgramma();
     if(mi.conf) toast(mi.conf===1?'Un preventivo era stato cambiato su due dispositivi: ho tenuto tutte e due le versioni':'Alcuni preventivi erano stati cambiati su due dispositivi: ho tenuto tutte e due le versioni');
     else if(mi.nuovi+mi.agg&&!interactive) toast('Arrivati dall\'altro dispositivo: '+(mi.nuovi+mi.agg)+(mi.nuovi+mi.agg===1?' preventivo':' preventivi'));
     ghStatus((scritto?'Salvato su GitHub alle ':'Controllato alle ')+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+(scritto?'. Archivio, listino, dati ditta e stile sono aggiornati'+(GH.peso?' (archivio '+(GH.peso>1048576?itNum(GH.peso/1048576,0,1)+' MB':Math.max(1,Math.round(GH.peso/1024))+' KB')+(GH.nfoto?', '+GH.nfoto+' foto come file a parte':'')+')':'')+'.':': tutto uguale a GitHub.')+(GHFOTO.errScarico?' Attenzione: '+GHFOTO.errScarico+' foto non scaricate, riprovo alla prossima sincronizzazione.':''));

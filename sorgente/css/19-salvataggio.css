@@ -56,3 +56,7 @@ b.tp-via{color:#B42318}b.tp-div{color:#8A5A00}b.tp-ug{color:#17794B}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .qconf-b{background:#3A2C05;color:#FFD66B}}
 :root[data-theme="dark"] .qconf-b{background:#3A2C05;color:#FFD66B}
 @media (prefers-reduced-motion:reduce){.as-top i{animation:none!important}}
+.qconf-bar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding:10px 12px;margin:0 0 8px;border-radius:12px;background:#FFF4D6;color:#5C3D00;font-size:.85rem;line-height:1.35}
+.qconf-bar span{flex:1 1 220px}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .qconf-bar{background:#3A2C05;color:#FFE7A8}}
+:root[data-theme="dark"] .qconf-bar{background:#3A2C05;color:#FFE7A8}

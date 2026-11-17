@@ -32,7 +32,36 @@ function qmodSegna(id){ if(!GH||!GH.on||!id) return; var m=GH.qmod||(GH.qmod={})
 function qmodPulisci(gen0){ var m=GH.qmod||{}; Object.keys(m).forEach(function(k){ if(m[k]<=gen0) delete m[k]; }); }
 function qDiverso(a,b){
   if(!a||!b) return true; if((a.st||'')!==(b.st||'')) return true;
-  try{ return qContenuto(a.data||{})!==qContenuto(b.data||{}); }catch(e){ return true; }
+  try{ return qNorm(a.data||{})!==qNorm(b.data||{}); }catch(e){ return true; }
+}
+/* ---------- copie di conflitto: via i doppioni, scelta della versione da tenere ---------- */
+function qNormCopia(q){ var d=JSON.parse(JSON.stringify(q.data||{})); if(q.conf&&d.meta&&d.meta.title) d.meta.title=String(d.meta.title).replace(/ · versione di .*$/,''); return qNorm(d); }
+// copie uguali all'originale, o uguali tra loro: via da sole (finiscono nel cestino, si possono rimettere)
+function copiePulisci(){
+  if(!dbReady) return 0; var tolte=0, viste={}, ora=Date.now();
+  DB.quotes.filter(function(q){ return q.conf; }).sort(function(a,b){ return (a.upd||0)-(b.upd||0); }).forEach(function(c){
+    var o=DB.quotes.filter(function(x){ return x.id===c.conf.orig; })[0], h=qNormCopia(c), key=(c.conf.orig||'')+'|'+(c.st||'')+'|'+h;
+    if((o&&!o.conf&&(o.st||'')===(c.st||'')&&qNormCopia(o)===h)||viste[key]){ DB.del[c.id]=Math.max(ora,(c.upd||0)+1); tolte++; return; }
+    viste[key]=1;
+  });
+  if(tolte){ DB.quotes=DB.quotes.filter(function(q){ return !(q.conf&&DB.del[q.id]); }); dbSave(); renderArchivio(); renderCest(); autoLog('rip',{nome:tolte+(tolte===1?' copia doppia tolta':' copie doppie tolte')+' (sono nel cestino)'}); toast(tolte===1?'Tolta 1 copia doppia di un preventivo (è nel cestino)':'Tolte '+tolte+' copie doppie dei preventivi (sono nel cestino)'); }
+  return tolte;
+}
+function copiaTieni(id){
+  var c=DB.quotes.filter(function(q){ return q.id===id; })[0]; if(!c||!c.conf) return;
+  var o=DB.quotes.filter(function(q){ return q.id===c.conf.orig; })[0], x=JSON.parse(JSON.stringify(c)), ora=Date.now();
+  x.id=o?o.id:((DB.del||{})[c.conf.orig]?uid():(c.conf.orig||uid()));
+  x.title=String(x.title||'').replace(/ · versione di .*$/,''); if(x.data){ x.data.qid=x.id; if(x.data.meta&&x.data.meta.title) x.data.meta.title=String(x.data.meta.title).replace(/ · versione di .*$/,''); }
+  delete x.conf; x.upd=ora;
+  if(o){ cestMetti('q',o,ora,true); x.bu=(GH.qmod||{})[o.id]?o.bu:o.upd; DB.quotes[DB.quotes.indexOf(o)]=x; } else DB.quotes.push(x);
+  DB.del[c.id]=ora; DB.quotes=DB.quotes.filter(function(q){ return q.id!==c.id; }); qmodSegna(x.id);
+  dbSave(); if(S.qid===c.id) S.qid=x.id; qRicarica(x.id); renderArchivio(); renderCest();
+  toast('Tenuta la versione di '+(c.conf.dv||'un altro dispositivo')+': quella di prima è nel cestino');
+}
+function copieTutteVia(){
+  var n=0, ora=Date.now(); DB.quotes.forEach(function(q){ if(q.conf){ DB.del[q.id]=ora; n++; if(S.qid===q.id){ S.qid=''; QDV['']=docVer; } } });
+  DB.quotes=DB.quotes.filter(function(q){ return !q.conf; }); dbSave(); renderArchivio(); renderCest();
+  toast(n===1?'Copia eliminata (è nel cestino)':n+' copie eliminate (sono nel cestino)');
 }
 function copiaConflitto(v){
   var c=JSON.parse(JSON.stringify(v)), id=uid();
@@ -249,5 +278,5 @@ function autoRenderOra(){
   var nm=$('as-nome'); if(nm&&document.activeElement!==nm){ nm.value=GH.nome||''; nm.placeholder=devNome(); }
 }
 $('as-nome').addEventListener('change',function(e){ GH.nome=String(e.target.value||'').trim().slice(0,30); ghStore(); autoRender(); toast('Nome del dispositivo: '+devNome()); if(GH.on){ GH.dirty=true; autoProgramma(1500); } });
-(function(){ var iv=setInterval(function(){ if(dbReady){ clearInterval(iv); if(!CEST.vista) cestOsserva(); cestPulisci(); renderCest(); autoRender(); } },300); })();
-(function(T){ if(!T) return; T.APP=function(){ return APP; }; T.snapSave=snapSave; T.snapList=snapList; T.restoreObj=restoreObj; T.MENU=function(){ return MENU; }; T.settingsStamp=settingsStamp; T.menuSave=menuSave; T.apStore=apStore; T.auto={vai:autoVai,controlla:autoControlla,programma:autoProgramma,stato:function(){ return AUTO; },log:autoLogLeggi,cest:function(){ return DB.cest||[]; },cestRipristina:cestRipristina,tempoFonti:tempoFonti,tempoApri:tempoApri,tempoRipristina:tempoRipristina,qmod:function(){ return GH.qmod||{}; }}; })(window.IECI_T);
+(function(){ var iv=setInterval(function(){ if(dbReady){ clearInterval(iv); if(!CEST.vista) cestOsserva(); cestPulisci(); copiePulisci(); renderCest(); autoRender(); } },300); })();
+(function(T){ if(!T) return; T.APP=function(){ return APP; }; T.snapSave=snapSave; T.snapList=snapList; T.restoreObj=restoreObj; T.MENU=function(){ return MENU; }; T.settingsStamp=settingsStamp; T.menuSave=menuSave; T.apStore=apStore; T.auto={copiePulisci:copiePulisci,copiaTieni:copiaTieni,vai:autoVai,controlla:autoControlla,programma:autoProgramma,stato:function(){ return AUTO; },log:autoLogLeggi,cest:function(){ return DB.cest||[]; },cestRipristina:cestRipristina,tempoFonti:tempoFonti,tempoApri:tempoApri,tempoRipristina:tempoRipristina,qmod:function(){ return GH.qmod||{}; }}; })(window.IECI_T);

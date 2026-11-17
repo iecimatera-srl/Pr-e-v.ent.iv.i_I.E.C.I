@@ -76,6 +76,9 @@ function phUnisciQuote(vince,perde){
 }
 // confronto «del contenuto» di un preventivo, senza le cose del dispositivo (ditta, profilo, messaggi…) che l'apertura rimette
 function qContenuto(x){ var o=JSON.parse(JSON.stringify(x)); ['cat','cgroups','company','profile','trust','msgs','ccond','mtpl','mdef','qid'].forEach(function(k){ delete o[k]; }); (o.products||[]).forEach(function(p){ delete p.phs; delete p.phu; }); return JSON.stringify(o); }
+/* contenuto «vero» di un preventivo salvato: passato da normalize, così i ritocchi automatici dell'app (campi
+   nuovi, ordine, valori ricalcolati) non contano come modifiche */
+function qNorm(data){ try{ var dn=JSON.parse(JSON.stringify(data||{})); dn.cat=S.cat; dn.cgroups=S.cgroups; return qContenuto(normalize(dn)); }catch(e){ return qContenuto(data||{}); } }
 function saveQuote(silent){
   phStamp(S.products);
   var isNew=!S.qid; if(isNew) S.qid=uid();
@@ -92,7 +95,7 @@ function saveQuote(silent){
   if(e&&!isNew&&e.data&&QDV[S.qid]==null){ var d0=JSON.parse(JSON.stringify(S)); delete d0.cat; if(JSON.stringify(e.data)===JSON.stringify(d0)&&e.name===meta.name&&e.title===meta.title&&e.tot===meta.tot&&e.client===meta.client&&e.st===meta.st){ if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }
   // salvataggio automatico appena aperto un preventivo: se il contenuto è lo stesso dell'archivio non lo segno come «più recente»
   // (altrimenti un dispositivo con una copia vecchia la farebbe vincere sulla versione nuova di un altro dispositivo)
-  if(e&&!isNew&&e.data&&silent&&QDV[S.qid]==null){ try{ var dn=JSON.parse(JSON.stringify(e.data)); dn.cat=S.cat; dn.cgroups=S.cgroups; if(qContenuto(normalize(dn))===qContenuto(S)&&e.st===meta.st){ QDV[S.qid]=docVer; return; } }catch(x){} }
+  if(e&&!isNew&&e.data){ try{ if(qNorm(e.data)===qContenuto(S)&&e.st===meta.st&&e.name===meta.name&&e.title===meta.title&&e.client===meta.client){ QDV[S.qid]=docVer; if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }catch(x){} }
   if(!e){ e=meta; DB.quotes.push(e); } else { if(!(GH.qmod||{})[e.id]) e.bu=e.upd||0; Object.keys(meta).forEach(function(k){ e[k]=meta[k]; }); }
   var d=JSON.parse(JSON.stringify(S)); delete d.cat; e.data=d; QDV[S.qid]=docVer; qmodSegna(e.id);
   dbSave(); renderArchivio(); if(isNew) save();
@@ -146,10 +149,11 @@ function renderArchivio(){
   var qTot=Q.length; if(!fq&&!qAll&&!qFilt) Q=Q.slice(0,5);
   var mb=$('q-more'); if(mb){ mb.hidden=!!fq||!!qFilt||qTot<=5; mb.textContent=qAll?'Mostra solo gli ultimi 5':'Mostra tutti ('+qTot+')'; }
   var an=$('acc-save-n'); if(an) an.textContent=DB.quotes.length?String(DB.quotes.length):'';
-  $('q-list').innerHTML=Q.map(function(q){
+  var nConf=DB.quotes.filter(function(q){ return q.conf; }).length;
+  $('q-list').innerHTML=(nConf?'<div class="qconf-bar"><span><b>'+nConf+(nConf===1?' copia':' copie')+' di conflitto</b> · lo stesso preventivo cambiato su due dispositivi. Per ognuna scegli «Tieni questa versione» oppure eliminala.</span><button type="button" class="btn ghost sm" data-qkall>Elimina tutte le copie</button></div>':'')+Q.map(function(q){
     var cur=q.id===S.qid;
     return '<div class="rowc'+(q.conf?' qconf':'')+'"><div style="flex:1 1 200px;min-width:0"><b>'+esc(qName(q))+(cur?' <span class="hint">(aperto)</span>':'')+'</b> '+(q.conf?'<span class="qconf-b" title="Questo preventivo era stato cambiato su due dispositivi insieme: questa è l\'altra versione, tenuta da parte. Se non ti serve, eliminala.">Versione di '+esc(q.conf.dv||'un altro dispositivo')+' · '+esc(stamp(q.conf.t||q.upd))+'</span> ':'')+'<button type="button" class="chip st-'+qSt(q)+'" data-qst="'+q.id+'" title="Tocca per cambiare stato">'+STL[qSt(q)]+'</button><div class="hint">n. '+esc(q.num)+' · '+esc(q.title)+' · '+esc(MODELS[q.model]?MODELS[q.model].short:'')+' · '+esc(dateIt(new Date(q.upd).toISOString().slice(0,10)))+' · '+eur(q.tot)+'</div></div>'+
-      '<button type="button" class="btn sm" data-qo="'+q.id+'">Apri</button><button type="button" class="btn ghost sm" data-qc="'+q.id+'">Duplica</button><button type="button" class="btn x" data-qx="'+q.id+'" aria-label="Elimina">×</button></div>';
+      (q.conf?'<button type="button" class="btn sm" data-qk="'+q.id+'" title="Questa versione diventa il preventivo; quella di adesso va nel cestino">Tieni questa versione</button>':'')+'<button type="button" class="btn sm" data-qo="'+q.id+'">Apri</button><button type="button" class="btn ghost sm" data-qc="'+q.id+'">Duplica</button><button type="button" class="btn x" data-qx="'+q.id+'" aria-label="Elimina">×</button></div>';
   }).join('')||'<div class="empty">'+(DB.quotes.length?'Nessun risultato.':'Nessun preventivo salvato. Premi «Salva preventivo».')+'</div>';
   var C=DB.clients.filter(function(c){ return !fc||lc(c.name+' '+c.addr+' '+c.tel+' '+(c.email||'')+' '+(c.cf||'')).indexOf(fc)>-1; });
   Object.keys(RUB.sel).forEach(function(id){ if(!DB.clients.some(function(c){ return c.id===id; })) delete RUB.sel[id]; });
@@ -172,6 +176,8 @@ function renderArchivio(){
 }
 function archClick(e){
   var t=e.target, b;
+  if((b=t.closest('[data-qk]'))) return copiaTieni(b.getAttribute('data-qk'));
+  if((b=t.closest('[data-qkall]'))) return delTwice('qkall',function(){ copieTutteVia(); },b);
   if((b=t.closest('[data-qo]'))) return openQuote(b.getAttribute('data-qo'));
   if((b=t.closest('[data-qc]'))) return openQuote(b.getAttribute('data-qc'),true);
   if((b=t.closest('[data-qx]'))){ var id=b.getAttribute('data-qx'); return delTwice('q'+id,function(){ DB.del[id]=Date.now(); DB.quotes=DB.quotes.filter(function(q){ return q.id!==id; }); if(S.qid===id){ S.qid=''; QDV['']=docVer; save(); } dbSave(); renderArchivio(); toast('Preventivo eliminato dall\'archivio'); },b); }

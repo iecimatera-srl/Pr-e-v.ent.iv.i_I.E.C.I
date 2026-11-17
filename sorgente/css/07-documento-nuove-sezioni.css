@@ -284,3 +284,8 @@ header.top{position:relative}
 .vmbox .vmq .vmdc{display:block;font-weight:600;font-size:11px;line-height:1.3;opacity:.78;margin-top:2px;white-space:normal}
 .vmdic{display:grid;gap:6px}.vmdic-c{display:flex;flex-wrap:wrap;gap:6px}
 .vmdic-c .pchip{white-space:normal;text-align:left}
+/* in quali impianti va il prodotto: caselle indipendenti */
+.psys{display:grid;gap:6px}.psys>span{font-weight:600;font-size:.85rem}
+.psys-l{display:flex;flex-wrap:wrap;gap:6px 14px}
+.psys-c{padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.psys-0{border-style:dashed}

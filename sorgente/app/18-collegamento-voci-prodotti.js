@@ -4,7 +4,7 @@ function prodById(id){ var r=null; if(id) S.products.forEach(function(p){ if(p.i
 function prodOfLine(l){
   if(!l||l.vm) return null; var p=l.pid?prodById(l.pid):null; if(p) return p;
   var n=lcn(l.vmn||l.d); if(!n&&!l.art) return null;
-  S.products.forEach(function(x){ if(!p&&((n&&lcn(x.name)===n)||(l.art&&x.artId===l.art))&&(!l.sy||!x.sys||x.sys===l.sy||x.sys==='*')) p=x; });
+  S.products.forEach(function(x){ if(!p&&((n&&lcn(x.name)===n)||(l.art&&x.artId===l.art))&&(!l.sy||!x.sys||sysDi(x,l.sy))) p=x; });
   return p;
 }
 function prodWorthy(l){ var nm=String(l.d||'').trim(); return !!nm&&!SERVICE_U.test(String(l.u||'').trim())&&!SKIP_P.test(nm); }

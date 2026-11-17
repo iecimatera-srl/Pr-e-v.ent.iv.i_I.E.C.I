@@ -43,21 +43,26 @@ function sysRemove(i){
   var l=sysList(), x=l[i]; if(!x||l.length<=2) return;
   S.lines=S.lines.filter(function(ln){ return ln.sy!==x.id; });
   S.lines.forEach(function(ln){ if(ln.tm){ ln.tm=ln.tm.filter(function(t){ return t!==i; }).map(function(t){ return t>i?t-1:t; }); if(!ln.tm.length) ln.off=true; } });
-  S.products=S.products.filter(function(p){ return p.sys!==x.id; });
+  S.products=S.products.filter(function(p){ var s0=sysSet(p); if(s0.length===1&&s0[0]===x.id) return false; if(s0.indexOf(x.id)>-1){ var r0=s0.filter(function(id){ return id!==x.id; }); if(r0.length) p.sys=r0.join('|'); } return true; });
   if(S.cond.vm) delete S.cond.vm[x.id];
   l.splice(i,1); if(brS().cur>=l.length) brS().cur=l.length-1;
   if(parseInt(S.tiers.sel,10)===i) S.tiers.sel=-1; else if(parseInt(S.tiers.sel,10)>i) S.tiers.sel=parseInt(S.tiers.sel,10)-1;
   if(parseInt(S.tiers.rec,10)===i) S.tiers.rec=-1; else if(parseInt(S.tiers.rec,10)>i) S.tiers.rec=parseInt(S.tiers.rec,10)-1;
 }
 function vcFreeFields(){ return sysList().map(function(x,i){ return '<label class="f">Totale: '+esc(sysName(x,i))+' (€)<input type="number" step="any" min="0" inputmode="decimal" data-b="'+(vcOn()?'cond':'cmp')+'.sys.'+i+'.tot" placeholder="es. 4500"></label>'; }).join(''); }
-function sysOgni(p){ return !!p&&p.sys==='*'; }
-function sysDi(p,id){ return !!p&&(p.sys===id||p.sys==='*'); }
-function sysOgniNome(){ var L=sysList(); return L.length===2?(vcOn()?'Sia nell\'impianto A che nel B':'Sia nella proposta A che nella B'):(vcOn()?'In ogni impianto':'In ogni proposta'); }
-function prodSysLabel(p){ var x=p.sys&&sysById(p.sys); return '<div><span class="solb t">'+(x?esc(sysName(x,sysIdx(x.id))):sysOgni(p)?esc(sysOgniNome()):(vcOn()?'Per tutti gli impianti':'Per tutte le proposte'))+'</span></div>'; }
-function prodSysSel(p,i){ return '<label class="f">Questo prodotto fa parte di<select data-pf="sys" data-pi="'+i+'">'+
-  sysList().map(function(x,j){ return '<option value="'+x.id+'"'+(p.sys===x.id?' selected':'')+'>Solo '+esc(sysName(x,j))+'</option>'; }).join('')+
-  '<option value="*"'+(sysOgni(p)?' selected':'')+'>'+esc(sysOgniNome())+' (ripetuto sotto ognuno)</option>'+
-  '<option value=""'+(p.sys?'':' selected')+'>'+(vcOn()?'Componenti comuni (una volta sola, per tutti gli impianti)':'Componenti comuni (una volta sola, per tutte le proposte)')+'</option></select></label>'; }
+/* in quali impianti / proposte sta un prodotto: scelta libera, uno, alcuni o tutti (es. A e C sì, B no).
+   p.sys: '' = componenti comuni (una volta sola) · 'id' = un impianto · 'idA|idC' = più impianti · '*' (vecchio) = tutti */
+function sysSet(p){ var v=p&&p.sys?String(p.sys):''; if(!v) return []; if(v==='*') return sysList().map(function(x){ return x.id; }); return v.split('|').filter(Boolean); }
+function sysPut(p,ids){ var ord=sysList().map(function(x){ return x.id; }); ids=ord.filter(function(id){ return ids.indexOf(id)>-1; }); if(!ids.length) delete p.sys; else p.sys=ids.join('|'); }
+function sysOgni(p){ return sysSet(p).length>1; }
+function sysDi(p,id){ return sysSet(p).indexOf(id)>-1; }
+function sysNomiDi(p){ return sysSet(p).map(function(id){ var x=sysById(id); return x?sysName(x,sysIdx(id)):''; }).filter(Boolean); }
+function prodSysLabel(p){ var n=sysNomiDi(p); return '<div><span class="solb t">'+(n.length?esc(n.length>1?n.slice(0,-1).join(', ')+' e '+n[n.length-1]:n[0]):(vcOn()?'Per tutti gli impianti':'Per tutte le proposte'))+'</span></div>'; }
+function prodSysSel(p,i){ var sel=sysSet(p), w=vcOn()?'impianto':'proposta';
+  return '<div class="f psys"><span>In quali '+(vcOn()?'impianti':'proposte')+' va questo prodotto?</span><div class="psys-l">'+
+    sysList().map(function(x,j){ return '<label class="chk psys-c"><input type="checkbox" data-psy="'+i+':'+x.id+'"'+(sel.indexOf(x.id)>-1?' checked':'')+'>'+esc(sysName(x,j))+'</label>'; }).join('')+
+    '<label class="chk psys-c psys-0"><input type="checkbox" data-psy="'+i+':"'+(sel.length?'':' checked')+'>Componenti comuni (una volta sola)</label></div>'+
+    '<small class="hint">'+(sel.length>1?'Compare sotto ognuno '+(vcOn()?'degli impianti':'delle proposte')+' spuntati.':sel.length?'Compare solo sotto quest'+(vcOn()?'o impianto':'a proposta')+'.':'Compare una volta sola, tra i componenti comuni.')+' Spunta liberamente: per esempio A e C sì, B no.</small></div>'; }
 function brLead(){ var l=sysList(); return '<p class="lead">Questo preventivo mette a confronto '+l.length+' impianti: '+l.map(function(x,i){ return '<b>'+esc(sysName(x,i))+'</b>'+(x.b?' ('+esc(x.b)+')':''); }).join(', ')+'. Qui sotto trovi i prodotti di ciascuno.</p>'; }
 function sysKindName(k){ return k==='cit'?'Citofono':'Videocitofono'; }
 function brTag(l){ if(!brOn()) return; var sy=sysCur(); l.tm=[brS().cur]; l.sy=sy.id; l.br=sy.b||''; }
@@ -78,7 +83,7 @@ function brClose(keep){
   var gone=l.filter(function(x){ return x!==K; }).map(function(x){ return x.id; });
   S.lines=S.lines.filter(function(ln){ return gone.indexOf(ln.sy)<0; });
   S.lines.forEach(function(ln){ if(ln.sy===K.id){ delete ln.sy; } delete ln.tm; });
-  S.products=S.products.filter(function(p){ return gone.indexOf(p.sys)<0; }); S.products.forEach(function(p){ if(p.sys===K.id||p.sys==='*') delete p.sys; });
+  S.products=S.products.filter(function(p){ var s0=sysSet(p); return !s0.length||s0.indexOf(K.id)>-1; }); S.products.forEach(function(p){ delete p.sys; });
   var o=brS(); o.on=false; o.sys=[]; o.cur=0; S.tiers.on=false; S.tiers.sel=-1; S.tiers.rec=-1;
 }
 function renderBrPanel(){
@@ -302,3 +307,12 @@ function vcBox(){
 })();
 
 
+
+// caselle «in quali impianti» nella scheda prodotto
+$('plist').addEventListener('change',function(e){
+  var a=e.target.getAttribute&&e.target.getAttribute('data-psy'); if(a==null) return;
+  var k=a.indexOf(':'), i=+a.slice(0,k), id=a.slice(k+1), p=S.products[i]; if(!p) return;
+  if(!id){ if(e.target.checked) delete p.sys; else { e.target.checked=true; return; } }
+  else { var s=sysSet(p); if(e.target.checked){ if(s.indexOf(id)<0) s.push(id); } else s=s.filter(function(x){ return x!==id; }); sysPut(p,s); }
+  openP[p.id]=true; renderProducts(); touch();
+});

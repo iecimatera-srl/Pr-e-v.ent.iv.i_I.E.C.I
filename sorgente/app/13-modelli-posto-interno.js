@@ -49,15 +49,19 @@ function vmAmtP(net,o){ var inc=!!o&&o.pm==='inc'; if(inc) return eur(vmSet(o.p)
 function vmAmt(dl){ var v=vmShow(dl); return (v>0?'+ ':v<0?'− ':'')+eur(Math.abs(v))+(vmIvaInc()?'':' + IVA'); }
 /* ogni modello (base e alternativi) ha la sua scheda prodotto: lì stanno foto e marca, così compaiono
    nella tabella dei modelli, nella scheda del fascicolo e nella sezione Prodotti */
-function vmPOf(name){ var n=lcn(name); if(!n) return null; return S.products.filter(function(p){ return lcn(p.name)===n; })[0]||null; }
+function vmPOf(name,k){ var n=lcn(name); if(!n) return null; var br=vcMode()==='brands'&&k&&sysById(k);
+  return S.products.filter(function(p){ if(lcn(p.name)!==n) return false; if(br) return sysDi(p,k); if(vcMode()==='both'&&k&&p.sol&&p.sol!==k) return false; return true; })[0]||null; }
 function vmPEnsure(k,name){
-  name=String(name||'').trim(); if(!name) return null; var p=vmPOf(name); if(p) return p;
-  vmProd(k,name); p=vmPOf(name);
+  name=String(name||'').trim(); if(!name) return null; var p=vmPOf(name,k); if(p) return p;
+  vmProd(k,name); p=vmPOf(name,k);
   if(!p){ p={id:uid(),name:name,brand:'',code:'',desc:'',specs:'',link:'',tags:'',photos:[],sol:vcMode()==='both'?k:''}; if(vcMode()==='brands') p.sys=k; S.products.push(p); }
   return p;
 }
 function vmNomeDi(k,i){ var d=vmData(k); if(i==='b'){ var bl=vmBaseLine(k); return bl?String(bl.d||'').trim():vmBn(d,k); } var o=d.o[+i]; return o&&vmHas(o)?vmDn(o):''; }
-function vmPDi(k,i,crea){ var d=vmData(k); if(i==='b'){ var bl=vmBaseLine(k), pb=bl?prodOfLine(bl):null; if(pb) return pb; } var nm=vmNomeDi(k,i); return crea?vmPEnsure(k,nm):vmPOf(nm); }
+function vmPDi(k,i,crea){ var d=vmData(k); if(i==='b'){ var bl=vmBaseLine(k), pb=bl?prodOfLine(bl):null; if(pb) return pb; } var nm=vmNomeDi(k,i); return crea?vmPEnsure(k,nm):vmPOf(nm,k); }
+function vmPs(p){ return Math.max(15,Math.min(100,num(p&&p.ps)||45)); }
+function vmThW(p){ return Math.max(24,Math.min(110,Math.round(vmPs(p)*46/45))); }
+function vmLgH(p){ return Math.max(10,Math.min(40,Math.round(logoH(p)*16/18))); }
 function vmImg(u){ VMI.push(u); return '@@VMI'+(VMI.length-1)+':'+u.length+u.slice(-16).replace(/[@<>"]/g,'')+'@@'; }
 var VMI=[];
 function vmMedia(k,i){
@@ -69,6 +73,8 @@ function vmMedia(k,i){
     '<div class="vmm-ph">'+ph.map(function(u,j){ return '<span class="vmm-t"><img src="'+vmImg(u)+'" alt="Foto '+(j+1)+'"><button type="button" data-vm="phx:'+id+':'+j+'" aria-label="Togli questa foto">×</button></span>'; }).join('')+
       (ph.length<MAXPH?'<label class="vmm-add" title="Aggiungi foto del modello"><input type="file" accept="image/*" multiple data-vmph="'+id+'" hidden><b>+</b><small>Foto</small></label>':'')+
       (navigator.onLine!==false?'<button type="button" class="btn ghost sm" data-vm="phw:'+id+'">Cerca foto sul web</button>':'')+'</div>'+
+    (p&&(ph.length||lg)?'<div class="vmsz">'+(ph.length?'<label class="f">Grandezza della foto: <b>'+vmPs(p)+'%</b><input type="range" min="15" max="100" step="5" value="'+vmPs(p)+'" data-vmf="ps:'+id+'" aria-label="Grandezza della foto"></label>':'')+
+      (lg?'<label class="f">Grandezza del logo: <b>'+logoH(p)+' px</b><input type="range" min="12" max="64" step="2" value="'+logoH(p)+'" data-vmf="ls:'+id+'" aria-label="Grandezza del logo"></label>':'')+'<small class="hint">Valgono nella tabella del preventivo e nella scheda del modello nel fascicolo, come nei prodotti.</small></div>':'')+
     (function(){ var bm=(p&&p.bg)||(cutOn()?'cut':'keep'); return '<div class="vmbg"><span class="hint">Sfondo delle foto:</span><button type="button" class="tab" data-vm="bg:'+id+':cut" aria-pressed="'+(bm==='cut')+'">Senza sfondo, con alone</button><button type="button" class="tab" data-vm="bg:'+id+':keep" aria-pressed="'+(bm==='keep')+'">Con sfondo originale</button></div>'; })()+'</div>';
 }
 function vmPmSel(k,i,m){ var inc=m==='inc'; return '<div class="vmpm" role="group" aria-label="Il prezzo che scrivi è"><button type="button" class="tab" data-vm="pm:'+k+':'+i+':esc" aria-pressed="'+!inc+'">IVA esclusa</button><button type="button" class="tab" data-vm="pm:'+k+':'+i+':inc" aria-pressed="'+inc+'">IVA inclusa</button></div>'; }
@@ -86,10 +92,10 @@ function vmBox(onlyK){
     if(onlyK&&k!==onlyK) return;
     var d=vmData(k), os=d.o.filter(vmHas); if(!os.length) return;
     var w=vmWord(k), h='';
-    var row=function(name,note,p,right,sub){ var br=p?String(p.brand||'').trim():'', lg=br?brandLogo(br):'', ph=p&&p.photos&&p.photos[0];
-      return '<div class="vmr vm2"><div class="vmn">'+(ph?'<img class="vmth" src="'+ph+'" alt="">':'')+'<div>'+(lg?'<img class="vmlg" src="'+lg+'" alt="'+esc(br)+'">':'')+'<b>'+esc(name)+'</b>'+(note?'<small>'+esc(note)+'</small>':'')+(br&&!lg?'<small>Marca: '+esc(br)+'</small>':'')+(sub?'<small class="vmx">'+sub+'</small>':'')+'</div></div><div class="vmq">'+right+'</div></div>'; };
+    var row=function(name,note,p,right,sub){ var br=p?String(p.brand||'').trim():'', lg=br?brandLogo(br):'', ph=p&&p.photos&&p.photos[0], tw=vmThW(p), lh=vmLgH(p);
+      return '<div class="vmr vm2"><div class="vmn">'+(ph?'<img class="vmth" src="'+ph+'" alt="" style="width:'+tw+'px;height:'+tw+'px">':'')+'<div>'+(lg?'<img class="vmlg" src="'+lg+'" alt="'+esc(br)+'" style="max-height:'+lh+'px;height:'+lh+'px;max-width:'+(lh*6)+'px">':'')+'<b>'+esc(name)+'</b>'+(note?'<small>'+esc(note)+'</small>':'')+(br&&!lg?'<small>Marca: '+esc(br)+'</small>':'')+(sub?'<small class="vmx">'+sub+'</small>':'')+'</div></div><div class="vmq">'+right+'</div></div>'; };
     h+='<div class="vmr vm2 vmhd"><div>Modello</div><div class="vmq">Prezzo per '+w+'</div></div>';
-    os.forEach(function(o){ var pr=vmPrezzo(o); h+=row(vmDn(o),o.t||VM_NOTE[o.d]||'',vmPOf(vmDn(o))||vmPOf(o.d),pr!=null?vmAmtP(pr,o)+vmDicHtml(o):'Su richiesta',''); });
+    os.forEach(function(o){ var pr=vmPrezzo(o); h+=row(vmDn(o),o.t||VM_NOTE[o.d]||'',vmPOf(vmDn(o),k)||vmPOf(o.d,k),pr!=null?vmAmtP(pr,o)+vmDicHtml(o):'Su richiesta',''); });
     var title=(vcMode()==='both'?vcSolName(k)+' · ':'')+'Modelli alternativi del '+(w==='monitor'?'monitor':'citofono')+', a richiesta';
     out+='<div class="vcbox vmbox"><div class="vh">'+esc(title)+'</div>'+h+'<div class="vs">I modelli alternativi sono a richiesta e non sono compresi nel totale del preventivo. Il prezzo indicato è per ogni '+w+'.</div></div>';
   });
@@ -166,6 +172,7 @@ function renderVm(){
       iwLogoData(f2,function(dl){ if(!dl){ toast('Immagine non valida'); return; } iwSaveLogo(br2,dl,'',''); iwRefresh(); renderVm(); toast('Logo «'+br2+'» salvato: vale per tutti i preventivi'); }); return; }
     if(t.id==='vm-show'){ if(!S.cond.vm) S.cond.vm={}; S.cond.vm.show=t.checked; touch(); return; }
     var f=t.getAttribute('data-vmf'); if(!f) return; var a=f.split(':'), fld=a[0], k=a[1], i=+a[2], d=vmData(k);
+    if(fld==='ps'||fld==='ls'){ var p4=vmPDi(k,a[2],true); if(!p4) return; p4[fld]=num(t.value); renderVm(); renderProducts(); touch(); return; }
     if(fld==='br'){ var p3=vmPDi(k,a[2],true); if(!p3) return; p3.brand=t.value.trim(); try{ brDatalist(); iwSoon(); }catch(x){} renderVm(); renderProducts(); touch(); return; }
     if(fld==='b'){ d.b=t.value; if(d.b) vmProd(k,d.b); }
     else if(fld==='bp'){ var bl=vmBaseLine(k); if(bl&&t.value.trim()!==''){ bl.vbk=k; bl.p=d.bpm==='inc'?Math.round(num(t.value)/vmIvaF()*10000)/10000:num(t.value); d.bp=''; } else d.bp=t.value.trim()===''?'':num(t.value); }
@@ -177,8 +184,8 @@ function renderVm(){
       else if(fld==='q') o.q=Math.max(0,parseInt(t.value,10)||0);
       else if(fld==='t') o.t=t.value.trim();
       else if(fld==='dic') o.dic=t.value.trim().slice(0,90);
-      else if(fld==='n'){ var vec=vmHas(o)?vmDn(o):'', pv=vec?vmPOf(vec):null; o.n=t.value.trim(); var nuovo=vmDn(o);
-        if(pv&&o.n&&lcn(vec)!==lcn(nuovo)&&!vmPOf(nuovo)&&!S.lines.some(function(l){ return lcn(l.d)===lcn(vec); })) pv.name=nuovo; else if(o.n&&!o.d) vmProd(k,o.n); }
+      else if(fld==='n'){ var vec=vmHas(o)?vmDn(o):'', pv=vec?vmPOf(vec,k):null; o.n=t.value.trim(); var nuovo=vmDn(o);
+        if(pv&&o.n&&lcn(vec)!==lcn(nuovo)&&!vmPOf(nuovo,k)&&!S.lines.some(function(l){ return lcn(l.d)===lcn(vec); })) pv.name=nuovo; else if(o.n&&!o.d) vmProd(k,o.n); }
       else if(fld==='p') o.p=t.value.trim()===''?'':num(t.value); }
     after();
   });

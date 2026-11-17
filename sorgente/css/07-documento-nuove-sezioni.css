@@ -289,3 +289,4 @@ header.top{position:relative}
 .psys-l{display:flex;flex-wrap:wrap;gap:6px 14px}
 .psys-c{padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
 .psys-0{border-style:dashed}
+.vmsz{display:grid;gap:6px}.vmsz input[type=range]{width:100%}

@@ -12,7 +12,7 @@ await p.click('#vc-fill');await p.waitForTimeout(300);
 await p.click('[data-vm="add:video:0"]');await set('[data-vmf="n:video:0"]','Monitor Wi-Fi 10');await set('[data-vmf="p:video:0"]','260');await set('[data-vmf="t:video:0"]','Schermo 10 pollici, app');
 let d=await doc();
 ok(/Modelli alternativi del monitor/i.test(d),'una soluzione: sezione dei modelli alternativi');
-ok(/Modello alternativo · a richiesta/i.test(d)&&/Prezzo per questo monitor 317,20/.test(d),'scheda alternativa con il suo prezzo (317,20 € IVA inclusa)');
+ok(/Modello alternativo · a richiesta/i.test(d)&&/Prezzo per questo monitor 260,00 € \+ IVA/.test(d),'scheda alternativa con il suo prezzo (260,00 € + IVA)');
 ok(/Schermo 10 pollici, app/.test(d),'caratteristiche del modello alternativo mostrate');
 ok(!/Modello incluso nel prezzo/i.test(d),'nessuna etichetta «modello base»: il monitor incluso lo scrivi tu nel preventivo');
 const order=await S(()=>{const a=[...document.querySelectorAll('#doc .prod')].map(e=>e.classList.contains('alt'));return a.indexOf(true)===a.length-1});ok(order,'alternativo dopo i prodotti inclusi');

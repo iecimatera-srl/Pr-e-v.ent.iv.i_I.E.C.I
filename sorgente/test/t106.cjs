@@ -40,35 +40,29 @@ let box=await S(()=>{ const x=document.querySelector('#doc .vmbox'); return x?{t
 console.log('     '+(box&&box.t).slice(0,260));
 ok(box&&box.th===1&&box.lg>=1,'preventivo: nella tabella dei modelli ci sono la foto e il logo della marca');
 ok(box&&!/Modello base|Incluso nel prezzo/i.test(box.t),'preventivo: nessuna riga «modello base»');
-ok(box&&/IVA inclusa/i.test(box.t)&&/317,20/.test(box.t),'preventivo: il prezzo del modello compare (260 + IVA = 317,20 € IVA inclusa)');
-// IVA esclusa
-await A.mostra(p,'[data-vm="iva:esc:0"]'); await p.click('[data-vm="iva:esc:0"]'); await p.waitForTimeout(500);
-box=await S(()=>{ const x=document.querySelector('#doc .vmbox'); return x?x.innerText.replace(/\n+/g,' | '):''; });
-console.log('     '+box.slice(0,260));
-ok(/IVA esclusa/i.test(box)&&/260,00 € \+ IVA/.test(box)&&!/317,20/.test(box),'«IVA esclusa»: il prezzo diventa 260,00 € + IVA');
-ok(/più IVA/.test(box),'la nota spiega che il prezzo è più IVA');
-ok(await S(()=>window.IECI_T.S().cond.vm.iva==='esc'),'la scelta resta salvata nel preventivo');
-const fasc=await S(()=>{ const a=[...document.querySelectorAll('#doc .altb')].map(x=>x.innerText).join(' | '); return a; });
-ok(/260,00 € \+ IVA/.test(fasc)||fasc==='','fascicolo: la scheda del modello alternativo mostra lo stesso prezzo ('+fasc.slice(0,80)+')');
-await p.click('[data-vm="iva:inc:0"]'); await p.waitForTimeout(400);
-box=await S(()=>document.querySelector('#doc .vmbox').innerText);
-ok(/317,20/.test(box)&&/IVA inclusa/i.test(box),'tornando a «IVA inclusa»: 317,20 € IVA inclusa');
-// prezzo scritto con l'IVA inclusa
+ok(box&&/260,00 € \+ IVA/.test(box.t),'prezzo scritto IVA esclusa: nel preventivo compare 260,00 € + IVA');
+ok(!(await p.$('[data-vm^="iva:"]')),'una sola scelta dell\'IVA, sul prezzo del modello (niente seconda scelta che crea confusione)');
+// IVA inclusa: il cliente vede il prezzo finale già ivato
 const cl=async sel=>{ await A.mostra(p,sel); await p.click(sel); await p.waitForTimeout(350); };
 await cl('[data-vm="pm:video:0:inc"]');
 ok(await S(()=>window.IECI_T.S().cond.vm.video.o[0].p===317.2&&window.IECI_T.S().cond.vm.video.o[0].pm==='inc'),'«IVA inclusa» sul prezzo: 260 + IVA diventa 317,20 (stesso prezzo, scritto con l\'IVA)');
 ok(await S(()=>/= 260,00 € \+ IVA/.test(document.getElementById('vc-vm').textContent)),'sotto il prezzo c\'è la conversione: = 260,00 € + IVA');
 box=await S(()=>document.querySelector('#doc .vmbox').innerText);
-ok(/317,20/.test(box),'il prezzo nel preventivo non cambia (317,20 € IVA inclusa)');
+ok(/317,20 € IVA inclusa/.test(box)&&!/\+ IVA/.test(box),'«IVA inclusa»: nel preventivo il prezzo finale già ivato, 317,20 € IVA inclusa (niente «+ IVA»)');
+const fasc=await S(()=>{ const a=[...document.querySelectorAll('#doc .altb')].map(x=>x.innerText).join(' | '); return a; });
+ok(/317,20 € IVA inclusa/.test(fasc)||fasc==='','fascicolo: la scheda del modello mostra lo stesso prezzo ivato ('+fasc.replace(/\n/g,' ').slice(0,90)+')');
 await set('p:video:0',366);
 box=await S(()=>document.querySelector('#doc .vmbox').innerText);
-ok(/366,00/.test(box),'scritto 366 € IVA inclusa: nel preventivo compare 366,00 € IVA inclusa');
-await cl('[data-vm="iva:esc:0"]');
-box=await S(()=>document.querySelector('#doc .vmbox').innerText);
-ok(/300,00 € \+ IVA/.test(box),'…e con «IVA esclusa» nel preventivo: 300,00 € + IVA');
-await cl('[data-vm="iva:inc:0"]');
+ok(/366,00 € IVA inclusa/.test(box),'scritto 366 € IVA inclusa: nel preventivo compare esattamente 366,00 € IVA inclusa');
 await cl('[data-vm="pm:video:0:esc"]');
-ok(await S(()=>window.IECI_T.S().cond.vm.video.o[0].p===300),'tornando a scrivere senza IVA: 366 diventa 300');
+ok(await S(()=>window.IECI_T.S().cond.vm.video.o[0].p===300),'tornando a «IVA esclusa»: 366 diventa 300');
+box=await S(()=>document.querySelector('#doc .vmbox').innerText);
+ok(/300,00 € \+ IVA/.test(box),'…e nel preventivo: 300,00 € + IVA');
+// due modelli, uno con IVA e uno senza: ognuno come l'hai scelto
+await cl('[data-vm="add:video:0"]'); await set('n:video:1','Monitor economico'); await cl('[data-vm="pm:video:1:inc"]'); await set('p:video:1',150);
+box=await S(()=>document.querySelector('#doc .vmbox').innerText);
+ok(/300,00 € \+ IVA/.test(box)&&/150,00 € IVA inclusa/.test(box),'due modelli: ognuno con la sua scelta (300,00 € + IVA e 150,00 € IVA inclusa)');
+await cl('[data-vm="del:video:1"]');
 // sfondo delle foto
 await cl('[data-vm="bg:video:0:keep"]'); await p.waitForTimeout(500);
 ok(await S(()=>window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Prova').bg==='keep')&&await S(()=>document.querySelector('[data-vm="bg:video:0:keep"]').getAttribute('aria-pressed')==='true'),'«Con sfondo originale»: scelta salvata nella scheda del modello');
@@ -78,7 +72,7 @@ ok(await S(()=>window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Pro
 await S(()=>{ const T=window.IECI_T,S=T.S(); S.lines=S.lines.filter(l=>!l.vbk&&!/monitor/i.test(l.d)); S.lines.unshift({d:'Monitor BTicino Classe 100X scritto a mano',u:'cad',q:10,p:150,s:0}); T.touch(); T.renderAll&&T.renderAll(); });
 await p.waitForTimeout(500);
 box=await S(()=>document.querySelector('#doc .vmbox').innerText);
-ok(/366,00/.test(box)&&!/—/.test(box),'riga del monitor scritta a mano: il prezzo del modello alternativo compare lo stesso');
+ok(/300,00 € \+ IVA/.test(box)&&!/—/.test(box),'riga del monitor scritta a mano: il prezzo del modello alternativo compare lo stesso');
 // togliere una foto
 await p.click('[data-vm="phx:video:0:0"]'); await p.waitForTimeout(300);
 ok(await S(()=>window.IECI_T.S().products.find(x=>x.name==='Monitor 10 Wi-Fi Prova').photos.length===1),'× sulla miniatura: la foto si toglie');

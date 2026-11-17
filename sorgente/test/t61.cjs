@@ -20,8 +20,8 @@ await p.click('[data-vm="add:video:0"]');await p.waitForTimeout(300);await set('
 const t2=await tot();console.log('totale',t1,'dopo i modelli',t2);
 ok(t1===t2,'il totale non cambia con i modelli alternativi');
 const box=await S(()=>document.querySelector('#doc .vmbox').innerText.replace(/\n+/g,' | '));console.log(box);
-ok(/Monitor 10" Wi-Fi \| 317,20 €/.test(box),'voce a parte: Monitor 10" Wi-Fi con il suo prezzo, 317,20 € IVA inclusa');
-ok(/Monitor 4,3" \| 183,00 €/.test(box),'secondo modello con il suo prezzo: 183,00 €');
+ok(/Monitor 10" Wi-Fi \| 260,00 € \+ IVA/.test(box),'voce a parte: Monitor 10" Wi-Fi con il suo prezzo, 260,00 € + IVA');
+ok(/Monitor 4,3" \| 150,00 € \+ IVA/.test(box),'secondo modello con il suo prezzo: 150,00 € + IVA');
 ok(/non sono compresi nel totale/.test(box),'detto chiaramente che non sono nel totale');
 ok(!/Incluso nel prezzo|Modello base/i.test(box),'nessun «modello base» nella voce dei modelli alternativi');
 // totale libero: invariato

@@ -14,7 +14,7 @@ function prodIsBase(p){
 function prodBadge(p,alt){
   if(!vcOn()) return '';
   if(alt){ var w=vmWord(alt.k);
-    return '<div class="altb"><span class="altt">Modello alternativo · a richiesta</span><span class="altp">'+(alt.pr!=null?'Prezzo per questo '+w+' <b>'+vmAmtP(alt.pr)+'</b> <small>'+(vmIvaInc()?'IVA inclusa, ':'')+'per ogni '+w+', non compreso nel totale</small>':'<b>Prezzo su richiesta</b>')+'</span></div>'+(!String(p.desc||'').trim()&&alt.o.t?'<div class="altn">'+esc(alt.o.t)+'</div>':''); }
+    return '<div class="altb"><span class="altt">Modello alternativo · a richiesta</span><span class="altp">'+(alt.pr!=null?'Prezzo per questo '+w+' <b>'+vmAmtP(alt.pr,alt.o)+'</b> <small>per ogni '+w+', non compreso nel totale</small>':'<b>Prezzo su richiesta</b>')+'</span></div>'+(!String(p.desc||'').trim()&&alt.o.t?'<div class="altn">'+esc(alt.o.t)+'</div>':''); }
   return '';
 }
 function brandLogo(brand){

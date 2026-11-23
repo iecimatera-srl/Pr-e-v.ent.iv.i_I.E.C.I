@@ -38,24 +38,31 @@ function ghfScarica(o,parziale){
   function una(c){
     // il tipo della foto è nell'elenco; se manca (archivio scritto da una versione vecchia) provo i formati più comuni
     var tipi=mi[c]?[mi[c]]:['image/jpeg','image/png','image/webp'];
+    // se so già che su GitHub quel file non c'è, non perdo tempo a chiederlo
+    if(GHFOTO.presenti&&!tipi.some(function(m){ return GHFOTO.presenti.has('foto/'+c+'.'+ghfEst(m)); })){ errori++; return Promise.resolve(); }
     function prova(k){ var m=tipi[k]; if(!m){ errori++; return Promise.resolve(); }
       return ghApi('/contents/foto/'+c+'.'+ghfEst(m),{},true).then(function(r){ return r.arrayBuffer(); }).then(function(b){ dati[c]='data:'+m+';base64,'+ghfB64(b); fatte++; if(manca.length>3) ghStatus('Scarico le foto da GitHub: '+fatte+' di '+manca.length+'…'); },function(){ return prova(k+1); }); }
     return prova(0); }
   var coda=manca.slice(); function lavora(){ var c=coda.shift(); return c?una(c).then(lavora):Promise.resolve(); }
   return Promise.all([lavora(),lavora(),lavora(),lavora()]).then(function(){
-    GHFOTO.errScarico=errori;
+    GHFOTO.errScarico=errori; GHFOTO.mancanti=manca.filter(function(c){ return !dati[c]; });
     // se anche una sola foto non arriva non unisco: i dati di qui restano intatti e riprovo alla prossima sincronizzazione
     if(errori&&!parziale){ var e=new Error('foto'); e.foto=errori; throw e; }
     ghfMetti(o,dati); return manca.length-errori;
   });
 }
 // carica su GitHub le foto che non ci sono ancora (una alla volta: ogni file è un salvataggio nell'archivio)
+function ghfSu(c,m){ return !GHFOTO.presenti||GHFOTO.presenti.has('foto/'+c+'.'+ghfEst(m)); }
 function ghfCarica(trovate,giaSu){
-  var nuove=Object.keys(trovate).filter(function(c){ return !giaSu[c]; }), fatte=0, ok={};
-  Object.keys(trovate).forEach(function(c){ if(giaSu[c]) ok[c]=giaSu[c]; });
-  function una(c){ var u=trovate[c], m=ghfMime(u);
-    return ghApi('/contents/foto/'+c+'.'+ghfEst(m),{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'Foto '+c,content:u.slice(u.indexOf(',')+1)})})
-      .then(function(){ ok[c]=m; },function(e){ if(e.status===422){ ok[c]=m; return; } throw e; }) // 422: c'era già
+  var nuove=Object.keys(trovate).filter(function(c){ return !giaSu[c]||!ghfSu(c,ghfMime(trovate[c])); }), fatte=0, ok={};
+  Object.keys(trovate).forEach(function(c){ if(giaSu[c]&&ghfSu(c,ghfMime(trovate[c]))) ok[c]=giaSu[c]; });
+  GHFOTO.nonCaricate=0;
+  function una(c){ var u=trovate[c], m=ghfMime(u), f='foto/'+c+'.'+ghfEst(m);
+    return ghApi('/contents/'+f,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:'Foto '+c,content:u.slice(u.indexOf(',')+1)})})
+      .then(function(){ ok[c]=m; if(GHFOTO.presenti) GHFOTO.presenti.add(f); },function(e){
+        if(e.status===422&&!GHFOTO.presenti){ ok[c]=m; return; } // 422: c'era già
+        if(e.status===422) return ghApi('/contents/'+f).then(function(){ ok[c]=m; GHFOTO.presenti.add(f); },function(){ GHFOTO.nonCaricate++; });
+        if(autoRete(e)) throw e; GHFOTO.nonCaricate++; }) // non caricata: resta dentro l'archivio
       .then(function(){ fatte++; if(nuove.length>2) ghStatus('Carico le foto su GitHub: '+fatte+' di '+nuove.length+'…'); }); }
   var p=Promise.resolve(); nuove.forEach(function(c){ p=p.then(function(){ return una(c); }); });
   return p.then(function(){ return ok; });
@@ -68,18 +75,31 @@ function ghfRipara(mappa){
   ghStatus('Recupero le foto che mancano su questo dispositivo…');
   return ghfScarica(o,true).then(function(n){ if(n>0){ dbSave(true); doSave(); renderAll(); toast(n===1?'Recuperata 1 foto da GitHub':'Recuperate '+n+' foto da GitHub'); } return n; });
 }
+/* elenco dei file foto che ci sono DAVVERO su GitHub (una richiesta sola, al massimo ogni 20 minuti):
+   serve a ricaricare le foto i cui file mancano e a non aspettare foto che non arriveranno mai */
+function ghRamo(){ if(GH.ramo) return Promise.resolve(GH.ramo); return ghApi('').then(function(r){ return r.json(); }).then(function(j){ GH.ramo=(j&&j.default_branch)||'main'; return GH.ramo; }); }
+function ghfElenco(forza){
+  if(!forza&&GHFOTO.presenti&&Date.now()-(GHFOTO.presT||0)<1200000) return Promise.resolve(GHFOTO.presenti);
+  return ghRamo().then(function(ramo){ return ghApi('/git/trees/'+encodeURIComponent(ramo)+'?recursive=1'); }).then(function(r){ return r.json(); }).then(function(j){
+    if(!j||!Array.isArray(j.tree)||j.truncated) return null;
+    var s=new Set(); j.tree.forEach(function(x){ if(x&&x.path&&x.path.indexOf('foto/')===0) s.add(x.path); }); GHFOTO.presenti=s; GHFOTO.presT=Date.now(); return s;
+  }).catch(function(e){ if(autoRete(e)) throw e; return null; });
+}
 function ghfMancanti(){ try{ return ghfRif({db:{quotes:DB.quotes,prods:DB.prods,arts:DB.arts,logos:DB.logos},s:S}).length; }catch(e){ return 0; } }
 // il file dell'archivio da mettere su GitHub: leggero, con le foto come riferimenti
 // versione minima dell'app che sa leggere l'archivio con le foto come file a parte: un dispositivo più vecchio
 // (che rispetta questo controllo) non unisce e non scrive nulla, e chiede di aggiornare
-var GH_MIN='2026.11.16.7';
+var GH_MIN='2026.11.23.1';
 function verCmp(a,b){ a=String(a||'0').split('.'); b=String(b||'0').split('.'); for(var i=0;i<Math.max(a.length,b.length);i++){ var x=+a[i]||0, y=+b[i]||0; if(x!==y) return x<y?-1:1; } return 0; }
 function ghfPayload(remoto){
   var o=JSON.parse(JSON.stringify(buildPayload())), tr=ghfEstrai(o);
   var giaSu=(remoto&&remoto.foto)||{};
   // la versione minima non scende mai: se un altro dispositivo l'ha alzata, resta alzata
   var min=remoto&&remoto.min&&verCmp(remoto.min,GH_MIN)>0?remoto.min:GH_MIN;
-  return ghfCarica(tr,giaSu).then(function(ok){ o.foto=ok; o.v=3; o.app=APP_VER; o.min=min; return o; });
+  return ghfCarica(tr,giaSu).then(function(ok){
+    // le foto non caricate tornano dentro l'archivio: nessun riferimento a un file che su GitHub non c'è
+    var dentro={}; Object.keys(tr).forEach(function(c){ if(!ok[c]) dentro[c]=tr[c]; }); if(Object.keys(dentro).length) ghfMetti(o,dentro);
+    o.foto=ok; o.v=3; o.app=APP_VER; o.min=min; return o; });
 }
 // copia di sicurezza leggera: con GitHub collegato le foto restano come riferimenti (i file su GitHub non si cancellano mai)
 function snapLeggera(){ var o=JSON.parse(JSON.stringify(buildPayload())); if(GH.on&&GH.token){ ghfEstrai(o); o.leggera=1; } return JSON.stringify(o); }

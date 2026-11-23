@@ -48,6 +48,9 @@ ok(await W.S(()=>document.getElementById('as-disp').textContent.includes('Androi
 // 4. nessun rimbalzo: fermi, nessuno scrive su GitHub
 let p0=G.stato.put; await W.p.waitForTimeout(6000);
 ok(G.stato.put===p0,'tutti e due fermi per 6 secondi: nessun salvataggio inutile ('+(G.stato.put-p0)+')');
+{ const c=await W.S(()=>window.IECI_T.tr.coer()); ok(c.t&&c.qui===1&&c.gh===1&&!c.mancaQui.length&&!c.mancaGh.length,'controllo di coerenza: 1 preventivo qui · 1 su GitHub'); }
+ok(await W.S(()=>/✓ 1 preventivo qui · 1 su GitHub/.test(document.getElementById('tr-coer').textContent)),'il pannello lo scrive: «✓ 1 preventivo qui · 1 su GitHub»');
+ok(await W.S(()=>/1 preventivo/.test(document.getElementById('as-disp').textContent)),'per ogni dispositivo si vede quanti preventivi ha');
 ok((G.stato.n304||0)>0,'i controlli «è cambiato qualcosa?» sono leggerissimi (risposte 304: '+(G.stato.n304||0)+')');
 
 // 5. stesso preventivo cambiato su due dispositivi, uno senza rete: nessuna versione persa
@@ -61,15 +64,15 @@ await W.S(()=>{ const s=window.IECI_T.S(); s.meta.title='Versione Windows'; s.li
 await aspetta(W,()=>window.IECI_T.DB().quotes.some(q=>/Versione Windows/.test(q.title||'')),null,15000); await fermo(W);
 ok(/Versione Windows/.test(JSON.stringify(G.grezzo().db.quotes)),'intanto Windows salva la sua versione su GitHub');
 D.st.giu=false; await D.S(()=>window.dispatchEvent(new Event('online')));
-r=await aspetta(D,()=>window.IECI_T.DB().quotes.some(q=>q.conf),null,25000); await fermo(D);
+r=await aspetta(D,id=>(window.IECI_T.DB().quotes.find(x=>x.id===id).alt||[]).length>0,idQ,25000); await fermo(D);
 o=G.grezzo();
-const tit=o.db.quotes.map(q=>q.title||'').join(' | ');
-ok(r&&/Versione Android/.test(tit)&&/Versione Windows/.test(tit),'tornata la rete: su GitHub ci sono TUTTE E DUE le versioni ('+tit.replace(/Bagno Rossi rifatto/g,'').slice(0,120)+')');
-ok(o.db.quotes.filter(q=>q.conf).length===1,'una sola copia segnata «versione di …», nessun doppione');
-r=await aspetta(W,()=>window.IECI_T.DB().quotes.some(q=>q.conf),null,20000);
-ok(r,'anche Windows riceve la copia dell\'altra versione da solo');
+const qq=o.db.quotes.filter(q=>q.id===idQ), tit=qq.map(q=>[q.title].concat((q.alt||[]).map(v=>v.title)).join(' + ')).join(' | ');
+ok(r&&qq.length===1&&/Versione Android/.test(tit)&&/Versione Windows/.test(tit),'tornata la rete: su GitHub UN solo preventivo, con dentro TUTTE E DUE le versioni ('+tit+')');
+ok(!o.db.quotes.some(q=>q.conf)&&o.db.quotes.length===1,'nessuna copia in più nell\'archivio ('+o.db.quotes.length+' preventivo)');
+r=await aspetta(W,id=>(window.IECI_T.DB().quotes.find(x=>x.id===id).alt||[]).length===1,idQ,20000);
+ok(r&&await W.S(()=>window.IECI_T.DB().quotes.length===1),'anche Windows riceve l\'altra versione da solo, dentro lo stesso preventivo');
 await W.S(()=>{ window.IECI_T.showPanel?window.IECI_T.showPanel('salva'):0; });
-ok(await W.S(()=>!!document.querySelector('#q-list .qconf-b')||window.IECI_T.DB().quotes.some(q=>q.conf)),'nell\'archivio la copia è segnata «Versione di …»');
+ok(await W.S(()=>/2 versioni/.test(document.getElementById('q-list').textContent)),'nell\'archivio una riga sola con «2 versioni»');
 await fermo(W); await fermo(D);
 p0=G.stato.put; await W.p.waitForTimeout(5000);
 ok(G.stato.put===p0,'dopo il conflitto nessun rimbalzo ('+(G.stato.put-p0)+')');
@@ -85,15 +88,22 @@ await W.p.waitForTimeout(3500); await fermo(W);
 ok(/Scritto durante il salvataggio/.test(JSON.stringify(G.grezzo().db.quotes)),'una modifica fatta mentre il salvataggio era in corso arriva comunque su GitHub');
 
 // 7. cestino condiviso: eliminato su Windows, ripristinato da Android
-const idC=await W.S(()=>window.IECI_T.DB().quotes.find(q=>q.conf).id);
+await W.S(()=>{ const T=window.IECI_T, s=T.S(); s.qid=''; s.client={name:'Verdi Cucina',addr:'',tel:'',email:'',cf:''}; s.meta.title='Cucina Verdi'; s.lines=[{d:'Presa',u:'pt',q:3,p:30,s:0}]; T.touch(); T.saveQuote(true); });
+await fermo(W); const idC=await W.S(()=>window.IECI_T.S().qid);
+await aspetta(D,id=>window.IECI_T.DB().quotes.some(q=>q.id===id),idC,20000);
+await W.S(i=>window.IECI_T.openQuote(i),idQ); await W.p.waitForTimeout(300);
 await W.S(id=>{ const T=window.IECI_T, DB=T.DB(); DB.del[id]=Date.now(); DB.quotes.splice(DB.quotes.findIndex(q=>q.id===id),1); T.dbSave(); },idC);
 await fermo(W);
 r=await aspetta(D,id=>!window.IECI_T.DB().quotes.some(q=>q.id===id),idC,20000);
 ok(r,'eliminato su Windows: sparisce anche da Android');
 ok(await D.S(id=>window.IECI_T.auto.cest().some(e=>e.oid===id&&!e.r),idC),'…ma è nel cestino anche su Android');
-ok(await D.S(()=>{ const t=document.getElementById('cs-list').textContent; return /Versione/.test(t)&&/Ripristina/.test(t); }),'il cestino lo mostra con «Ripristina»');
+ok(await D.S(id=>{ const d=window.IECI_T.tr.delI()[id]; return !!(d&&d.dv==='Windows'&&/Verdi/.test(d.n)); },idC),'Android sa chi l\'ha eliminato e quando: Windows');
+await D.S(()=>window.IECI_T.tr.cerca('verdi'));
+r=await aspetta(D,()=>/Ricerca finita/.test(document.getElementById('tr-st').textContent),null,25000);
+{ const rv=await D.S(()=>window.IECI_T.tr.ris()); ok(r&&rv.some(x=>/Eliminato su Windows, è nel cestino/.test(x.dove)&&x.az==='Ripristina'),'«Dov\'è il mio preventivo?» con «verdi»: eliminato su Windows, è nel cestino con «Ripristina» '+JSON.stringify(rv.map(x=>x.dove))); }
+ok(await D.S(()=>{ const t=document.getElementById('cs-list').textContent; return /Verdi/.test(t)&&/Ripristina/.test(t); }),'il cestino lo mostra con «Ripristina»');
 await D.S(id=>{ const e=window.IECI_T.auto.cest().find(x=>x.oid===id&&!x.r); window.IECI_T.auto.cestRipristina(e.id); },idC);
-r=await aspetta(W,()=>window.IECI_T.DB().quotes.filter(q=>q.conf||/Versione/.test(q.title||'')).length>=2,null,25000);
+r=await aspetta(W,()=>window.IECI_T.DB().quotes.some(q=>q.client==='Verdi Cucina'),null,25000);
 ok(r,'ripristinato su Android: torna anche su Windows da solo');
 await fermo(W); await fermo(D);
 

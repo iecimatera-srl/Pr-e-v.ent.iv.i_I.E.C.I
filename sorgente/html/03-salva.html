@@ -28,11 +28,13 @@
         <details class="acc" id="acc-sync" open><summary><span>Salvataggio automatico su GitHub <small class="acc-sub">telefono e computer sempre uguali, senza premere niente</small></span><em id="as-em"></em></summary><div class="accb">
         <div class="as-box" id="as-box" hidden>
           <div class="as-top" id="as-top" aria-live="polite"></div>
+          <div class="tr-coer" id="tr-coer" aria-live="polite"></div>
           <ul class="as-come">
             <li><b>Salva da solo.</b> Ogni modifica è subito al sicuro su questo dispositivo e arriva su GitHub entro pochi secondi. Se chiudi o cambi app, salva all'istante.</li>
             <li><b>Telefono e computer insieme.</b> Mentre l'app è aperta, ogni minuto guarda se sull'altro dispositivo è cambiato qualcosa e lo porta qui.</li>
             <li><b>Senza rete non perdi niente.</b> Le modifiche aspettano sul dispositivo e partono da sole appena torna la connessione.</li>
-            <li><b>Niente si cancella davvero.</b> Se lo stesso preventivo cambia su due dispositivi tengo entrambe le versioni. Quello che elimini resta 30 giorni nel cestino. Ogni giorno c'è una copia completa su GitHub e una qui.</li>
+            <li><b>Un preventivo, una riga. Niente copie.</b> Se lo stesso preventivo cambia su due dispositivi resta un solo preventivo: l'altra versione è dentro (etichetta «2 versioni», con «Usa questa»).</li>
+            <li><b>Niente si cancella davvero.</b> Quello che elimini resta 30 giorni nel cestino. Ogni giorno c'è una copia completa su GitHub e una qui.</li>
           </ul>
           <div class="as-sez"><b>Dispositivi che usano questo archivio</b><div id="as-disp" class="as-disp"></div>
             <label class="f as-nm">Nome di questo dispositivo<input type="text" id="as-nome" maxlength="30" autocomplete="off" placeholder="Windows"></label></div>
@@ -72,6 +74,12 @@
         <label class="chk"><input type="checkbox" id="gd-auto">Sincronizza da solo dopo le modifiche (mentre l'accesso è attivo)</label>
         <p class="res" id="gd-state"></p>
           </div></details>
+        </div></details>
+        <details class="acc" id="acc-trova"><summary><span>Dov'è il mio preventivo? <small class="acc-sub">cerca un nome ovunque e lo rimette con un tocco</small></span></summary><div class="accb">
+          <p class="hint">Scrivi il nome del cliente (o una parola del titolo, la via, il numero). Cerco su questo dispositivo, nelle versioni, nel cestino, tra gli eliminati, su GitHub e nelle copie dei giorni passati, e ti dico dov'è.</p>
+          <div class="row"><input type="search" id="tr-q" placeholder="Es. Bia Patrizia" autocomplete="off" style="flex:1 1 200px"><button type="button" class="btn" id="tr-go">Cerca ovunque</button></div>
+          <p class="hint" id="tr-st" aria-live="polite"></p>
+          <div class="lines" id="tr-ris"></div>
         </div></details>
         <details class="acc" id="acc-tempo"><summary><span>Torna indietro nel tempo <small class="acc-sub">i preventivi com'erano nei giorni passati</small></span></summary><div class="accb">
           <p class="hint">Ogni giorno si crea da sola una copia completa: su GitHub (cartella «copie») e su questo dispositivo. Apri un giorno e rimetti solo il preventivo che ti serve: gli altri non si toccano e la versione di adesso va nel cestino, così non perdi niente.</p>

@@ -141,7 +141,7 @@ document.addEventListener('click',function(e){
   var f=e.target.closest('[data-qf]'); if(f){ qFilt=f.getAttribute('data-qf'); renderArchivio(); return; }
   var c=e.target.closest('[data-qst]'); if(!c) return;
   var id=c.getAttribute('data-qst'), q=DB.quotes.filter(function(x){ return x.id===id; })[0]; if(!q) return;
-  var nx=STN[(STN.indexOf(qSt(q))+1)%STN.length]; q.st=nx; if(q.data&&q.data.meta) q.data.meta.status=nx; q.upd=Date.now();
+  var nx=STN[(STN.indexOf(qSt(q))+1)%STN.length]; q.st=nx; if(q.data&&q.data.meta) q.data.meta.status=nx; q.upd=Date.now(); q.stT=q.upd;
   if(S.qid===id){ S.meta.status=nx; syncB(); doSave(); } dbSave(); renderArchivio(); toast('Stato: '+STL[nx]);
 });
 $('q-more').addEventListener('click',function(){ qAll=!qAll; renderArchivio(); });

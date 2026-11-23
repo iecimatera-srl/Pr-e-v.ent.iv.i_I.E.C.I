@@ -7,6 +7,7 @@ async function finto(ctx,repo){
   await ctx.route('https://api.github.com/**',async r=>{
     const u=r.request().url(), m=r.request().method(), raw=/raw/.test(r.request().headers()['accept']||''), pth=percorso(u);
     // versioni precedenti dell'archivio (come la cronologia dei salvataggi di GitHub)
+    if(/\/git\/trees\//.test(u)){ stato.alberi=(stato.alberi||0)+1; return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({truncated:false,tree:Object.keys(stato.files).filter(k=>!stato.rotte.has(k)&&!(stato.spariti||new Set()).has(k)).map(k=>({path:k,type:'blob'}))})}); }
     if(/\/commits\?/.test(u)) return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify(stato.storia.slice().reverse().map(v=>({sha:v.sha})))});
     if(pth){
       const ref=(u.match(/[?&]ref=([^&]+)/)||[])[1];
@@ -23,7 +24,7 @@ async function finto(ctx,repo){
       if(!raw){ stato.meta=(stato.meta||0)+1; return r.fulfill({status:200,contentType:'application/json',headers:{'etag':'"'+f.sha+'"','access-control-expose-headers':'ETag'},body:JSON.stringify({sha:f.sha})}); }
       return r.fulfill({status:200,contentType:'application/octet-stream',body:Buffer.from(f.b64,'base64')});
     }
-    return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({private:true})});
+    return r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({private:true,default_branch:'main'})});
   });
   await ctx.addInitScript((repo)=>{ try{ if(!localStorage.getItem('ieci-gh')) localStorage.setItem('ieci-gh',JSON.stringify({repo:repo,token:'github_pat_prova',on:true})); }catch(e){} },repo||'iecimatera/preventivi-ieci-dati');
 }

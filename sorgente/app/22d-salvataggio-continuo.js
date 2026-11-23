@@ -22,7 +22,8 @@ function devModo(){ try{ if(location.protocol==='file:') return 'file'; if(windo
 function autoDispositivi(r){
   var o={}, lim=Date.now()-180*864e5;
   Object.keys(r||{}).forEach(function(k){ var v=r[k]; if(v&&v.t>lim) o[k]=v; });
-  o[GH.dev]={n:devNome(),a:APP_VER,t:Date.now(),m:devModo()};
+  o[GH.dev]={n:devNome(),a:APP_VER,t:Date.now(),m:devModo(),nq:qVivi(DB.quotes).length};
+  var ef=GHFOTO.errScarico?GHFOTO.errScarico+' foto non arrivano da GitHub':GHFOTO.nonCaricate?GHFOTO.nonCaricate+' foto non riesce a caricarle su GitHub':''; if(ef) o[GH.dev].e=ef;
   return o;
 }
 /* preventivi cambiati qui e non ancora su GitHub: servono a riconoscere un vero conflitto (senza fidarsi degli
@@ -34,42 +35,58 @@ function qDiverso(a,b){
   if(!a||!b) return true; if((a.st||'')!==(b.st||'')) return true;
   try{ return qNorm(a.data||{})!==qNorm(b.data||{}); }catch(e){ return true; }
 }
-/* ---------- copie di conflitto: via i doppioni, scelta della versione da tenere ---------- */
+/* ---------- versioni di un preventivo (al posto delle «copie di conflitto») ----------
+   Se lo stesso preventivo è stato cambiato su due dispositivi, nell'elenco resta UN SOLO preventivo (il più recente);
+   l'altra versione non si perde: è salvata DENTRO il preventivo («Versioni», con data e dispositivo) e con un tocco
+   la puoi rimettere. Niente più preventivi doppi nell'archivio. */
 function qNormCopia(q){ var d=JSON.parse(JSON.stringify(q.data||{})); if(q.conf&&d.meta&&d.meta.title) d.meta.title=String(d.meta.title).replace(/ · versione di .*$/,''); return qNorm(d); }
-// copie uguali all'originale, o uguali tra loro: via da sole (finiscono nel cestino, si possono rimettere)
+function versioneDa(v,dv){ return {id:uid(),t:v.upd||Date.now(),dv:dv||v.dvn||'un altro dispositivo',st:v.st||'',tot:v.tot||0,title:String(v.title||'').replace(/ · versione di .*$/,''),client:v.client||'',name:v.name||'',data:JSON.parse(JSON.stringify(v.data||{}))}; }
+// mette la versione v dentro il preventivo q (se non è uguale al preventivo o a una versione che c'è già)
+function versioneMetti(q,v,dv){
+  if(!q||!v) return false; var x=versioneDa(v,dv); if(x.data&&x.data.meta&&x.data.meta.title) x.data.meta.title=String(x.data.meta.title).replace(/ · versione di .*$/,'');
+  var h=qNorm(x.data); if(h===qNorm(q.data||{})&&(x.st||'')===(q.st||'')) return false;
+  var A=q.alt||(q.alt=[]); if(A.some(function(a){ return qNorm(a.data||{})===h&&(a.st||'')===(x.st||''); })) return false;
+  A.unshift(x); q.alt=A.slice(0,8); return true;
+}
+// unisce le versioni di due copie dello stesso preventivo (arrivate da dispositivi diversi); true se «a» ha preso qualcosa
+// (le versioni tolte apposta restano tolte anche sugli altri dispositivi: «altVia» ne tiene il ricordo)
+function versioniUnisci(a,b){
+  if(!a||!b) return false; var via={}, nuovo=false;
+  (a.altVia||[]).concat(b.altVia||[]).forEach(function(id){ via[id]=1; }); var lv=Object.keys(via); if(lv.length){ if((a.altVia||[]).length!==lv.length) nuovo=true; a.altVia=lv.slice(-60); }
+  var A=(a.alt||[]).filter(function(x){ return !via[x.id]; }), ids={}; A.forEach(function(x){ ids[x.id]=1; });
+  (b.alt||[]).forEach(function(x){ if(!ids[x.id]&&!via[x.id]){ A.push(x); ids[x.id]=1; nuovo=true; } });
+  A.sort(function(p,q){ return (q.t||0)-(p.t||0); }); if(A.length) a.alt=A.slice(0,8); else delete a.alt; return nuovo;
+}
+function versioniVia(q,ids){ q.alt=(q.alt||[]).filter(function(x){ return ids.indexOf(x.id)<0; }); q.altVia=(q.altVia||[]).concat(ids).slice(-60); if(!q.alt.length) delete q.alt; }
+// «Usa questa versione»: diventa il preventivo; quello di adesso diventa a sua volta una versione (niente si perde)
+function versioneUsa(qid,vid){
+  var q=DB.quotes.filter(function(x){ return x.id===qid; })[0]; if(!q||!q.alt) return; var v=q.alt.filter(function(x){ return x.id===vid; })[0]; if(!v) return;
+  var ora=Date.now(), cur=versioneDa(q,devNome()); cur.t=q.upd||ora;
+  if(!(GH.qmod||{})[q.id]) q.bu=q.upd||0;
+  q.data=JSON.parse(JSON.stringify(v.data)); q.data.qid=q.id; q.st=v.st||q.st; q.tot=v.tot; if(v.title) q.title=v.title; if(v.client) q.client=v.client; if(v.name) q.name=v.name;
+  q.alt=[cur].concat(q.alt.filter(function(x){ return x.id!==vid; })).slice(0,8); q.altVia=(q.altVia||[]).concat([vid]).slice(-60); q.upd=ora; q.dvn=devNome(); qmodSegna(q.id);
+  dbSave(); qRicarica(q.id); renderArchivio(); toast('Rimessa la versione di '+v.dv+' del '+stamp(v.t)+': quella di prima resta tra le versioni');
+}
+function versioneTogli(qid,vid){ var q=DB.quotes.filter(function(x){ return x.id===qid; })[0]; if(!q) return; versioniVia(q,[vid]); q.upd=Date.now(); qmodSegna(q.id); dbSave(); renderArchivio(); toast('Versione tolta'); }
+/* le «copie di conflitto» delle versioni di prima diventano versioni dentro il loro preventivo: l'elenco torna pulito.
+   Se il preventivo originale non c'è più, la copia diventa un preventivo normale (non si perde). */
 function copiePulisci(){
-  if(!dbReady) return 0; var tolte=0, viste={}, ora=Date.now();
-  DB.quotes.filter(function(q){ return q.conf; }).sort(function(a,b){ return (a.upd||0)-(b.upd||0); }).forEach(function(c){
-    var o=DB.quotes.filter(function(x){ return x.id===c.conf.orig; })[0], h=qNormCopia(c), key=(c.conf.orig||'')+'|'+(c.st||'')+'|'+h;
-    if((o&&!o.conf&&(o.st||'')===(c.st||'')&&qNormCopia(o)===h)||viste[key]){ DB.del[c.id]=Math.max(ora,(c.upd||0)+1); tolte++; return; }
-    viste[key]=1;
+  if(!dbReady) return 0; var n=0, ora=Date.now();
+  var aperto='';
+  DB.quotes.filter(function(q){ return q.conf; }).forEach(function(c){
+    var o=DB.quotes.filter(function(x){ return x.id===c.conf.orig&&!x.conf; })[0];
+    if(o){ versioneMetti(o,c,c.conf.dv); o.upd=Math.max(o.upd||0,ora); DB.del[c.id]=Math.max(ora,(c.upd||0)+1); c._via=1; n++; if(CEST.vista) delete CEST.vista['q:'+c.id]; /* è già dentro il suo preventivo: nel cestino sarebbe solo un doppione */ if(S.qid===c.id) aperto=o.id; }
+    else { c.title=String(c.title||'').replace(/ · versione di .*$/,''); if(c.data&&c.data.meta&&c.data.meta.title) c.data.meta.title=String(c.data.meta.title).replace(/ · versione di .*$/,''); delete c.conf; c.upd=ora; n++; }
   });
-  if(tolte){ DB.quotes=DB.quotes.filter(function(q){ return !(q.conf&&DB.del[q.id]); }); dbSave(); renderArchivio(); renderCest(); autoLog('rip',{nome:tolte+(tolte===1?' copia doppia tolta':' copie doppie tolte')+' (sono nel cestino)'}); toast(tolte===1?'Tolta 1 copia doppia di un preventivo (è nel cestino)':'Tolte '+tolte+' copie doppie dei preventivi (sono nel cestino)'); }
-  return tolte;
+  if(n){ DB.quotes=DB.quotes.filter(function(q){ return !q._via; }); if(aperto){ S.qid=aperto; qRicarica(aperto); } dbSave(); renderArchivio(); autoLog('rip',{nome:n===1?'1 copia doppia rimessa dentro il suo preventivo, come versione':n+' copie doppie rimesse dentro i loro preventivi, come versioni'}); toast(n===1?'Sistemata 1 copia doppia: ora è una versione dentro il suo preventivo':'Sistemate '+n+' copie doppie: ora sono versioni dentro i loro preventivi'); }
+  return n;
 }
-function copiaTieni(id){
-  var c=DB.quotes.filter(function(q){ return q.id===id; })[0]; if(!c||!c.conf) return;
-  var o=DB.quotes.filter(function(q){ return q.id===c.conf.orig; })[0], x=JSON.parse(JSON.stringify(c)), ora=Date.now();
-  x.id=o?o.id:((DB.del||{})[c.conf.orig]?uid():(c.conf.orig||uid()));
-  x.title=String(x.title||'').replace(/ · versione di .*$/,''); if(x.data){ x.data.qid=x.id; if(x.data.meta&&x.data.meta.title) x.data.meta.title=String(x.data.meta.title).replace(/ · versione di .*$/,''); }
-  delete x.conf; x.upd=ora;
-  if(o){ cestMetti('q',o,ora,true); x.bu=(GH.qmod||{})[o.id]?o.bu:o.upd; DB.quotes[DB.quotes.indexOf(o)]=x; } else DB.quotes.push(x);
-  DB.del[c.id]=ora; DB.quotes=DB.quotes.filter(function(q){ return q.id!==c.id; }); qmodSegna(x.id);
-  dbSave(); if(S.qid===c.id) S.qid=x.id; qRicarica(x.id); renderArchivio(); renderCest();
-  toast('Tenuta la versione di '+(c.conf.dv||'un altro dispositivo')+': quella di prima è nel cestino');
-}
-function copieTutteVia(){
-  var n=0, ora=Date.now(); DB.quotes.forEach(function(q){ if(q.conf){ DB.del[q.id]=ora; n++; if(S.qid===q.id){ S.qid=''; QDV['']=docVer; } } });
-  DB.quotes=DB.quotes.filter(function(q){ return !q.conf; }); dbSave(); renderArchivio(); renderCest();
-  toast(n===1?'Copia eliminata (è nel cestino)':n+' copie eliminate (sono nel cestino)');
-}
-function copiaConflitto(v){
-  var c=JSON.parse(JSON.stringify(v)), id=uid();
-  c.id=id; c.conf={dv:v.dvn||'un altro dispositivo',t:v.upd||0,orig:v.id}; c.upd=Date.now();
-  if(c.data){ c.data.qid=id; if(c.data.meta) c.data.meta.title=(c.data.meta.title||'')+' · versione di '+c.conf.dv; }
-  c.title=(c.title||'')+' · versione di '+c.conf.dv;
-  DB.quotes.push(c); qmodSegna(id);
-  autoLog('conf',{nome:qName(v),dv:c.conf.dv});
+function copiaTieni(id){ var c=DB.quotes.filter(function(q){ return q.id===id; })[0]; if(c&&c.conf) copiePulisci(); }
+function copieTutteVia(){ copiePulisci(); }
+// conflitto durante la sincronizzazione: la versione che non vince va DENTRO il preventivo che vince
+function copiaConflitto(v,vince){
+  if(!vince){ return; }
+  if(versioneMetti(vince,v,v.dvn)) autoLog('conf',{nome:qName(v),dv:v.dvn||'un altro dispositivo'});
 }
 
 /* ---------- il motore ---------- */
@@ -148,11 +165,11 @@ function autoCopiaGh(txt){
 /* ---------- cestino: 30 giorni, uguale su tutti i dispositivi ---------- */
 var CEST={vista:null}, CEST_K={q:'quotes',c:'clients',p:'prods',a:'arts'}, CEST_N={q:'Preventivo',c:'Cliente',p:'Prodotto',a:'Articolo del listino'};
 // a ogni salvataggio dell'archivio: quello che è sparito ed è segnato come eliminato va nel cestino
-function cestOsserva(){
+function cestOsserva(ns){
   if(!dbReady) return;
   var nuova={}, del=DB.del||{};
   Object.keys(CEST_K).forEach(function(k){ (DB[CEST_K[k]]||[]).forEach(function(x){ if(x&&x.id) nuova[k+':'+x.id]=x; }); });
-  if(CEST.vista){ var n=0; Object.keys(CEST.vista).forEach(function(key){ if(nuova[key]) return; var id=key.slice(2); if(del[id]){ if(cestMetti(key[0],CEST.vista[key],del[id])) n++; } }); if(n) setTimeout(renderCest,0); }
+  if(CEST.vista){ var n=0; Object.keys(CEST.vista).forEach(function(key){ if(nuova[key]) return; var id=key.slice(2); if(del[id]){ delInfoMetti(id,key[0],CEST.vista[key],del[id],ns); if(cestMetti(key[0],CEST.vista[key],del[id])) n++; } }); if(n) setTimeout(renderCest,0); }
   CEST.vista=nuova;
 }
 function cestMetti(k,x,t,v){
@@ -271,10 +288,11 @@ function autoRenderOra(){
   if(!D[GH.dev]) ks.unshift(GH.dev);
   var md={app:'app installata',browser:'nel browser',file:'file sul computer'};
   $('as-disp').innerHTML=ks.map(function(k){ var v=D[k]||{n:devNome(),a:APP_VER,m:devModo()}, me=k===GH.dev, vec=v.a&&verCmp(v.a,APP_VER)<0;
-    return '<div class="as-d'+(me?' me':'')+'"><span class="as-di '+(/Android|iPhone/i.test(v.n||'')?'tel':'pc')+'" aria-hidden="true"></span><div><b>'+esc(me?devNome():(v.n||'Dispositivo'))+(me?' <small>(questo)</small>':'')+'</b><small>'+esc(md[v.m]||'')+' · versione '+esc(v.a||'?')+(v.t?' · salvato '+esc(svQuando(v.t)):'')+'</small>'+(vec?'<small class="as-vec">Versione vecchia: aggiornala su quel dispositivo</small>':'')+'</div></div>';
+    return '<div class="as-d'+(me?' me':'')+'"><span class="as-di '+(/Android|iPhone/i.test(v.n||'')?'tel':'pc')+'" aria-hidden="true"></span><div><b>'+esc(me?devNome():(v.n||'Dispositivo'))+(me?' <small>(questo)</small>':'')+'</b><small>'+esc(md[v.m]||'')+' · versione '+esc(v.a||'?')+(v.nq!=null?' · '+v.nq+(v.nq===1?' preventivo':' preventivi'):'')+(v.t?' · salvato '+esc(svQuando(v.t)):'')+'</small>'+(v.e?'<small class="as-vec">'+esc(v.e)+'</small>':'')+(vec?'<small class="as-vec">Versione vecchia: aggiornala su quel dispositivo</small>':'')+'</div></div>';
   }).join('');
   var L=autoLogLeggi().slice(0,8);
   $('as-log').innerHTML=L.map(function(x){ return '<li class="as-l '+esc(x.k)+'"><time>'+esc(stamp(x.t))+'</time><span>'+esc(x.n)+'</span></li>'; }).join('')||'<li class="as-l"><span>Qui compaiono i salvataggi e quello che arriva dagli altri dispositivi.</span></li>';
+  if(typeof trRender==='function') trRender();
   var nm=$('as-nome'); if(nm&&document.activeElement!==nm){ nm.value=GH.nome||''; nm.placeholder=devNome(); }
 }
 $('as-nome').addEventListener('change',function(e){ GH.nome=String(e.target.value||'').trim().slice(0,30); ghStore(); autoRender(); toast('Nome del dispositivo: '+devNome()); if(GH.on){ GH.dirty=true; autoProgramma(1500); } });

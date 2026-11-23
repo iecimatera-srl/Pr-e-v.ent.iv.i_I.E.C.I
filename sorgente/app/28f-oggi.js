@@ -11,24 +11,28 @@ try{ OG.avvio=localStorage.getItem('ieci-avvio')==='prev'?'prev':'home'; }catch(
 function ogGiorni(t){ return Math.max(0,Math.floor((Date.now()-t)/86400000)); }
 function ogQuando(g){ return g===0?'oggi':g===1?'ieri':'da '+g+' giorni'; }
 function ogData(q){ var d=q.data&&q.data.meta&&q.data.meta.date; var t=d?Date.parse(d+'T12:00:00'):NaN; return isNaN(t)?(q.upd||Date.now()):t; }
+/* quando il preventivo è passato allo stato attuale: si salva con il preventivo (uguale su ogni dispositivo);
+   per quelli di prima vale la data del preventivo. Niente più date «viste» solo su un dispositivo. */
+function ogInv(q){ return q.stT||ogData(q); }
 function ogEurK(x){ x=num(x); return x>=10000?itNum(x/1000,0,1)+' mila €':itNum(x,0,0)+' €'; }
 function ogStato(){
-  var Q=(typeof DB!=='undefined'&&DB&&DB.quotes)?DB.quotes:[], now=new Date(), m0=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+  // solo i preventivi veri: niente copie di conflitto (versioni vecchie) né eliminati, così i numeri sono uguali ovunque
+  var Q=((typeof DB!=='undefined'&&DB&&DB.quotes)?DB.quotes:[]).filter(function(q){ return q&&!q.conf&&!eliminato(q); }), now=new Date(), m0=new Date(now.getFullYear(),now.getMonth(),1).getTime();
   var o={n:Q.length,att:{n:0,v:0},accM:{n:0,v:0},boz:0,si:0,no:0,seg:[],ult:[],mesi:[]};
   for(var i=5;i>=0;i--){ var d=new Date(now.getFullYear(),now.getMonth()-i,1); o.mesi.push({k:d.getFullYear()+'-'+d.getMonth(),l:d.toLocaleDateString('it-IT',{month:'short'}).replace('.',''),fatti:0,acc:0,n:0}); }
   var mi={}; o.mesi.forEach(function(m,ix){ mi[m.k]=ix; });
   Q.forEach(function(q){
     var st=qSt(q), v=num(q.tot);
-    if(st==='inviato'){ if(!q.sat) q.sat=q.upd||Date.now(); o.att.n++; o.att.v+=v; o.seg.push(q); }
+    if(st==='inviato'){ o.att.n++; o.att.v+=v; o.seg.push(q); }
     if(st==='bozza') o.boz++;
-    if(st==='accettato'){ o.si++; if((q.upd||0)>=m0){ o.accM.n++; o.accM.v+=v; } }
+    if(st==='accettato'){ o.si++; if((q.stT||q.upd||0)>=m0){ o.accM.n++; o.accM.v+=v; } }
     if(st==='rifiutato') o.no++;
     var dq=new Date(ogData(q)), k=dq.getFullYear()+'-'+dq.getMonth();
     if(mi[k]!==undefined&&st!=='bozza'){ o.mesi[mi[k]].fatti+=v; o.mesi[mi[k]].n++; if(st==='accettato') o.mesi[mi[k]].acc+=v; }
   });
   o.tasso=(o.si+o.no)?Math.round(o.si/(o.si+o.no)*100):null;
-  o.seg.sort(function(a,b){ return (a.sat||0)-(b.sat||0); });
-  o.daSeg=o.seg.filter(function(q){ return ogGiorni(q.fu||q.sat)>=3; }).length;
+  o.seg.sort(function(a,b){ return ogInv(a)-ogInv(b); });
+  o.daSeg=o.seg.filter(function(q){ return ogGiorni(q.fu||ogInv(q))>=3; }).length;
   o.ult=Q.slice().sort(function(a,b){ return (b.upd||0)-(a.upd||0); }).slice(0,5);
   return o;
 }
@@ -59,7 +63,7 @@ function renderOggi(){
   var apN=String(S.client.name||'').trim(), apL=S.lines.length, demo=false; try{ demo=Object.keys(libDemo()).length>0&&!S.qid; }catch(e){}
   var tit=o.daSeg?('<b>'+o.daSeg+(o.daSeg===1?' preventivo aspetta':' preventivi aspettano')+'</b> una risposta da qualche giorno.'):o.att.n?('<b>'+o.att.n+(o.att.n===1?' preventivo inviato':' preventivi inviati')+'</b>, in attesa di risposta.'):o.n?'Tutto in ordine. <b>Pronto per il prossimo lavoro?</b>':'Prepara il tuo <b>primo preventivo</b>: bastano due minuti.';
   var h='<div class="og-hero"><div class="og-aur" aria-hidden="true"></div><p class="og-dt">'+esc(dt)+'</p><p class="og-sal">'+esc(ogSaluto())+'</p><p class="og-tit">'+tit+'</p>'+
-    '<div class="og-cta"><button type="button" class="og-b1" data-og="nuovo">'+ogIc('piu')+'<span>Nuovo preventivo</span></button><button type="button" class="og-b2" data-og="detta">'+ogIc('mic')+'<span>Descrivi il lavoro</span></button></div>'+
+    (typeof trBanner==='function'?trBanner():'')+'<div class="og-cta"><button type="button" class="og-b1" data-og="nuovo">'+ogIc('piu')+'<span>Nuovo preventivo</span></button><button type="button" class="og-b2" data-og="detta">'+ogIc('mic')+'<span>Descrivi il lavoro</span></button></div>'+
     ((apN||apL)&&!demo?'<button type="button" class="og-rip" data-og="riprendi"><span><small>Riprendi</small><b>'+esc(apN||'Preventivo senza cliente')+'</b></span><em>'+esc(apL?headTotal():'vuoto')+'</em>'+ogIc('vai')+'</button>':'')+'</div>';
   if(!o.n){
     h+='<div class="og-card og-vuoto"><b>Come funziona</b><ol><li><span>1</span>Scrivi il cliente e scegli le voci dal listino, oppure descrivi il lavoro a voce.</li><li><span>2</span>L\'app prepara un fascicolo con copertina, prodotti e condizioni.</li><li><span>3</span>Lo mandi su WhatsApp o per email e segui la risposta da qui.</li></ol></div>';
@@ -71,7 +75,7 @@ function renderOggi(){
       '<button type="button" class="og-k boz" data-og="f-bozza"><small>Bozze</small><b data-n="'+o.boz+'">'+o.boz+'</b><span>da finire</span></button></div>';
     if(o.seg.length){
       h+='<div class="og-card"><div class="og-ct"><b>Da seguire</b><span>'+o.seg.length+(o.seg.length===1?' in attesa':' in attesa')+'</span></div><div class="og-seg">'+o.seg.slice(0,6).map(function(q){
-        var g=ogGiorni(q.sat), tel=q.data&&q.data.client&&waDigits(q.data.client.tel||''), caldo=ogGiorni(q.fu||q.sat)>=3;
+        var g=ogGiorni(ogInv(q)), tel=q.data&&q.data.client&&waDigits(q.data.client.tel||''), caldo=ogGiorni(q.fu||ogInv(q))>=3;
         return '<div class="og-s'+(caldo?' caldo':'')+'"><button type="button" class="og-sm" data-ogq="'+q.id+'"><b>'+esc(q.client||'Senza cliente')+'</b><small>'+esc(eur(q.tot))+' · inviato '+ogQuando(g)+(q.fu?' · sollecitato '+ogQuando(ogGiorni(q.fu)):'')+'</small></button>'+
           '<span class="og-sa">'+(tel?'<button type="button" class="og-i wa" data-ogwa="'+q.id+'" aria-label="Sollecita su WhatsApp" title="Sollecita su WhatsApp">'+ogIc('wa')+'</button>':'')+
           '<button type="button" class="og-i si" data-ogst="'+q.id+'|accettato" aria-label="Accettato" title="Ha accettato">'+ogIc('ok')+'</button><button type="button" class="og-i no" data-ogst="'+q.id+'|rifiutato" aria-label="Rifiutato" title="Non ha accettato">'+ogIc('no')+'</button></span></div>';
@@ -105,9 +109,9 @@ function ogSollecito(q){
 }
 function ogEsito(id,st){
   var q=DB.quotes.filter(function(x){ return x.id===id; })[0]; if(!q) return; var prima=qSt(q), pu=q.upd;
-  q.st=st; if(q.data&&q.data.meta) q.data.meta.status=st; q.upd=Date.now();
+  var pt=q.stT; q.st=st; if(q.data&&q.data.meta) q.data.meta.status=st; q.upd=Date.now(); q.stT=q.upd;
   if(S.qid===id){ S.meta.status=st; syncB(); doSave(); } dbSave(); renderArchivio(); OG.ult=''; renderOggi(); tocco(st==='accettato'?[12,40,18]:10);
-  toastAzione((q.client||'Preventivo')+': '+STL[st].toLowerCase(),'Annulla',function(){ q.st=prima; if(q.data&&q.data.meta) q.data.meta.status=prima; q.upd=pu; if(S.qid===id){ S.meta.status=prima; syncB(); doSave(); } dbSave(); renderArchivio(); OG.ult=''; renderOggi(); });
+  toastAzione((q.client||'Preventivo')+': '+STL[st].toLowerCase(),'Annulla',function(){ q.st=prima; if(q.data&&q.data.meta) q.data.meta.status=prima; q.upd=pu; q.stT=pt; if(S.qid===id){ S.meta.status=prima; syncB(); doSave(); } dbSave(); renderArchivio(); OG.ult=''; renderOggi(); });
 }
 // piccola vibrazione sui comandi importanti (dove il telefono la prevede)
 function tocco(p){ try{ if(navigator.vibrate&&!document.documentElement.classList.contains('locked')) navigator.vibrate(p||8); }catch(e){} }

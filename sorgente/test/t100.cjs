@@ -1,5 +1,5 @@
 // Foto su GitHub come file separati: archivio leggero, ogni foto caricata una volta sola, il telefono scarica solo
-// quelle che non ha; compatibile con l'archivio vecchio (foto dentro il file); se una foto non arriva non si tocca nulla
+// quelle che non ha; compatibile con l'archivio vecchio (foto dentro il file); se una foto non arriva il resto arriva lo stesso e la foto si riprova
 const A=require('./_amb.cjs'); const G=require('./_github_finto.cjs');
 let fail=0;const ok=(c,m)=>{console.log((c?'OK   ':'FAIL ')+m);if(!c)fail++;};
 (async()=>{const b=await A.chromium.launch(); const errs=[];
@@ -55,7 +55,7 @@ ok(await M.evaluate(()=>{ const q=window.IECI_T.DB().quotes.find(x=>x.client==='
 const cr=G.grezzo().db.quotes.find(x=>x.client==='Condominio Via Roma').data.products[1].photos[0].slice(4); const rotta=Object.keys(G.stato.files).find(k=>k.startsWith('foto/'+cr+'.')); G.stato.rotte.add(rotta);
 const R=await disp('Telefono3',{width:390,height:844}); msg=await sinc(R);
 st=await R.evaluate(()=>({ref:JSON.stringify(window.IECI_T.DB()).indexOf('ghf:'),q:window.IECI_T.DB().quotes.filter(x=>x.client==='Condominio Via Roma').length}));
-ok(st.ref<0&&st.q===0&&/Non sono riuscito a scaricare 1 foto/.test(msg),'foto non scaricabile: niente di rotto sul dispositivo e un messaggio chiaro («'+msg.slice(0,70)+'…»)');
+ok(st.q===1&&/1 foto non scaricat/.test(msg),'una foto non scaricabile NON blocca più niente: il preventivo arriva lo stesso, la foto resta «in arrivo» e il messaggio lo dice («'+msg.slice(-90)+'»)');
 G.stato.rotte.clear(); await sinc(R);
-ok(await R.evaluate(()=>window.IECI_T.DB().quotes.some(x=>x.client==='Condominio Via Roma')),'alla sincronizzazione dopo arriva tutto');
+ok(await R.evaluate(()=>window.IECI_T.DB().quotes.some(x=>x.client==='Condominio Via Roma')&&JSON.stringify(window.IECI_T.DB().quotes).indexOf('ghf:')<0),'alla sincronizzazione dopo arriva anche la foto (nessun riferimento rimasto)');
 console.log(fail?'FAIL '+fail:'FAIL 0','ERR',JSON.stringify(errs));await b.close()})();

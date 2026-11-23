@@ -52,7 +52,7 @@ var FACT_H='';
 function facHash(x){ return JSON.stringify([x.company,x.profile,x.style,x.trust,x.cat,x.ccond&&Object.keys(x.ccond).length?x.ccond:{},x.mtpl,x.mdef]); }
 function isFactory(){ if(!FACT_H){ try{ FACT_H=facHash(normalize(fresh())); }catch(e){ return false; } } return facHash(S)===FACT_H; }
 function buildPayload(){
-  return {tipo:'archivio-preventivi-ieci',v:2,su:DB.su||0,db:{clients:DB.clients,prods:DB.prods,quotes:DB.quotes,arts:DB.arts,logos:DB.logos||[],parole:DB.parole||[],del:DB.del||{},cest:DB.cest||[]},sus:DB.sus||{},msgs:S.msgs,aspetto:apCopia(),cat:S.cat,cgroups:S.cgroups,company:S.company,profile:S.profile,style:S.style,trust:S.trust,ccond:S.ccond||{},mtpl:S.mtpl,mdef:S.mdef,menu:MENU};
+  return {tipo:'archivio-preventivi-ieci',v:2,su:DB.su||0,db:{clients:DB.clients,prods:DB.prods,quotes:DB.quotes,arts:DB.arts,logos:DB.logos||[],parole:DB.parole||[],del:DB.del||{},delI:DB.delI||{},cest:DB.cest||[]},sus:DB.sus||{},msgs:S.msgs,aspetto:apCopia(),cat:S.cat,cgroups:S.cgroups,company:S.company,profile:S.profile,style:S.style,trust:S.trust,ccond:S.ccond||{},mtpl:S.mtpl,mdef:S.mdef,menu:MENU};
 }
 /* loghi delle marche e parole imparate: uno per chiave, vince il più recente */
 function mergeByKey(name,arr,key,del){
@@ -69,12 +69,13 @@ function gdMerge(o){
   mi.mie=mi.mie||0;
   Object.keys(del).forEach(function(k){ if(!(d.del||{})[k]||(d.del[k]<del[k])) mi.mie++; });
   Object.keys(d.del||{}).forEach(function(k){ del[k]=Math.max(del[k]||0,d.del[k]); });
+  if(delInfoUnisci(d.delI)) mi.mie++;
   // ciò che c'è qui e non lassù
   var rc={}, rp={}, rq={}, ra={};
   (d.clients||[]).forEach(function(c){ rc[lc(c.name)]=c; }); (d.prods||[]).forEach(function(p){ rp[lc(p.name)+'|'+lc(p.code)]=p; }); (d.quotes||[]).forEach(function(q){ rq[q.id]=q; }); (d.arts||[]).forEach(function(a){ ra[a.id]=a; ra[artKey(a)]=a; });
   DB.clients.forEach(function(c){ var r=rc[lc(c.name)]; if(eliminato(c)) return; if(!r||(c.upd||0)>(r.upd||0)) mi.mie++; });
   DB.prods.forEach(function(p){ var r=rp[lc(p.name)+'|'+lc(p.code)]; if(eliminato(p)) return; if(!r||(p.upd||0)>(r.upd||0)||(p.phu||0)>(r.phu||0)) mi.mie++; });
-  DB.quotes.forEach(function(q){ var r=rq[q.id]; if(eliminato(q)) return; if(!r||(q.upd||0)>(r.upd||0)) mi.mie++; else if((q.upd||0)===(r.upd||0)&&phUnisciQuote(r,q)) mi.mie++; });
+  DB.quotes.forEach(function(q){ var r=rq[q.id]; if(eliminato(q)) return; if(!r||(q.upd||0)>(r.upd||0)) mi.mie++; else if((q.upd||0)===(r.upd||0)&&(phUnisciQuote(r,q)||(q.alt||[]).some(function(a){ return !(r.alt||[]).some(function(b){ return b.id===a.id; }); }))) mi.mie++; });
   DB.arts.forEach(function(a){ var r=ra[a.id]||ra[artKey(a)]; if(eliminato(a)) return; if(!r||(a.upd||0)>(r.upd||0)) mi.mie++; });
   if(cestUnisci(d.cest)) mi.mie++;
   // clienti e libreria prodotti: i nuovi si aggiungono; in quelli che ci sono già arriva la versione più recente
@@ -91,8 +92,8 @@ function gdMerge(o){
        recente, l'altra versione NON si perde, resta nell'archivio come copia segnata. «bu» è la versione da cui
        sono partite le modifiche di qui: se lassù c'è ancora quella, nessun conflitto (non conta l'orologio) */
     var due=!!qm[ex.id]&&(q.upd||0)!==(ex.bu||0)&&(q.upd||0)!==(ex.upd||0)&&qDiverso(ex,q);
-    if(q.upd>ex.upd){ if(due){ copiaConflitto(ex); mi.conf=(mi.conf||0)+1; mi.mie++; } delete qm[ex.id]; if(phUnisciQuote(q,ex)) mi.mie++; DB.quotes[DB.quotes.indexOf(ex)]=q; replaced.push(q.id); mi.agg=(mi.agg||0)+1; }
-    else { if(due){ copiaConflitto(q); ex.bu=q.upd; mi.conf=(mi.conf||0)+1; } if(phUnisciQuote(ex,q)) replaced.push(ex.id); } // la versione di qui resta, ma con le foto più recenti dell'altra
+    if(q.upd>ex.upd){ if(due){ copiaConflitto(ex,q); mi.conf=(mi.conf||0)+1; mi.mie++; } if(versioniUnisci(q,ex)) mi.mie++; delete qm[ex.id]; if(phUnisciQuote(q,ex)) mi.mie++; DB.quotes[DB.quotes.indexOf(ex)]=q; replaced.push(q.id); mi.agg=(mi.agg||0)+1; }
+    else { if(due){ copiaConflitto(q,ex); ex.bu=q.upd; mi.conf=(mi.conf||0)+1; } versioniUnisci(ex,q); if(phUnisciQuote(ex,q)) replaced.push(ex.id); } // la versione di qui resta, ma con le foto più recenti dell'altra
   });
   (d.arts||[]).forEach(function(a){ var ex=DB.arts.filter(function(x){ return x.id===a.id||artKey(x)===artKey(a); })[0]; if(!ex) DB.arts.push(a); else if((a.upd||0)>(ex.upd||0)) DB.arts[DB.arts.indexOf(ex)]=a; });
   DB.arts=DB.arts.filter(function(x){ return !eliminato(x); }).sort(byName);
@@ -133,7 +134,7 @@ function gdPushSoon(){
 }
 /* ---------- GitHub (archivio privato, file JSON) ---------- */
 var GH={repo:'',token:'',on:false,auto:true,last:0,err:'',dirty:false,sha:'',etag:'',errN:0,prossimo:0,rete:false,dev:'',nome:'',copiaGh:'',disp:{},gen:0}, ghBusy=false, ghT=0, GHFILE='archivio-preventivi-ieci.json';
-function ghLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-gh')||'{}'); GH.repo=o.repo||''; GH.token=o.token||''; GH.on=!!o.on; GH.auto=true; GH.last=o.last||0; GH.dirty=!!o.dirty; GH.sha=o.sha||''; GH.errN=o.errN||0; GH.prossimo=o.prossimo||0; GH.dev=o.dev||''; GH.nome=o.nome||''; GH.copiaGh=o.copiaGh||''; GH.disp=o.disp||{}; GH.err=o.err||''; GH.rete=!!o.rete; }catch(e){}
+function ghLoad(){ try{ var o=JSON.parse(localStorage.getItem('ieci-gh')||'{}'); GH.repo=o.repo||''; GH.token=o.token||''; GH.on=!!o.on; GH.auto=true; GH.last=o.last||0; GH.dirty=!!o.dirty; GH.sha=o.sha||''; GH.errN=o.errN||0; GH.prossimo=o.prossimo||0; GH.dev=o.dev||''; GH.nome=o.nome||''; GH.copiaGh=o.copiaGh||''; GH.disp=o.disp||{}; GH.err=o.err||''; GH.rete=!!o.rete; GH.errDa=o.errDa||0; GH.errU=o.errU||''; }catch(e){}
   if(!GH.dev){ GH.dev='d'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); ghStore(); } }
 function ghStore(){ try{ localStorage.setItem('ieci-gh',JSON.stringify(GH)); }catch(e){} }
 function ghStatus(t){ var el=$('gh-state'); if(el) el.textContent=t; ghChip(); }
@@ -211,13 +212,18 @@ function ghSync(interactive,tent){
     if(res&&res.o&&res.o.disp) GH.disp=res.o.disp;
     if(res&&res.o&&res.o.foto) AUTO.foto=res.o.foto;
     // prima riparo le foto rimaste qui come riferimento (da una versione vecchia), poi scarico quelle che mancano e unisco
-    return ghfRipara(res&&res.o&&res.o.foto).then(function(){ return res&&res.o?ghfScarica(res.o).then(function(){ MI=mi; try{ gdMerge(res.o); } finally { MI=null; } }):null; });
+    /* una foto che non si scarica NON ferma più la sincronizzazione (prima bloccava tutto: il dispositivo smetteva di
+       ricevere e di mandare): unisco lo stesso, la foto resta «in arrivo» e si riprova ogni volta */
+    // se un altro dispositivo ha scritto, rileggo quali foto ci sono davvero su GitHub (così ricarico subito quelle sparite)
+    return ghfElenco(!!(res&&res.sha&&GH.sha&&res.sha!==GH.sha)||!!GHFOTO.errScarico||!!(GHFOTO.mancanti&&GHFOTO.mancanti.length)).then(function(){ return ghfRipara(res&&res.o&&res.o.foto); }).then(function(){ return res&&res.o?ghfScarica(res.o,true).then(function(){
+      if(GHFOTO.errScarico&&!AUTO.snapFoto){ AUTO.snapFoto=1; try{ snapSave('Prima di unire con foto non ancora arrivate'); }catch(x){} }
+      MI=mi; try{ gdMerge(res.o); } finally { MI=null; } }):null; });
   }).then(function(){
     settingsStamp(); renderArchivio();
     gen0=GH.gen;
     var ro=remoto&&remoto.o;
     // si scrive solo se serve: modifiche di qui, archivio assente o in un formato più vecchio, o richiesta a mano
-    var serve=forza||eraSporco||GH.dirty||mi.mie>0||!ro||ro.v!==3||!ro.min||verCmp(ro.min,GH_MIN)<0||!(ro.disp&&ro.disp[GH.dev]);
+    var serve=forza||eraSporco||GH.dirty||mi.mie>0||!ro||ro.v!==3||!ro.min||verCmp(ro.min,GH_MIN)<0||!(ro.disp&&ro.disp[GH.dev])||Date.now()-((ro.disp[GH.dev]||{}).t||0)>6*3600000||(ro.disp[GH.dev]||{}).nq!==qVivi(DB.quotes).length;
     if(!serve) return null;
     return ghfPayload(ro).then(function(o){
       o.disp=autoDispositivi(ro&&ro.disp);
@@ -228,16 +234,18 @@ function ghSync(interactive,tent){
     if(!scritto&&remoto) GH.sha=remoto.sha||'';
     if(scritto) qmodPulisci(gen0);
     sezBase(scritto?BASEO:(remoto&&remoto.o));
-    GH.etag=''; GH.last=Date.now(); GH.dirty=GH.gen!==gen0; GH.errN=0; GH.prossimo=0; GH.rete=false; AUTO.letto=GH.last; ghStore(); dbSave(true);
+    GH.etag=''; GH.last=Date.now(); GH.dirty=GH.gen!==gen0; GH.errN=0; GH.prossimo=0; GH.rete=false; GH.errDa=0; GH.errU=''; AUTO.letto=GH.last; ghStore(); dbSave(true);
+    try{ coerCalcola(scritto?BASEO:(remoto&&remoto.o)); }catch(x){}
     autoLog(scritto?'su':'giu',mi); renderCest(); if(copiePulisci()) autoProgramma();
     if(mi.conf) toast(mi.conf===1?'Un preventivo era stato cambiato su due dispositivi: ho tenuto tutte e due le versioni':'Alcuni preventivi erano stati cambiati su due dispositivi: ho tenuto tutte e due le versioni');
     else if(mi.nuovi+mi.agg&&!interactive) toast('Arrivati dall\'altro dispositivo: '+(mi.nuovi+mi.agg)+(mi.nuovi+mi.agg===1?' preventivo':' preventivi'));
     ghStatus((scritto?'Salvato su GitHub alle ':'Controllato alle ')+new Date().toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'})+(scritto?'. Archivio, listino, dati ditta e stile sono aggiornati'+(GH.peso?' (archivio '+(GH.peso>1048576?itNum(GH.peso/1048576,0,1)+' MB':Math.max(1,Math.round(GH.peso/1024))+' KB')+(GH.nfoto?', '+GH.nfoto+' foto come file a parte':'')+')':'')+'.':': tutto uguale a GitHub.')+(GHFOTO.errScarico?' Attenzione: '+GHFOTO.errScarico+' foto non scaricate, riprovo alla prossima sincronizzazione.':''));
     if(txt) autoCopiaGh(txt);
+    trRender();
   }).catch(function(e){
     if((e.status===409||e.status===422)&&tent<4){ again=true; return; }
-    GH.err=ghErr(e); GH.rete=autoRete(e); GH.errN=(GH.errN||0)+1; GH.prossimo=Date.now()+Math.min(600000,15000*Math.pow(2,GH.errN-1));
-    if(eraSporco) GH.dirty=true; ghStore(); ghStatus(GH.err); autoLog(GH.rete?'rete':'err',{msg:GH.err});
+    GH.err=ghErr(e); GH.rete=autoRete(e); GH.errN=(GH.errN||0)+1; if(!GH.errDa) GH.errDa=Date.now(); GH.errU=e&&e.vecchia?'versione vecchia, bloccato':GH.rete?'':String(GH.err).slice(0,90); GH.prossimo=Date.now()+Math.min(600000,15000*Math.pow(2,GH.errN-1));
+    if(eraSporco) GH.dirty=true; ghStore(); ghStatus(GH.err); autoLog(GH.rete?'rete':'err',{msg:GH.err}); trRender();
   }).then(function(){
     ghBusy=false; ghChip();
     if(again){ setTimeout(function(){ ghSync(interactive,tent+1); },300+Math.round(Math.random()*1200)); return; }

@@ -140,7 +140,7 @@ function importAll(o){
   var replace=document.querySelector('input[name="imp-mode"]:checked').value==='replace';
   var d=o.db, nC=0,nP=0,nQ=0;
   if(replace){
-    DB.clients=(d.clients||[]).slice(); DB.prods=(d.prods||[]).slice(); DB.quotes=(d.quotes||[]).slice(); DB.arts=(d.arts||[]).slice(); DB.logos=(d.logos||[]).slice(); DB.parole=(d.parole||[]).slice(); DB.del=d.del||{}; DB.cest=d.cest||DB.cest||[]; DB.su=o.su||0;
+    DB.clients=(d.clients||[]).slice(); DB.prods=(d.prods||[]).slice(); DB.quotes=(d.quotes||[]).slice(); DB.arts=(d.arts||[]).slice(); DB.logos=(d.logos||[]).slice(); DB.parole=(d.parole||[]).slice(); DB.del=d.del||{}; DB.cest=d.cest||DB.cest||[]; DB.delI=d.delI||DB.delI||{}; DB.su=o.su||0;
     nC=DB.clients.length; nP=DB.prods.length; nQ=DB.quotes.length;
   } else {
     (d.clients||[]).forEach(function(c){ if(!DB.clients.some(function(x){ return lc(x.name)===lc(c.name); })){ DB.clients.push(c); nC++; } });

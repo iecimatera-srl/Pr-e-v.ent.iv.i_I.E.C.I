@@ -60,3 +60,24 @@ b.tp-via{color:#B42318}b.tp-div{color:#8A5A00}b.tp-ug{color:#17794B}
 .qconf-bar span{flex:1 1 220px}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .qconf-bar{background:#3A2C05;color:#FFE7A8}}
 :root[data-theme="dark"] .qconf-bar{background:#3A2C05;color:#FFE7A8}
+/* versioni di un preventivo (al posto delle copie doppie) */
+.qver-b{display:inline-block;padding:2px 8px;border-radius:999px;background:#FFF4D6;color:#8A5A00;font-size:.72rem;font-weight:800;vertical-align:middle}
+.qver-d{margin-top:6px}.qver-d>summary{cursor:pointer;font-size:.82rem;font-weight:700;color:var(--brand)}
+.qver-v{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;padding:8px 10px;margin-top:6px;border-radius:10px;background:var(--field)}
+.qver-v>div{flex:1 1 180px;display:grid;min-width:0}.qver-v small{color:var(--muted);font-size:.76rem}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .qver-b{background:#3A2C05;color:#FFD66B}}
+:root[data-theme="dark"] .qver-b{background:#3A2C05;color:#FFD66B}
+/* trasparenza: coerenza qui/GitHub, problemi dei dispositivi, «Dov'è il mio preventivo?» */
+.tr-coer{display:grid;gap:4px;margin:10px 0 4px;padding:10px 12px;border-radius:12px;background:var(--field);border:1px solid var(--line);font-size:.86rem}
+.tr-coer:empty{display:none}.tr-coer small{color:var(--muted)}
+.tr-coer[data-st="ok"]{border-color:color-mix(in srgb,#1E9E5A 40%,var(--line))}.tr-coer[data-st="ok"]>b{color:#16794A}
+.tr-coer[data-st="warn"]{border-color:#E0A800}.tr-coer[data-st="err"]{border-color:#D64545}
+.tr-pr{margin:4px 0 0;padding-left:18px;display:grid;gap:3px}.tr-pr li.g2{color:#B42318;font-weight:700}
+.tr-ban{position:relative;z-index:1;margin:12px 0 2px;padding:10px 12px;border-radius:14px;background:rgba(255,196,0,.16);border:1px solid rgba(255,196,0,.55);color:#FFE7A8;font-size:.84rem}
+.tr-ban.grave{background:rgba(214,69,69,.2);border-color:rgba(255,120,120,.6);color:#FFD9D9}
+.tr-ban ul{margin:4px 0 8px;padding-left:18px;display:grid;gap:2px}.tr-ban b{color:#fff}
+.tr-r{border-left:4px solid var(--line)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tr-coer[data-st="ok"]>b{color:#5FD59A}:root:not([data-theme="light"]) .tr-pr li.g2{color:#FF9B9B}}
+:root[data-theme="dark"] .tr-coer[data-st="ok"]>b{color:#5FD59A}:root[data-theme="dark"] .tr-pr li.g2{color:#FF9B9B}
+.tr-t{flex:1 1 200px;min-width:0;display:grid;gap:2px}.tr-t>b{color:var(--ink,inherit)}.tr-dove{font-weight:700;font-size:.86rem}.tr-t small{color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+.tr-r.trc-ok{border-left-color:#1E9E5A}.tr-r.trc-gh,.tr-r.trc-copia{border-left-color:var(--brand)}.tr-r.trc-cest,.tr-r.trc-ver{border-left-color:#E0A800}.tr-r.trc-via{border-left-color:#D64545}

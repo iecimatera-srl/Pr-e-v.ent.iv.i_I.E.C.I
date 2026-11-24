@@ -40,6 +40,7 @@ function dispProblemi(){
   if(GH.on&&GH.err&&GH.errU==='versione vecchia, bloccato') P.unshift({k:GH.dev,g:2,t:GH.err});
   else if(GH.on&&GH.err&&!GH.rete&&(GH.errDa||0)&&ora-GH.errDa>30*60000) P.unshift({k:GH.dev,g:2,t:'Questo dispositivo non riesce a salvare su GitHub da '+Math.round((ora-GH.errDa)/60000)+' minuti: '+GH.err});
   if(GH.on&&GH.rete&&(GH.errDa||0)&&ora-GH.errDa>2*3600000) P.unshift({k:GH.dev,g:1,t:'Questo dispositivo è senza rete da più di 2 ore: le modifiche sono al sicuro qui e partono appena torna la connessione.'});
+  var DS=typeof qDaScegliere==='function'?qDaScegliere():[]; if(DS.length) P.unshift({k:'dsc',g:2,t:(DS.length===1?'«'+qName(DS[0])+'» ha due versioni diverse: scegli quale vale (in Archivio).':DS.length+' preventivi hanno due versioni diverse da scegliere: '+DS.slice(0,4).map(qName).join(', ')+'.')});
   if(COER.t&&(COER.mancaQui.length||COER.mancaGh.length)) P.push({k:GH.dev,g:1,t:'Archivio non ancora allineato: '+COER.qui+' preventivi qui, '+COER.gh+' su GitHub. Lo sto risistemando.'});
   return P;
 }
@@ -54,7 +55,8 @@ function trRender(){
   if(typeof OG!=='undefined'&&$('og')&&!$('og').hidden){ var oh=$('og').querySelector('.tr-ban'), nh=trBanner(); if((oh?oh.outerHTML:'')!==nh){ OG.ult=''; try{ renderOggi(); }catch(x){} } }
 }
 document.addEventListener('click',function(e){ if(!e.target.closest('[data-trcerca]')) return; var v=($('q-search')||{}).value||''; showPanel('salva'); var a=$('acc-trova'); if(a){ a.open=true; $('tr-q').value=v; setTimeout(function(){ a.scrollIntoView({block:'start',behavior:'smooth'}); },80); if(v.trim()) trCerca(v); } });
-document.addEventListener('click',function(e){ if(!e.target.closest('[data-trvai]')) return; showPanel('salva'); var a=$('acc-sync'); if(a){ a.open=true; setTimeout(function(){ a.scrollIntoView({block:'start',behavior:'smooth'}); },80); } });
+document.addEventListener('click',function(e){ if(!e.target.closest('[data-trvai]')) return; showPanel('salva');
+  if(typeof qDaScegliere==='function'&&qDaScegliere().length){ renderArchivio(); setTimeout(function(){ var r=document.querySelector('#q-list .rowc.qdsc'); if(r) r.scrollIntoView({block:'center',behavior:'smooth'}); },120); return; } var a=$('acc-sync'); if(a){ a.open=true; setTimeout(function(){ a.scrollIntoView({block:'start',behavior:'smooth'}); },80); } });
 
 /* ---------- «Dov'è il mio preventivo?» ---------- */
 var TR={seq:0,ris:[],oggetti:{}};
@@ -94,8 +96,17 @@ function trCerca(testo){
 function trDaArchivio(o,dove,det,parole,visti,c){
   if(!o||!o.db) return;
   (o.db.quotes||[]).forEach(function(q){ if(q.conf||!trCombacia(q,parole)) return; var qui=DB.quotes.filter(function(x){ return x.id===q.id; })[0];
-    if(qui||visti[q.id]) return; // è già qui (o nel cestino): la risposta è quella, niente doppioni if(visti['x:'+q.id]) return; visti['x:'+q.id]=1; // solo la più recente (GitHub, poi le copie dalla più nuova)
     var x=JSON.parse(JSON.stringify(q)), foto=o.foto||{};
+    if(qui){
+      /* è qui: mostro solo le versioni DIVERSE da quella in uso (e da quelle già tra le versioni), con il loro totale:
+         così ritrovi, per esempio, il preventivo da 3.500 € quando qui ne vedi uno da 2.400 € */
+      var h=qH(q); if(!h||h===qH(qui)||visti['h:'+h]||(qui.alt||[]).some(function(a){ return qH(a)===h; })) return; visti['h:'+h]=1;
+      trAggiungi({nome:qName(q)+' · '+eur(q.tot||0),dove:dove+': una versione diversa da quella in uso qui ('+eur(qui.tot||0)+')',det:(det?det+' ':'')+stamp(q.upd||0)+(q.dvn?' da '+q.dvn:''),c:'ver',az:'Mettila tra le versioni',fa:function(){
+        var y=DB.quotes.filter(function(z){ return z.id===x.id; })[0]; if(!y) return;
+        if(versioneMetti(y,x,x.dvn||'copia')){ daScegliere(y); y.upd=Date.now(); qmodSegna(y.id); dbSave(); renderArchivio(); toast('Aggiunta tra le versioni di «'+qName(y)+'»: in Archivio scegli quella giusta'); } else toast('Questa versione c\'è già'); }});
+      return;
+    }
+    if(visti[q.id]||visti['x:'+q.id]) return; visti['x:'+q.id]=1; // nel cestino, o già trovato in una copia più recente
     TR.ris.forEach(function(r){ if(r.c==='via'&&visti['del:'+q.id]&&r.det==='cerco una copia per rimetterlo…') r.det='qui sotto c\'è una copia da rimettere'; });
     trAggiungi({nome:qName(q),dove:dove,det:(det?det+' ':'')+stamp(q.upd||0)+(q.dvn?' da '+q.dvn:'')+' · '+eur(q.tot||0),c:c,az:'Rimettilo qui',fa:function(){
       if(DB.quotes.some(function(y){ return y.id===x.id; })){ toast('È già nell\'archivio'); return; }

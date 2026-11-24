@@ -44,8 +44,8 @@ function versioneDa(v,dv){ return {id:uid(),t:v.upd||Date.now(),dv:dv||v.dvn||'u
 // mette la versione v dentro il preventivo q (se non è uguale al preventivo o a una versione che c'è già)
 function versioneMetti(q,v,dv){
   if(!q||!v) return false; var x=versioneDa(v,dv); if(x.data&&x.data.meta&&x.data.meta.title) x.data.meta.title=String(x.data.meta.title).replace(/ · versione di .*$/,'');
-  var h=qNorm(x.data); if(h===qNorm(q.data||{})&&(x.st||'')===(q.st||'')) return false;
-  var A=q.alt||(q.alt=[]); if(A.some(function(a){ return qNorm(a.data||{})===h&&(a.st||'')===(x.st||''); })) return false;
+  var h=qH(x); if(h===qH(q)) return false;
+  var A=q.alt||(q.alt=[]); if(A.some(function(a){ return qH(a)===h; })) return false;
   A.unshift(x); q.alt=A.slice(0,8); return true;
 }
 // unisce le versioni di due copie dello stesso preventivo (arrivate da dispositivi diversi); true se «a» ha preso qualcosa
@@ -55,19 +55,23 @@ function versioniUnisci(a,b){
   (a.altVia||[]).concat(b.altVia||[]).forEach(function(id){ via[id]=1; }); var lv=Object.keys(via); if(lv.length){ if((a.altVia||[]).length!==lv.length) nuovo=true; a.altVia=lv.slice(-60); }
   var A=(a.alt||[]).filter(function(x){ return !via[x.id]; }), ids={}; A.forEach(function(x){ ids[x.id]=1; });
   (b.alt||[]).forEach(function(x){ if(!ids[x.id]&&!via[x.id]){ A.push(x); ids[x.id]=1; nuovo=true; } });
-  A.sort(function(p,q){ return (q.t||0)-(p.t||0); }); if(A.length) a.alt=A.slice(0,8); else delete a.alt; return nuovo;
+  // niente doppioni: la stessa versione arrivata da due dispositivi resta una (e non quella uguale al preventivo in uso)
+  A.sort(function(p,q){ return ((q.t||0)-(p.t||0))||(p.id<q.id?-1:1); });
+  var hs={}; hs[qH(a)]=1; A=A.filter(function(x){ var h=qH(x); if(hs[h]) return false; hs[h]=1; return true; });
+  if(A.length) a.alt=A.slice(0,8); else delete a.alt; return nuovo;
 }
 function versioniVia(q,ids){ q.alt=(q.alt||[]).filter(function(x){ return ids.indexOf(x.id)<0; }); q.altVia=(q.altVia||[]).concat(ids).slice(-60); if(!q.alt.length) delete q.alt; }
 // «Usa questa versione»: diventa il preventivo; quello di adesso diventa a sua volta una versione (niente si perde)
 function versioneUsa(qid,vid){
+  if(S.qid===qid&&dbReady) saveQuote(true);
   var q=DB.quotes.filter(function(x){ return x.id===qid; })[0]; if(!q||!q.alt) return; var v=q.alt.filter(function(x){ return x.id===vid; })[0]; if(!v) return;
   var ora=Date.now(), cur=versioneDa(q,devNome()); cur.t=q.upd||ora;
   if(!(GH.qmod||{})[q.id]) q.bu=q.upd||0;
   q.data=JSON.parse(JSON.stringify(v.data)); q.data.qid=q.id; q.st=v.st||q.st; q.tot=v.tot; if(v.title) q.title=v.title; if(v.client) q.client=v.client; if(v.name) q.name=v.name;
-  q.alt=[cur].concat(q.alt.filter(function(x){ return x.id!==vid; })).slice(0,8); q.altVia=(q.altVia||[]).concat([vid]).slice(-60); q.upd=ora; q.dvn=devNome(); qmodSegna(q.id);
+  q.alt=[cur].concat(q.alt.filter(function(x){ return x.id!==vid; })).slice(0,8); q.altVia=(q.altVia||[]).concat([vid]).slice(-60); q.upd=ora; q.dvn=devNome(); delete q.dsc; qmodSegna(q.id);
   dbSave(); qRicarica(q.id); renderArchivio(); toast('Rimessa la versione di '+v.dv+' del '+stamp(v.t)+': quella di prima resta tra le versioni');
 }
-function versioneTogli(qid,vid){ var q=DB.quotes.filter(function(x){ return x.id===qid; })[0]; if(!q) return; versioniVia(q,[vid]); q.upd=Date.now(); qmodSegna(q.id); dbSave(); renderArchivio(); toast('Versione tolta'); }
+function versioneTogli(qid,vid){ var q=DB.quotes.filter(function(x){ return x.id===qid; })[0]; if(!q) return; versioniVia(q,[vid]); if(!(q.alt||[]).length) delete q.dsc; q.upd=Date.now(); qmodSegna(q.id); dbSave(); renderArchivio(); toast('Versione tolta'); }
 /* le «copie di conflitto» delle versioni di prima diventano versioni dentro il loro preventivo: l'elenco torna pulito.
    Se il preventivo originale non c'è più, la copia diventa un preventivo normale (non si perde). */
 function copiePulisci(){
@@ -146,7 +150,7 @@ function autoLog(k,x){
   else if(k==='rete') n='Senza rete: modifiche tenute al sicuro qui, riprovo da solo';
   else if(k==='err') n='GitHub non ha risposto: '+(x.msg||'')+' Riprovo da solo.';
   else if(k==='copia') n='Copia del giorno su GitHub (copie/'+x.g+'.json)';
-  else if(k==='conf') n='«'+x.nome+'» cambiato su due dispositivi: tenute tutte e due le versioni';
+  else if(k==='conf') n='«'+x.nome+'» cambiato su due dispositivi: tenute tutte e due le versioni, scegli tu quale vale';
   else if(k==='rip') n='Ripristinato: '+x.nome;
   else n=String(x.msg||k);
   if(L[0]&&L[0].k===k&&L[0].n===n&&(k==='rete'||k==='err')){ L[0].t=Date.now(); }
@@ -200,7 +204,7 @@ function renderCest(){
 function qRicarica(id){
   if(S.qid!==id) return; var e=DB.quotes.filter(function(x){ return x.id===id; })[0]; if(!e||!e.data) return;
   var dd=JSON.parse(JSON.stringify(e.data)); dd.cat=S.cat; dd.cgroups=S.cgroups; dd.trust=S.trust; dd.profile=S.profile; dd.company=S.company; dd.msgs=S.msgs; dd.ccond=S.ccond; dd.mtpl=S.mtpl; dd.mdef=S.mdef; dd.qid=id;
-  S=normalize(dd); QDV[id]=docVer; doSave(); renderAll();
+  S=normalize(dd); QDV[id]=docVer; edFissa(e); doSave(); renderAll();
 }
 // rimette un elemento (preventivo, cliente, prodotto, articolo) nell'archivio; le foto su GitHub si riscaricano
 function rimetti(k,x,fotoMappa){

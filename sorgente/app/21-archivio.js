@@ -8,7 +8,7 @@ function dbSave(ns){
   },300);
 }
 function dbLoad(cb){
-  function fin(d){ if(d&&typeof d==='object'){ DB.clients=d.clients||[]; DB.prods=d.prods||[]; DB.quotes=d.quotes||[]; DB.arts=d.arts||[]; DB.logos=d.logos||[]; DB.parole=d.parole||[]; DB.del=d.del||{}; DB.cest=d.cest||[]; DB.delI=d.delI||{}; DB.sus=d.sus||{}; DB.sbase=d.sbase||{}; DB.libNo=d.libNo||[]; DB.libMig=d.libMig||0; DB.su=d.su||0; DB.lastBackup=d.lastBackup||0; DB.lastChange=d.lastChange||0; } dbReady=true; if(cb) cb(); }
+  function fin(d){ if(d&&typeof d==='object'){ DB.clients=d.clients||[]; DB.prods=d.prods||[]; DB.quotes=d.quotes||[]; DB.arts=d.arts||[]; DB.logos=d.logos||[]; DB.parole=d.parole||[]; DB.del=d.del||{}; DB.cest=d.cest||[]; DB.delI=d.delI||{}; DB.qb=d.qb||{}; DB.sus=d.sus||{}; DB.sbase=d.sbase||{}; DB.libNo=d.libNo||[]; DB.libMig=d.libMig||0; DB.su=d.su||0; DB.lastBackup=d.lastBackup||0; DB.lastChange=d.lastChange||0; } dbReady=true; if(cb) cb(); }
   if(IDB){ try{ var q=IDB.transaction('kv').objectStore('kv').get(DBKEY); q.onsuccess=function(){ fin(q.result); }; q.onerror=function(){ fin(null); }; }catch(e){ fin(null); } }
   else { var r=null; try{ r=JSON.parse(localStorage.getItem(DBKEY)); }catch(e){} fin(r); }
 }
@@ -75,7 +75,7 @@ function phUnisciQuote(vince,perde){
   return ch;
 }
 // confronto «del contenuto» di un preventivo, senza le cose del dispositivo (ditta, profilo, messaggi…) che l'apertura rimette
-function qContenuto(x){ var o=JSON.parse(JSON.stringify(x)); ['cat','cgroups','company','profile','trust','msgs','ccond','mtpl','mdef','qid'].forEach(function(k){ delete o[k]; }); (o.products||[]).forEach(function(p){ delete p.phs; delete p.phu; }); return JSON.stringify(o); }
+function qContenuto(x){ var o=JSON.parse(JSON.stringify(x)); ['cat','cgroups','company','profile','trust','msgs','ccond','mtpl','mdef','qid'].forEach(function(k){ delete o[k]; }); (o.products||[]).forEach(function(p){ delete p.phs; delete p.phu; delete p.libId; delete p.pc; delete p.pcs; }); /* collegamento alla libreria e segni della compilazione automatica delle schede: non sono contenuto */ return JSON.stringify(o); }
 /* contenuto «vero» di un preventivo salvato: passato da normalize, così i ritocchi automatici dell'app (campi
    nuovi, ordine, valori ricalcolati) non contano come modifiche */
 function qNorm(data){ try{ var dn=JSON.parse(JSON.stringify(data||{})); dn.cat=S.cat; dn.cgroups=S.cgroups; return qContenuto(normalize(dn)); }catch(e){ return qContenuto(data||{}); } }
@@ -92,13 +92,18 @@ function saveQuote(silent){
   var meta={id:S.qid,num:S.meta.num,st:S.meta.status||'bozza',name:quoteName(),title:docTitle(),client:S.client.name,tot:acceptedCalc().tot,upd:Date.now(),model:S.model,dvn:devNome()};
   var e=DB.quotes.filter(function(q){ return q.id===S.qid; })[0];
   if(e&&!isNew&&e.data&&silent&&QDV[S.qid]===docVer&&e.tot===meta.tot&&e.name===meta.name) return;
-  if(e&&!isNew&&e.data&&QDV[S.qid]==null){ var d0=JSON.parse(JSON.stringify(S)); delete d0.cat; if(JSON.stringify(e.data)===JSON.stringify(d0)&&e.name===meta.name&&e.title===meta.title&&e.tot===meta.tot&&e.client===meta.client&&e.st===meta.st){ if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }
+  if(e&&!isNew&&e.data&&QDV[S.qid]==null){ var d0=JSON.parse(JSON.stringify(S)); delete d0.cat; if(JSON.stringify(e.data)===JSON.stringify(d0)&&e.name===meta.name&&e.title===meta.title&&e.tot===meta.tot&&e.client===meta.client&&e.st===meta.st){ if(!ED||ED.id!==e.id) edFissa(e); if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }
   // salvataggio automatico appena aperto un preventivo: se il contenuto è lo stesso dell'archivio non lo segno come «più recente»
   // (altrimenti un dispositivo con una copia vecchia la farebbe vincere sulla versione nuova di un altro dispositivo)
-  if(e&&!isNew&&e.data){ try{ if(qNorm(e.data)===qContenuto(S)&&e.st===meta.st&&e.name===meta.name&&e.title===meta.title&&e.client===meta.client){ QDV[S.qid]=docVer; if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }catch(x){} }
+  if(e&&!isNew&&e.data){ try{ if(qNorm(e.data)===qContenuto(S)&&e.st===meta.st&&e.name===meta.name&&e.title===meta.title&&e.client===meta.client){ QDV[S.qid]=docVer; if(!ED||ED.id!==e.id) edFissa(e); if(!silent) toast('Preventivo salvato nell\'archivio'); return; } }catch(x){} }
+  // l'editor parte da una versione che intanto è cambiata (arrivata da un altro dispositivo)? vedi 22g
+  var ctl=(e&&!isNew)?edControlla(e):'ok'; if(ctl==='fatto') return;
+  var prima=ctl==='conflitto'?JSON.parse(JSON.stringify(e)):null;
   if(!e||qSt(e)!==meta.st) meta.stT=meta.upd; // quando è cambiato lo stato (inviato, accettato…): uguale su tutti i dispositivi, per «Oggi»
   if(!e){ e=meta; DB.quotes.push(e); } else { if(!(GH.qmod||{})[e.id]) e.bu=e.upd||0; Object.keys(meta).forEach(function(k){ e[k]=meta[k]; }); }
   var d=JSON.parse(JSON.stringify(S)); delete d.cat; e.data=d; QDV[S.qid]=docVer; qmodSegna(e.id);
+  if(prima&&versioneMetti(e,prima,prima.dvn||'un altro dispositivo')){ daScegliere(e); autoLog('conf',{nome:qName(e)}); }
+  edFissa(e);
   dbSave(); renderArchivio(); if(isNew) save();
   if(!silent) toast('Preventivo salvato nell\'archivio');
 }
@@ -111,7 +116,7 @@ function openQuote(id,asCopy){
   /* ditta, profilo, loghi dei marchi e messaggi sono dell'app, non del singolo preventivo: restano quelli attuali (un preventivo vecchio non li riporta indietro) */
   d.trust=JSON.parse(JSON.stringify((trustLogos(S.trust)===0&&trustLogos(e.data.trust)>0)?e.data.trust:S.trust)); d.profile=JSON.parse(JSON.stringify(S.profile)); d.company=JSON.parse(JSON.stringify(S.company)); d.msgs=JSON.parse(JSON.stringify(S.msgs)); d.ccond=JSON.parse(JSON.stringify(S.ccond||{})); d.mtpl=JSON.parse(JSON.stringify(S.mtpl||[])); d.mdef=S.mdef;
   if(asCopy){ d.meta.num=nextNum(); d.meta.title=(d.meta.title||'')+' (copia)'; d.meta.date=today(); d.sign={cli:{img:'',name:'',place:'',date:''},dit:{img:'',name:''}}; d.tiers.sel=-1; }
-  S=normalize(d); AS.cliRecente=null; doSave(); renderAll();
+  S=normalize(d); AS.cliRecente=null; doSave(); renderAll(); if(!asCopy) edFissa(e);
   if(asCopy){ saveQuote(true); toast('Copia creata: n. '+S.meta.num); } else toast('Aperto: n. '+S.meta.num);
   showPanel('dati');
 }
@@ -122,7 +127,7 @@ function newQuote(){
   S=base; Object.keys(keep).forEach(function(k){ S[k]=keep[k]; });
   ['planimetria','fv','crono','conferma','lavoro','collaudo'].forEach(function(k){ S.show[k]=false; });
   condApplyNew(); (function(){ var t=mtDef(); if(t) S.msgs={tpl:t.id,wa:t.wa,subj:t.subj,body:t.body}; })(); S.products=[]; S.lines=[]; S.client={name:'',addr:'',tel:'',email:'',cf:''}; S.meta.title=''; S.meta.num=nextNum(); S.meta.date=today(); S.meta.slogan=''; S.qid='';
-  AS.cliRecente=null; doSave(); renderAll(); showPanel('dati'); try{ window.scrollTo(0,0); }catch(e){}
+  AS.cliRecente=null; edFissa(null); doSave(); renderAll(); showPanel('dati'); try{ window.scrollTo(0,0); }catch(e){}
   toast('Nuovo preventivo vuoto n. '+S.meta.num+': ditta, stile e listino mantenuti');
 }
 function delTwice(key,fn,btn){
@@ -152,8 +157,9 @@ function renderArchivio(){
   var an=$('acc-save-n'); if(an) an.textContent=DB.quotes.length?String(DB.quotes.length):'';
   $('q-list').innerHTML=Q.map(function(q){
     var cur=q.id===S.qid, nv=(q.alt||[]).length;
-    return '<div class="rowc'+(nv?' qver':'')+'"><div style="flex:1 1 200px;min-width:0"><b>'+esc(qName(q))+(cur?' <span class="hint">(aperto)</span>':'')+'</b> <button type="button" class="chip st-'+qSt(q)+'" data-qst="'+q.id+'" title="Tocca per cambiare stato">'+STL[qSt(q)]+'</button>'+(nv?' <span class="qver-b">'+(nv+1)+' versioni</span>':'')+'<div class="hint">n. '+esc(q.num)+' · '+esc(q.title)+' · '+esc(MODELS[q.model]?MODELS[q.model].short:'')+' · '+esc(dateIt(new Date(q.upd).toISOString().slice(0,10)))+' · '+eur(q.tot)+(q.dvn?' · '+esc(q.dvn):'')+'</div>'+
-      (nv?'<details class="qver-d"><summary>Altre versioni di questo preventivo ('+nv+')</summary><p class="hint">Lo stesso preventivo era stato cambiato su due dispositivi: qui sopra c\'è il più recente, queste sono le altre versioni. Nessuna si perde.</p>'+q.alt.map(function(v){ return '<div class="qver-v"><div><b>'+esc(v.title||qName(q))+'</b><small>'+esc(v.dv||'')+' · '+esc(stamp(v.t))+' · '+eur(v.tot||0)+' · '+esc(STL[v.st]||v.st||'')+'</small></div><button type="button" class="btn sm" data-qvu="'+q.id+':'+v.id+'">Usa questa</button><button type="button" class="btn ghost sm" data-qvx="'+q.id+':'+v.id+'">Togli</button></div>'; }).join('')+'</details>':'')+
+    var dsc=!!(q.dsc&&nv);
+    return '<div class="rowc'+(nv?' qver':'')+(dsc?' qdsc':'')+'"><div style="flex:1 1 200px;min-width:0"><b>'+esc(qName(q))+(cur?' <span class="hint">(aperto)</span>':'')+'</b> <button type="button" class="chip st-'+qSt(q)+'" data-qst="'+q.id+'" title="Tocca per cambiare stato">'+STL[qSt(q)]+'</button>'+(dsc?' <span class="qver-b qdsc-b">⚠ Da scegliere: '+(nv+1)+' versioni diverse</span>':nv?' <span class="qver-b">'+(nv+1)+' versioni</span>':'')+'<div class="hint">n. '+esc(q.num)+' · '+esc(q.title)+' · '+esc(MODELS[q.model]?MODELS[q.model].short:'')+' · '+esc(dateIt(new Date(q.upd).toISOString().slice(0,10)))+' · '+eur(q.tot)+(q.dvn?' · '+esc(q.dvn):'')+'</div>'+
+      (nv?'<details class="qver-d"'+(dsc?' open':'')+'><summary>'+(dsc?'Scegli quale versione vale':'Altre versioni di questo preventivo ('+nv+')')+'</summary><p class="hint">'+(dsc?'Questo preventivo è stato cambiato su due dispositivi in modo diverso. Non ho sovrascritto niente: guarda il totale e scegli quella giusta. Le altre restano qui sotto, non si perde nulla.':'Lo stesso preventivo era stato cambiato su due dispositivi: qui sopra c\'è quella in uso, queste sono le altre versioni. Nessuna si perde.')+'</p>'+(dsc?'<div class="qver-v qver-cur"><div><b>In uso adesso: '+eur(q.tot||0)+'</b><small>'+esc(q.dvn||'')+' · '+esc(stamp(q.upd||0))+' · '+esc(STL[qSt(q)]||'')+'</small></div><button type="button" class="btn sm" data-qvk="'+q.id+'">Tieni questa</button></div>':'')+q.alt.map(function(v){ return '<div class="qver-v"><div><b>'+(dsc?eur(v.tot||0)+' · ':'')+esc(v.title||qName(q))+'</b><small>'+esc(v.dv||'')+' · '+esc(stamp(v.t))+' · '+eur(v.tot||0)+' · '+esc(STL[v.st]||v.st||'')+'</small></div><button type="button" class="btn sm" data-qvu="'+q.id+':'+v.id+'">Usa questa</button><button type="button" class="btn ghost sm" data-qvx="'+q.id+':'+v.id+'">Togli</button></div>'; }).join('')+'</details>':'')+
       '</div><button type="button" class="btn sm" data-qo="'+q.id+'">Apri</button><button type="button" class="btn ghost sm" data-qc="'+q.id+'">Duplica</button><button type="button" class="btn x" data-qx="'+q.id+'" aria-label="Elimina">×</button></div>';
   }).join('')||'<div class="empty">'+(DB.quotes.length?'Nessun risultato qui. <button type="button" class="btn sm" data-trcerca>Cercalo ovunque</button>':'Nessun preventivo salvato. Premi «Salva preventivo».')+'</div>';
   var C=DB.clients.filter(function(c){ return !fc||lc(c.name+' '+c.addr+' '+c.tel+' '+(c.email||'')+' '+(c.cf||'')).indexOf(fc)>-1; });
@@ -177,6 +183,7 @@ function renderArchivio(){
 }
 function archClick(e){
   var t=e.target, b;
+  if((b=t.closest('[data-qvk]'))) return tieniQuesta(b.getAttribute('data-qvk'));
   if((b=t.closest('[data-qvu]'))){ var a1=b.getAttribute('data-qvu').split(':'); return versioneUsa(a1[0],a1[1]); }
   if((b=t.closest('[data-qvx]'))){ var a2=b.getAttribute('data-qvx').split(':'); return delTwice('qvx'+a2[1],function(){ versioneTogli(a2[0],a2[1]); },b); }
   if((b=t.closest('[data-qo]'))) return openQuote(b.getAttribute('data-qo'));

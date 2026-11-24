@@ -75,7 +75,10 @@ function gdMerge(o){
   (d.clients||[]).forEach(function(c){ rc[lc(c.name)]=c; }); (d.prods||[]).forEach(function(p){ rp[lc(p.name)+'|'+lc(p.code)]=p; }); (d.quotes||[]).forEach(function(q){ rq[q.id]=q; }); (d.arts||[]).forEach(function(a){ ra[a.id]=a; ra[artKey(a)]=a; });
   DB.clients.forEach(function(c){ var r=rc[lc(c.name)]; if(eliminato(c)) return; if(!r||(c.upd||0)>(r.upd||0)) mi.mie++; });
   DB.prods.forEach(function(p){ var r=rp[lc(p.name)+'|'+lc(p.code)]; if(eliminato(p)) return; if(!r||(p.upd||0)>(r.upd||0)||(p.phu||0)>(r.phu||0)) mi.mie++; });
-  DB.quotes.forEach(function(q){ var r=rq[q.id]; if(eliminato(q)) return; if(!r||(q.upd||0)>(r.upd||0)) mi.mie++; else if((q.upd||0)===(r.upd||0)&&(phUnisciQuote(r,q)||(q.alt||[]).some(function(a){ return !(r.alt||[]).some(function(b){ return b.id===a.id; }); }))) mi.mie++; });
+  // com'è ogni preventivo su GitHub PRIMA dell'unione (per sapere dopo se c'è da scrivere); foto più nuove qui → da scrivere
+  var rs={}, fotoQui={};
+  (d.quotes||[]).forEach(function(r){ rs[r.id]={u:r.upd||0,h:qH(r),dsc:r.dsc||0,alt:(r.alt||[]).map(function(a){ return a.id; }).sort().join(',')}; });
+  DB.quotes.forEach(function(q){ var r=rq[q.id]; if(r&&!eliminato(q)&&phUnisciQuote(r,q)) fotoQui[q.id]=1; });
   DB.arts.forEach(function(a){ var r=ra[a.id]||ra[artKey(a)]; if(eliminato(a)) return; if(!r||(a.upd||0)>(r.upd||0)) mi.mie++; });
   if(cestUnisci(d.cest)) mi.mie++;
   // clienti e libreria prodotti: i nuovi si aggiungono; in quelli che ci sono già arriva la versione più recente
@@ -88,13 +91,18 @@ function gdMerge(o){
   (d.quotes||[]).forEach(function(q){
     var ex=DB.quotes.filter(function(x){ return x.id===q.id; })[0];
     if(!ex){ if(!eliminato(q)){ DB.quotes.push(q); mi.nuovi=(mi.nuovi||0)+1; } return; }
-    /* lo stesso preventivo cambiato qui (e non ancora su GitHub) e anche su un altro dispositivo: vince il più
-       recente, l'altra versione NON si perde, resta nell'archivio come copia segnata. «bu» è la versione da cui
-       sono partite le modifiche di qui: se lassù c'è ancora quella, nessun conflitto (non conta l'orologio) */
-    var due=!!qm[ex.id]&&(q.upd||0)!==(ex.bu||0)&&(q.upd||0)!==(ex.upd||0)&&qDiverso(ex,q);
-    if(q.upd>ex.upd){ if(due){ copiaConflitto(ex,q); mi.conf=(mi.conf||0)+1; mi.mie++; } if(versioniUnisci(q,ex)) mi.mie++; delete qm[ex.id]; if(phUnisciQuote(q,ex)) mi.mie++; DB.quotes[DB.quotes.indexOf(ex)]=q; replaced.push(q.id); mi.agg=(mi.agg||0)+1; }
-    else { if(due){ copiaConflitto(q,ex); ex.bu=q.upd; mi.conf=(mi.conf||0)+1; } versioniUnisci(ex,q); if(phUnisciQuote(ex,q)) replaced.push(ex.id); } // la versione di qui resta, ma con le foto più recenti dell'altra
+    /* conta il contenuto, non l'orologio (vedi 22g): arriva quello di GitHub se qui non è cambiato dall'ultima volta,
+       resta quello di qui se su GitHub non è cambiato; se è cambiato da tutte e due le parti resta UN preventivo con
+       dentro tutte e due le versioni, segnato «da scegliere». Nessuna versione sovrascrive l'altra in silenzio. */
+    var u=qUnione(ex,q,qm);
+    if(u.prendi){ if(u.conflitto&&versioneMetti(q,ex,ex.dvn||devNome())){ daScegliere(q); q.upd=Math.max(Date.now(),(ex.upd||0)+1,(q.upd||0)+1); mi.conf=(mi.conf||0)+1; autoLog('conf',{nome:qName(q)}); }
+      versioniUnisci(q,ex); if(ex.dsc&&!q.dsc&&ex.dsc>(q.upd||0)) q.dsc=ex.dsc; /* «da scegliere» segnato qui dopo l'ultima modifica di lassù: resta */ delete qm[ex.id]; phUnisciQuote(q,ex); DB.quotes[DB.quotes.indexOf(ex)]=q; replaced.push(q.id); if(u.conflitto||qH(ex)!==qH(q)) mi.agg=(mi.agg||0)+1; }
+    else { if(u.conflitto&&versioneMetti(ex,q,q.dvn||'un altro dispositivo')){ daScegliere(ex); ex.upd=Math.max(Date.now(),(q.upd||0)+1); mi.conf=(mi.conf||0)+1; autoLog('conf',{nome:qName(ex)}); }
+      versioniUnisci(ex,q); if(phUnisciQuote(ex,q)) replaced.push(ex.id); }
   });
+  // cosa manca o è diverso su GitHub (dopo l'unione): solo allora si scrive
+  DB.quotes.forEach(function(q){ if(eliminato(q)) return; var r=rs[q.id];
+    if(!r||fotoQui[q.id]||(q.upd||0)!==r.u||(q.dsc||0)!==r.dsc||(q.alt||[]).map(function(a){ return a.id; }).sort().join(',')!==r.alt||qH(q)!==r.h) mi.mie++; });
   (d.arts||[]).forEach(function(a){ var ex=DB.arts.filter(function(x){ return x.id===a.id||artKey(x)===artKey(a); })[0]; if(!ex) DB.arts.push(a); else if((a.upd||0)>(ex.upd||0)) DB.arts[DB.arts.indexOf(ex)]=a; });
   DB.arts=DB.arts.filter(function(x){ return !eliminato(x); }).sort(byName);
   mergeByKey('logos',d.logos,function(x){ return iwK(x.name); },del); mergeByKey('parole',d.parole,function(x){ return x.m+'|'+x.k; },del);
@@ -106,7 +114,7 @@ function gdMerge(o){
   var reload=sezUnisci(o,mi,MI!==null);
   if(S.qid&&replaced.indexOf(S.qid)>-1){
     var e=DB.quotes.filter(function(x){ return x.id===S.qid; })[0];
-    if(e){ var dd=JSON.parse(JSON.stringify(e.data)); dd.cat=S.cat; dd.cgroups=S.cgroups; dd.trust=S.trust; dd.profile=S.profile; dd.company=S.company; dd.msgs=S.msgs; dd.ccond=S.ccond; dd.mtpl=S.mtpl; dd.mdef=S.mdef; dd.qid=S.qid; S=normalize(dd); reload=true; }
+    if(e){ edModificheDentro(e); var dd=JSON.parse(JSON.stringify(e.data)); dd.cat=S.cat; dd.cgroups=S.cgroups; dd.trust=S.trust; dd.profile=S.profile; dd.company=S.company; dd.msgs=S.msgs; dd.ccond=S.ccond; dd.mtpl=S.mtpl; dd.mdef=S.mdef; dd.qid=S.qid; S=normalize(dd); reload=true; edFissa(e); }
   } else if(S.qid&&!DB.quotes.some(function(x){ return x.id===S.qid; })){ S.qid=''; }
   if(reload){ S=normalize(S); doSave(); renderAll(); }
   lastSez=sezStampa();
@@ -233,7 +241,7 @@ function ghSync(interactive,tent){
   }).then(function(txt){
     if(!scritto&&remoto) GH.sha=remoto.sha||'';
     if(scritto) qmodPulisci(gen0);
-    sezBase(scritto?BASEO:(remoto&&remoto.o));
+    sezBase(scritto?BASEO:(remoto&&remoto.o)); qBaseFissa(scritto?BASEO:(remoto&&remoto.o));
     GH.etag=''; GH.last=Date.now(); GH.dirty=GH.gen!==gen0; GH.errN=0; GH.prossimo=0; GH.rete=false; GH.errDa=0; GH.errU=''; AUTO.letto=GH.last; ghStore(); dbSave(true);
     try{ coerCalcola(scritto?BASEO:(remoto&&remoto.o)); }catch(x){}
     autoLog(scritto?'su':'giu',mi); renderCest(); if(copiePulisci()) autoProgramma();
